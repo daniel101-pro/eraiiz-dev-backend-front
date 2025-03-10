@@ -1,5 +1,4 @@
 import React from "react";
-import Navbar from "./components/Navbar";
 import Image from "next/image";
 import GridComponent from "./components/GridComponent";
 import PlasticMadeProducts from "./components/PlasticMadeProducts";

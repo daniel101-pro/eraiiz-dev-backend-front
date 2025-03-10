@@ -10,7 +10,6 @@ const Opposite = () => {
   const sectionRef = useRef(null);
   const largeImageRef = useRef(null);
   const smallImageRefs = useRef<(HTMLImageElement | null)[]>([]);
-  const cardRefs = useRef([]);
 
   useEffect(() => {
     const context = gsap.context(() => {
