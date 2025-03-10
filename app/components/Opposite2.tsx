@@ -9,10 +9,11 @@ gsap.registerPlugin(ScrollTrigger, Draggable);
 const Opposite2 = () => {
   const sectionRef = useRef(null);
   const largeImageRef = useRef(null);
-  const smallImageRefs = useRef<(HTMLImageElement | null)[]>([]);
-  const cardRefs = useRef([]);
+  const smallImageRefs = useRef([]); // Resetting refs for small images
 
   useEffect(() => {
+    smallImageRefs.current = []; // Clear previous refs
+
     const context = gsap.context(() => {
 
       // Large Image Animation
@@ -111,10 +112,10 @@ const Opposite2 = () => {
             />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
-            {['/side1.png', '/slide2.png'].map((src, index) => (
+            {["/side1.png", "/slide2.png"].map((src, index) => (
               <div key={index} className="h-[290px] flex justify-center">
                 <img
-                  ref={(el) => { smallImageRefs.current[index] = el; }}
+                  ref={(el) => smallImageRefs.current[index] = el}
                   src={src}
                   alt={`Plastic Shoe ${index + 2}`}
                   className="w-full h-full object-cover rounded-2xl"
