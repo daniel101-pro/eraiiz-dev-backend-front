@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useEffect } from "react";
+import React from "react"; // Removed useState and useEffect since they are unused
 import Image from "next/image";
 
 const Footer = () => {
