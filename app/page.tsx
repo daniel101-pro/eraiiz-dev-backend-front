@@ -85,8 +85,7 @@ const page = () => {
                 Access to a network of top-picked sustainable choices
               </h2>
               <p className="text-gray-500">
-                We pre-vet all products available on Empower Match to ensure
-                that they are sustainably sourced and made.
+              We pre-vet all products available on Eraiiz to ensure that they are sustainably sourced and made.
               </p>
             </div>
 
@@ -96,8 +95,7 @@ const page = () => {
                 Easy navigation process
               </h2>
               <p className="text-gray-500">
-                Our platform is organized with you in mind. From product sorting
-                to checkout, we&apos;ve got you covered.
+              Our platform is organized with you in mind, hence, you don't have to go through any hassle, from product sorting to checking out, we've got you covered.
               </p>
             </div>
 
@@ -107,8 +105,7 @@ const page = () => {
                 Data-driven approach
               </h2>
               <p className="text-gray-500">
-                We leverage data that is meticulously researched to connect you
-                with the best sustainable brands you need.
+              We leverage data that are meticulously researched and work with experts to connect you with the best sustainable brand you need.
               </p>
             </div>
 
