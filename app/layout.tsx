@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/images/eraiiz-banner.jpg",
+        url: "/public/logo.png",
         width: 1200,
         height: 630,
         alt: "Eraiiz - Global Sustainable Shopping Platform",
