@@ -20,10 +20,10 @@ const page = () => {
             width={300}
             height={2}
             alt="oneone"
-            className="mt-20 sm:mt-32"
+            className="mt-40 sm:mt-32"
           />
         </div>
-        <div className="h-full w-full flex flex-col justify-center text-center -mt-20 sm:-mt-[250px] px-4 sm:px-6">
+        <div className="h-full w-full flex flex-col justify-center text-center -mt-56 sm:-mt-[250px] px-4 sm:px-6">
           <h1 className="text-black text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-medium mt-2 sm:mt-4 md:mt-6 leading-snug md:leading-relaxed text-center">
             Erase Waste By Shopping Quality Recycled{" "}
             <br className="hidden md:block" />
