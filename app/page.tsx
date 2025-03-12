@@ -110,14 +110,14 @@ const page = () => {
             </div>
 
             {/* Card 4 */}
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 h-[250px] flex flex-col justify-between">
-              <p className="text-gray-500 mt-10">
-                Sign Up &amp; Take your first step with Eraiiz to erase waste
-              </p>
-              <button className="bg-[#008C00] text-white font-semibold py-2 px-4 rounded-lg mt-4">
-                Create your account
-              </button>
-            </div>
+<div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 h-[250px] flex flex-col justify-between">
+  <p className="text-gray-500 mt-10">
+    Sign Up &amp; Take your first step with Eraiiz to erase waste
+  </p>
+  <button className="bg-[#008C00] text-white font-semibold py-2 px-4 rounded-lg mt-4">
+    Create your account
+  </button>
+</div>
           </div>
           <Opposite />
           <PlasticMadeProducts />
