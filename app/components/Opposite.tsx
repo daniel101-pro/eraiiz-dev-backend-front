@@ -135,7 +135,7 @@ const Opposite = () => {
             </div>
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col justify-between h-[290px]">
               <div>
-                <h2 className="font-bold text-xl mb-2">Plastics</h2>
+                <h2 className="font-bold text-black text-xl mb-2">Plastics</h2>
                 <p className="text-gray-500 text-sm">
                   From durable home essentials to stylish accessories, each piece showcases sustainability.
                 </p>
