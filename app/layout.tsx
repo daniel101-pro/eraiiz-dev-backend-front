@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Onest } from "next/font/google"; 
+import { Onest } from "next/font/google";
 import "./globals.css";
 import Navbar from "./components/Navbar";
 
@@ -7,13 +7,14 @@ import Navbar from "./components/Navbar";
 const onest = Onest({
   variable: "--font-onest",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"], // Adjust weights as needed
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
 export const metadata: Metadata = {
   title: "Eraiiz - Shop Sustainable, Live Responsible",
-  description: "Eraiiz is a global online marketplace dedicated to sustainable living. Discover and shop eco-friendly, ethically-made products from around the world. Join the Eraiiz movement and make a positive impact on the planet, one purchase at a time.",
+  description:
+    "Eraiiz is the ultimate global platform for eco-friendly shopping. Discover ethically-made products that promote sustainable living. Join the Eraiiz movement to make a positive impact on the planet, one responsible purchase at a time.",
   keywords: [
     "Eraiiz",
     "Sustainable Shopping",
@@ -24,16 +25,21 @@ export const metadata: Metadata = {
     "Eco-Conscious Shopping",
     "Global Sustainability",
     "Sustainable Living",
-    "Eco-Friendly Marketplace",
+    "Zero Waste",
+    "Fair Trade Products",
+    "Green Living",
+    "Climate Conscious Shopping",
+    "Sustainable Lifestyle",
   ],
   openGraph: {
     title: "Eraiiz - Shop Sustainable, Live Responsible",
-    description: "Join Eraiiz, the global platform for eco-conscious shopping. Discover sustainable, ethically-made products designed to protect our planet. Shop responsibly and create a greener future.",
+    description:
+      "Join Eraiiz, the global platform for eco-conscious shopping. Discover sustainable, ethically-made products designed to protect our planet. Shop responsibly and create a greener future.",
     url: "https://www.eraiiz.com",
     type: "website",
     images: [
       {
-        url: "/public/logo.png",
+        url: "/logo.png",
         width: 1200,
         height: 630,
         alt: "Eraiiz - Global Sustainable Shopping Platform",
@@ -43,8 +49,12 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Eraiiz - Shop Sustainable, Live Responsible",
-    description: "Discover eco-friendly, ethically-made products from around the world. Eraiiz is your destination for sustainable shopping.",
+    description:
+      "Discover eco-friendly, ethically-made products from around the world. Eraiiz is your destination for sustainable shopping.",
     images: ["/images/eraiiz-banner.jpg"],
+  },
+  icons: {
+    icon: "/favicon.ico",
   },
   robots: {
     index: true,
@@ -60,9 +70,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${onest.variable} antialiased`} // Apply Onest font here
-      >
+      <head>
+        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+      </head>
+      <body className={`${onest.variable} antialiased`}>
         <div className="relative z-10">
           <Navbar />
         </div>
