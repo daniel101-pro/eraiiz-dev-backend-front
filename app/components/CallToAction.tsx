@@ -38,7 +38,15 @@ const CallToAction = () => {
             layout="intrinsic" 
             width={1000} 
             height={800} 
-            className="rounded-tl-2xl mt-30 "
+            className="rounded-tl-2xl mt-30 hidden md:block"
+          />
+          <Image 
+            src="/cta-mobile.png" 
+            alt="CTA Mobile Image" 
+            layout="intrinsic" 
+            width={500} 
+            height={400} 
+            className="rounded-tl-2xl block md:hidden mt-10"
           />
         </div>
       </div>

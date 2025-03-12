@@ -10,40 +10,42 @@ import CallToAction from "./components/CallToAction";
 const page = () => {
   return (
     <>
-      
       <div
-        className="h-screen bg-contain bg-center"
+        className="h-screen bg-no-repeat bg-top bg-contain"
         style={{ backgroundImage: "url('/Hero.png')" }}
       >
         <div className="flex justify-center">
-          <Image
-            src="/oneone.png"
-            width={300}
-            height={20}
-            alt="oneone"
-            className="mt-32"
-          />
-        </div>
-        <div className="h-full w-full flex flex-col justify-center text-center -mt-[330px] ">
-          <h1 className="text-black text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-medium mt-4 sm:mt-6 md:mt-8 leading-snug md:leading-relaxed text-center">
-            Erase Waste By Shopping Quality Recycled{" "}
-            <br className="hidden md:block" />
-            Products From Eraiiz.
-          </h1>
+  <Image
+    src="/oneone.png"
+    width={300}
+    height={2}
+    alt="oneone"
+    className="mt-20 sm:mt-32"
+  />
+</div>
+<div className="h-full w-full flex flex-col justify-center text-center -mt-20 sm:-mt-[250px] px-4 sm:px-6">
+  <h1 className="text-black text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-medium mt-2 sm:mt-4 md:mt-6 leading-snug md:leading-relaxed text-center">
+    Erase Waste By Shopping Quality Recycled{" "}
+    <br className="hidden md:block" />
+    Products From Eraiiz.
+  </h1>
 
-          <p className="text-black text-center font-light mt-6">
-            Shop sustainably with Eraiiz and discover how waste can be <br />{" "}
-            transformed to wealth while keeping the planet safe.
-          </p>
-          <div className="flex flex-row gap-4 justify-center">
-            <button className="bg-[#008C00] text-white px-8 py-2 mt-8 rounded-lg">
-              Shop Now
-            </button>
-            <button className="bg-[#F8F8F8] text-black px-8 py-2 mt-8 rounded-lg border-solid border-2 border-[#D1D1D1]">
-              Shop Now
-            </button>
-          </div>
-        </div>
+  <p className="text-black text-center font-light mt-2 sm:mt-4">
+    Shop sustainably with Eraiiz and discover how waste can be transformed to wealth{" "}
+    <br className="hidden sm:block" />
+    while keeping the planet safe.
+  </p>
+
+  <div className="flex flex-row gap-4 justify-center mt-4 sm:mt-6">
+    <button className="bg-[#008C00] text-white py-2 px-6 rounded-lg">
+      Shop Now
+    </button>
+    <button className="bg-[#F8F8F8] text-black py-2 px-6 rounded-lg border border-[#D1D1D1]">
+      Shop Now
+    </button>
+  </div>
+</div>
+
         <GridComponent />
         <div className="max-w-7xl mx-auto p-6 grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
           {/* Left Side: Heading */}
