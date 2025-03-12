@@ -15,36 +15,36 @@ const page = () => {
         style={{ backgroundImage: "url('/Hero.png')" }}
       >
         <div className="flex justify-center">
-  <Image
-    src="/oneone.png"
-    width={300}
-    height={2}
-    alt="oneone"
-    className="mt-20 sm:mt-32"
-  />
-</div>
-<div className="h-full w-full flex flex-col justify-center text-center -mt-20 sm:-mt-[250px] px-4 sm:px-6">
-  <h1 className="text-black text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-medium mt-2 sm:mt-4 md:mt-6 leading-snug md:leading-relaxed text-center">
-    Erase Waste By Shopping Quality Recycled{" "}
-    <br className="hidden md:block" />
-    Products From Eraiiz.
-  </h1>
+          <Image
+            src="/oneone.png"
+            width={300}
+            height={2}
+            alt="oneone"
+            className="mt-20 sm:mt-32"
+          />
+        </div>
+        <div className="h-full w-full flex flex-col justify-center text-center -mt-20 sm:-mt-[250px] px-4 sm:px-6">
+          <h1 className="text-black text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-medium mt-2 sm:mt-4 md:mt-6 leading-snug md:leading-relaxed text-center">
+            Erase Waste By Shopping Quality Recycled{" "}
+            <br className="hidden md:block" />
+            Products From Eraiiz.
+          </h1>
 
-  <p className="text-black text-center font-light mt-2 sm:mt-4">
-    Shop sustainably with Eraiiz and discover how waste can be transformed to wealth{" "}
-    <br className="hidden sm:block" />
-    while keeping the planet safe.
-  </p>
+          <p className="text-black text-center font-light mt-2 sm:mt-4">
+            Shop sustainably with Eraiiz and discover how waste can be
+            transformed to wealth <br className="hidden sm:block" />
+            while keeping the planet safe.
+          </p>
 
-  <div className="flex flex-row gap-4 justify-center mt-4 sm:mt-6">
-    <button className="bg-[#008C00] text-white py-2 px-6 rounded-lg">
-      Shop Now
-    </button>
-    <button className="bg-[#F8F8F8] text-black py-2 px-6 rounded-lg border border-[#D1D1D1]">
-      Shop Now
-    </button>
-  </div>
-</div>
+          <div className="flex flex-row gap-4 justify-center mt-4 sm:mt-6">
+            <button className="bg-[#008C00] text-white py-2 px-6 rounded-lg">
+              Shop Now
+            </button>
+            <button className="bg-[#F8F8F8] text-black py-2 px-6 rounded-lg border border-[#D1D1D1]">
+              Shop Now
+            </button>
+          </div>
+        </div>
 
         <GridComponent />
         <div className="max-w-7xl mx-auto p-6 grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
@@ -85,7 +85,8 @@ const page = () => {
                 Access to a network of top-picked sustainable choices
               </h2>
               <p className="text-gray-500">
-              We pre-vet all products available on Eraiiz to ensure that they are sustainably sourced and made.
+                We pre-vet all products available on Eraiiz to ensure that they
+                are sustainably sourced and made.
               </p>
             </div>
 
@@ -95,7 +96,9 @@ const page = () => {
                 Easy navigation process
               </h2>
               <p className="text-gray-500">
-              Our platform is organized with you in mind, hence, you don't have to go through any hassle, from product sorting to checking out, we've got you covered.
+                Our platform is organized with you in mind, hence, you don't
+                have to go through any hassle, from product sorting to checking
+                out, we've got you covered.
               </p>
             </div>
 
@@ -105,19 +108,20 @@ const page = () => {
                 Data-driven approach
               </h2>
               <p className="text-gray-500">
-              We leverage data that are meticulously researched and work with experts to connect you with the best sustainable brand you need.
+                We leverage data that are meticulously researched and work with
+                experts to connect you with the best sustainable brand you need.
               </p>
             </div>
 
             {/* Card 4 */}
-<div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 h-[250px] flex flex-col justify-between">
-  <p className="text-gray-500 mt-10">
-    Sign Up &amp; Take your first step with Eraiiz to erase waste
-  </p>
-  <button className="bg-[#008C00] text-white font-semibold py-2 px-4 rounded-lg mt-4">
-    Create your account
-  </button>
-</div>
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 h-[250px] flex flex-col justify-between">
+              <p className="text-gray-500 mt-10">
+                Sign Up Take your first step with Eraiiz to erase waste
+              </p>
+              <button className="bg-[#008C00] text-white font-semibold py-2 px-4 rounded-lg mt-4">
+                Create your account
+              </button>
+            </div>
           </div>
           <Opposite />
           <PlasticMadeProducts />
