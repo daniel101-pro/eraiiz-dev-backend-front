@@ -48,7 +48,7 @@ const GridComponent = () => {
         >
           <div 
             className="bg-black/50 p-2 rounded w-full text-center"
-            ref={el => textRefs.current[index] = el}
+            ref={el => { textRefs.current[index] = el; }}
           >
             <p className="text-sm font-bold">{item.text}</p>
           </div>
