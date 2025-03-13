@@ -48,18 +48,29 @@ const Navbar = () => {
               "How to watch?",
               "Products",
               "FAQs",
-              "Contact Support",
             ].map((item, index) => (
               <Link key={index} href="/">
-                <span className="hover:text-gray-300 font-bold">{item}</span>
+                <span className="relative group font-bold transition-colors text-black hover:text-green-600">
+                  {item}
+                  <span className="block h-[2px] w-0 bg-green-600 group-hover:w-full transition-all duration-300"></span>
+                </span>
               </Link>
             ))}
+            
+            {/* Contact Support Link */}
+            <a
+              href="mailto:eraiizinfo@gmail.com"
+              className="relative group text-green-600 font-bold transition-colors hover:text-black"
+            >
+              Contact Support
+              <span className="block h-[2px] w-0 bg-black group-hover:w-full transition-all duration-300"></span>
+            </a>
           </div>
 
           {/* Sign Up Button (Desktop) */}
           <Link
-            href="/joinWaitlistPage" // or your desired path
-            className="hidden md:flex items-center px-6 py-2 rounded-lg text-green-500 font-bold border border-green-500"
+            href="/joinWaitlistPage"
+            className="hidden md:flex items-center px-6 py-2 rounded-lg text-green-500 font-bold border border-green-500 transition-colors hover:bg-green-500 hover:text-white"
           >
             Sign Up Now
           </Link>
@@ -88,12 +99,23 @@ const Navbar = () => {
               "How to watch?",
               "Products",
               "FAQs",
-              "Contact Support",
             ].map((item, index) => (
-              <Link key={index} href="/" className="hover:text-gray-400">
-                {item}
+              <Link key={index} href="/" className="relative group">
+                <span className="transition-colors text-black hover:text-green-600">
+                  {item}
+                  <span className="block h-[2px] w-0 bg-green-600 group-hover:w-full transition-all duration-300"></span>
+                </span>
               </Link>
             ))}
+
+            {/* Contact Support Link */}
+            <a
+              href="mailto:eraiizinfo@gmail.com"
+              className="relative group text-green-600 transition-colors hover:text-black"
+            >
+              eraiizinfo@gmail.com
+              <span className="block h-[2px] w-0 bg-black group-hover:w-full transition-all duration-300"></span>
+            </a>
           </div>
 
           {/* Logo at Bottom */}
