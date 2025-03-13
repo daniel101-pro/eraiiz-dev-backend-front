@@ -9,15 +9,15 @@ const GridComponent = () => {
   ];
 
   return (
-    <div className="max-w-[1500px] mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 rounded-md -mt-36">
+    <div className="max-w-[1500px] mx-auto grid grid-cols-2 gap-4 p-4 rounded-md -mt-64 md:grid-cols-2 lg:grid-cols-4">
       {items.map((item) => (
         <div 
           key={item.id} 
           className="relative h-64 bg-cover bg-center text-white flex items-end p-4 rounded-md"
           style={{ backgroundImage: `url(${item.image})` }}
         >
-          <div className="bg-black/50 p-2 rounded">
-            <p className="text-sm">{item.text}</p>
+          <div className="bg-black/50 p-2 rounded w-full text-center">
+            <p className="text-sm font-bold">{item.text}</p>
           </div>
         </div>
       ))}

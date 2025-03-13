@@ -1,5 +1,8 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import gsap from "gsap";
 import GridComponent from "./components/GridComponent";
 import PlasticMadeProducts from "./components/PlasticMadeProducts";
 import Opposite from "./components/Opposite";
@@ -8,11 +11,74 @@ import Footer from "./components/Footer";
 import CallToAction from "./components/CallToAction";
 
 const page = () => {
+  const textRef = useRef<HTMLHeadingElement>(null);
+  const [backgroundImage, setBackgroundImage] = useState("/Hero.png");
+
+  useEffect(() => {
+    // Check screen size to determine which background image to use
+    const handleResize = () => {
+      if (window.innerWidth <= 768) {
+        setBackgroundImage("/Hero2.png"); // For mobile devices
+      } else {
+        setBackgroundImage("/Hero.png"); // For larger screens
+      }
+    };
+
+    // Initial check
+    handleResize();
+
+    // Listen for window resize
+    window.addEventListener("resize", handleResize);
+
+    // Clean up event listener on unmount
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    const mainText = "Erase Waste By Shopping Quality Recycled";
+    const synonyms = [
+      "Products",
+      "Items",
+      "Materials",
+      "Goods",
+      "Supplies",
+      "Resources",
+      "Commodities",
+      "Merchandise",
+      "Essentials",
+      "Assets",
+    ];
+    let currentText = "";
+    let index = 0;
+    let synonymIndex = 0;
+
+    const typeWriterAnimation = () => {
+      if (index < mainText.length) {
+        currentText += mainText[index];
+        if (textRef.current) textRef.current.innerHTML = currentText;
+        index++;
+        setTimeout(typeWriterAnimation, 30);
+      } else {
+        changeSynonym();
+      }
+    };
+
+    const changeSynonym = () => {
+      if (textRef.current) {
+        textRef.current.innerHTML = `${mainText} ${synonyms[synonymIndex]}.`;
+      }
+      synonymIndex = (synonymIndex + 1) % synonyms.length;
+      setTimeout(changeSynonym, 1000);
+    };
+
+    typeWriterAnimation();
+  }, []);
+
   return (
     <>
       <div
         className="h-screen bg-no-repeat bg-top bg-contain"
-        style={{ backgroundImage: "url('/Hero.png')" }}
+        style={{ backgroundImage: `url('${backgroundImage}')` }}
       >
         <div className="flex justify-center">
           <Image
@@ -20,35 +86,33 @@ const page = () => {
             width={300}
             height={2}
             alt="oneone"
-            className="mt-40 sm:mt-32"
+            className="mt-56 sm:mt-32"
           />
         </div>
-        <div className="h-full w-full flex flex-col justify-center text-center -mt-56 sm:-mt-[250px] px-4 sm:px-6">
-          <h1 className="text-black text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-medium mt-2 sm:mt-4 md:mt-6 leading-snug md:leading-relaxed text-center">
-            Erase Waste By Shopping Quality Recycled{" "}
-            <br className="hidden md:block" />
-            Products From Eraiiz.
-          </h1>
+        <div className="h-full w-full flex flex-col justify-center text-center -mt-96 sm:-mt-[250px] px-4 sm:px-6">
+          <h1
+            ref={textRef}
+            className="text-black text-4xl sm:text-4xl md:text-5xl lg:text-6xl font-medium mt-10 sm:mt-4 md:mt-6 leading-snug md:leading-relaxed text-center"
+          ></h1>
 
-          <p className="text-black text-center font-light mt-2 sm:mt-4">
+          <p className="text-gray-500 text-center font-light mt-2 sm:mt-4 mb-10">
             Shop sustainably with Eraiiz and discover how waste can be transformed to wealth{" "}
             <br className="hidden sm:block" />
             while keeping the planet safe.
           </p>
 
-          <div className="flex flex-row gap-4 justify-center mt-4 sm:mt-6">
-            <button className="bg-[#008C00] text-white py-2 px-6 rounded-lg">
-              Shop Now
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mt-4 sm:mt-6 sm:space-x-4 px-6">
+            <button className="bg-[#008C00] text-white py-3 px-8 rounded-lg w-full sm:w-auto transition-transform duration-300 hover:scale-105">
+              Create your account
             </button>
-            <button className="bg-[#F8F8F8] text-black py-2 px-6 rounded-lg border border-[#D1D1D1]">
-              Shop Now
+            <button className="bg-[#FFFFFF] text-black py-3 px-8 rounded-lg w-full sm:w-auto border border-[#D1D1D1] transition-transform duration-300 hover:scale-105">
+              Start shopping
             </button>
           </div>
         </div>
 
         <GridComponent />
         <div className="max-w-7xl mx-auto p-6 grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
-          {/* Left Side: Heading */}
           <div>
             <h2 className="text-[45px] font-medium text-gray-900 leading-snug mt-10">
               Connecting Consumers with Sustainable Brands to Reduce{" "}
@@ -56,7 +120,6 @@ const page = () => {
             </h2>
           </div>
 
-          {/* Right Side: Paragraph + Button */}
           <div className="mt-16 md:mt-80">
             <p className="text-gray-700 mb-6">
               With a small team of passionate individuals, Eraiiz is focused on
@@ -66,21 +129,18 @@ const page = () => {
               the whole supply chain.
             </p>
 
-            <button className="px-6 py-2 bg-[#008C00] text-white rounded-md hover:bg-black hover:text-white">
+            <button className="px-6 py-2 bg-[#008C00] text-white rounded-md hover:bg-black hover:text-white transition-transform duration-300 hover:scale-105">
               Start Shopping
             </button>
           </div>
         </div>
         <div className="w-full flex flex-col items-center mt-20 mb-20">
-          {/* Heading */}
           <h1 className="text-3xl font-medium text-center mb-6 text-black">
             Why Eraiiz?
           </h1>
 
-          {/* Grid Container */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-[950px] p-5">
-            {/* Card 1 */}
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 h-[250px]">
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 h-[250px] transition-transform duration-300 hover:scale-105">
               <h2 className="font-light text-xl mb-10 text-black">
                 Access to a network of top-picked sustainable choices
               </h2>
@@ -88,9 +148,7 @@ const page = () => {
                 We pre-vet all products available on Eraiiz to ensure that they are sustainably sourced and made.
               </p>
             </div>
-
-            {/* Card 2 */}
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 h-[250px]">
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 h-[250px] transition-transform duration-300 hover:scale-105">
               <h2 className="font-light text-black text-xl mb-10">
                 Easy navigation process
               </h2>
@@ -98,9 +156,7 @@ const page = () => {
                 Our platform is organized with you in mind, hence, you don&apos;t have to go through any hassle, from product sorting to checking out, we&apos;ve got you covered.
               </p>
             </div>
-
-            {/* Card 3 */}
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 h-[250px]">
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 h-[250px] transition-transform duration-300 hover:scale-105">
               <h2 className="font-light text-black text-xl mb-10">
                 Data-driven approach
               </h2>
@@ -108,9 +164,7 @@ const page = () => {
                 We leverage data that are meticulously researched and work with experts to connect you with the best sustainable brand you need.
               </p>
             </div>
-
-            {/* Card 4 */}
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 h-[250px] flex flex-col justify-between">
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 h-[250px] flex flex-col justify-between transition-transform duration-300 hover:scale-105">
               <p className="text-gray-500 mt-10">
                 Sign Up &amp; Take your first step with Eraiiz to erase waste
               </p>
