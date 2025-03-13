@@ -15,7 +15,7 @@ const GridComponent = () => {
   ];
 
   useEffect(() => {
-    // Loop through each ref and animate from bottom up when scrolled into view
+    // Animate each text overlay with intro animation then continuous up/down movement
     textRefs.current.forEach((ref) => {
       if (ref) {
         gsap.fromTo(
@@ -31,6 +31,17 @@ const GridComponent = () => {
               start: 'top 90%',
               toggleActions: 'play none none none',
             },
+            onComplete: () => {
+              // Once the intro finishes, start an infinite up/down animation with a slight delay
+              gsap.to(ref, {
+                y: '-=10',
+                duration: 0.5,
+                repeat: -1,
+                yoyo: true,
+                ease: 'power1.inOut',
+                delay: 0.5,
+              });
+            }
           }
         );
       }
@@ -47,9 +58,7 @@ const GridComponent = () => {
         >
           <div 
             className="bg-black/50 p-2 rounded w-full text-center"
-            ref={el => {
-              textRefs.current[index] = el;
-            }}
+            ref={el => { textRefs.current[index] = el; }}
           >
             <p className="text-sm font-bold">{item.text}</p>
           </div>
