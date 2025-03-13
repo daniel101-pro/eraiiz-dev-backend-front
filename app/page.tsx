@@ -2,7 +2,8 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import gsap from "gsap";
+// Removed unused gsap import
+// import gsap from "gsap";
 import GridComponent from "./components/GridComponent";
 import PlasticMadeProducts from "./components/PlasticMadeProducts";
 import Opposite from "./components/Opposite";
@@ -10,7 +11,7 @@ import Opposite2 from "./components/Opposite2";
 import Footer from "./components/Footer";
 import CallToAction from "./components/CallToAction";
 
-const page = () => {
+const Page = () => {
   const textRef = useRef<HTMLHeadingElement>(null);
   const [backgroundImage, setBackgroundImage] = useState("/Hero.png");
 
@@ -184,4 +185,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default Page;
