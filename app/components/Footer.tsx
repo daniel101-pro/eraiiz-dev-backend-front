@@ -1,5 +1,5 @@
-"use client"
-import React from "react"; // Removed useState and useEffect since they are unused
+"use client";
+import React from "react";
 import Image from "next/image";
 
 const Footer = () => {
@@ -40,14 +40,23 @@ const Footer = () => {
                   placeholder="Your email address"
                   className="py-2 px-4 focus:outline-none w-full text-black text-sm md:text-base"
                 />
-                <button className="bg-green-600 text-white py-2 px-4 text-sm md:text-base">Subscribe</button>
+                <button className="bg-green-600 text-white py-2 px-4 text-sm md:text-base">
+                  Subscribe
+                </button>
               </div>
             </div>
           </div>
         </div>
       </div>
       <div className="mt-10 text-center md:text-right text-gray-600 text-sm md:text-base pr-6 md:pr-20">
-        Contact Us: <a href="mailto:eraiizinfo@gmail.com" className="text-green-600">eraiizinfo@gmail.com</a>
+        Contact Us:{" "}
+        <a href="mailto:eraiizinfo@gmail.com" className="text-green-600">
+          eraiizinfo@gmail.com
+        </a>
+      </div>
+      {/* New section below */}
+      <div className="mt-4 text-center text-gray-600 text-sm md:text-base">
+        This website was made with love by daniel falodun.
       </div>
     </footer>
   );
