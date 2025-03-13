@@ -56,7 +56,7 @@ const Footer = () => {
       </div>
       {/* New section below */}
       <div className="mt-4 text-center text-gray-600 text-sm md:text-base">
-        This website was made with love by daniel falodun.
+        This website was made with love by Daniel Falodun.
       </div>
     </footer>
   );
