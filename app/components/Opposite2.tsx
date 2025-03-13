@@ -1,19 +1,18 @@
-"use client"
-import React, { useRef } from "react";
+"use client";
+import React, { useEffect, useRef } from "react";
 import { gsap } from "gsap";
-import { ScrollTrigger, Draggable } from "gsap/all";
+import { ScrollTrigger } from "gsap/all";
 
 // Register GSAP plugins
-gsap.registerPlugin(ScrollTrigger, Draggable);
+gsap.registerPlugin(ScrollTrigger);
 
 const Opposite = () => {
   const sectionRef = useRef(null);
   const largeImageRef = useRef(null);
   const smallImageRefs = useRef<(HTMLImageElement | null)[]>([]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const context = gsap.context(() => {
-
       // Large Image Animation
       if (largeImageRef.current) {
         gsap.fromTo(
@@ -33,7 +32,7 @@ const Opposite = () => {
         );
       }
 
-      // Small Images Animation
+      // Small Images Animation (no draggable or hover effects)
       smallImageRefs.current.forEach((img, index) => {
         if (img) {
           gsap.fromTo(
@@ -51,46 +50,8 @@ const Opposite = () => {
               },
             }
           );
-
-          // Apply Hover and Draggable Effect
-          img.addEventListener('mousemove', (e) => {
-            const rect = img.getBoundingClientRect();
-            const x = e.clientX - rect.left - rect.width / 2;
-            const y = e.clientY - rect.top - rect.height / 2;
-
-            gsap.to(img, {
-              scale: 1.1,
-              rotateX: -y / 20,
-              rotateY: x / 20,
-              duration: 0.2,
-            });
-          });
-
-          img.addEventListener('mouseleave', () => {
-            gsap.to(img, {
-              scale: 1,
-              rotateX: 0,
-              rotateY: 0,
-              duration: 0.5,
-            });
-          });
-
-          Draggable.create(img, {
-            type: "x,y",
-            inertia: true,
-            onRelease: () => {
-              gsap.to(img, {
-                x: 0,
-                y: 0,
-                rotate: 0,
-                duration: 1.2,
-                ease: "elastic.out(1, 0.4)"
-              });
-            },
-          });
         }
       });
-
     }, sectionRef);
 
     return () => context.revert();
@@ -112,10 +73,12 @@ const Opposite = () => {
             />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
-            {['/side1.png', '/slide2.png'].map((src, index) => (
+            {["/side1.png", "/slide2.png"].map((src, index) => (
               <div key={index} className="h-[290px] flex justify-center">
                 <img
-                  ref={(el) => { smallImageRefs.current[index] = el; }}
+                  ref={(el) => {
+                    smallImageRefs.current[index] = el;
+                  }}
                   src={src}
                   alt={`Plastic Shoe ${index + 2}`}
                   className="w-full h-full object-cover rounded-2xl"

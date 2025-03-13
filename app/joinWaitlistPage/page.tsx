@@ -1,21 +1,27 @@
 "use client";
 import React from "react";
-
+import Image from "next/image";
 
 export default function JoinWaitlistPage() {
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center px-4 py-8">
-      {/* Top Nav (Brand + Language Switcher) */}
+      {/* Top Nav (Logo + Language Switcher) */}
       <nav className="w-full max-w-sm mx-auto flex items-center justify-between mb-6">
-        {/* Replace with your logo */}
-        <div className="text-2xl font-bold text-green-700">Eraiiz</div>
-        
-        {/* Replace with your country icon or dropdown */}
+        {/* Logo Image */}
+        <div className="flex items-center">
+          <Image
+            src="/logo.png"
+            alt="Eraiiz Logo"
+            width={120}
+            height={40}
+            className="object-contain"
+          />
+        </div>
+        {/* Country Switcher */}
         <div className="flex items-center space-x-2">
           <span className="text-sm font-medium">NG</span>
-          {/* Example flag icon or image 
-          <Image src="/ng-flag.png" alt="NG Flag" width={24} height={16} />
-          */}
+          {/* Optionally insert a flag image here */}
+          {/* <Image src="/ng-flag.png" alt="NG Flag" width={24} height={16} /> */}
         </div>
       </nav>
 
@@ -26,8 +32,7 @@ export default function JoinWaitlistPage() {
           Welcome to Eraiiz
         </h1>
         <p className="text-gray-500 text-sm mb-6">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit,
-          sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+          Join our exclusive waitlist for early access to innovative sustainable solutions and products designed to transform your lifestyle while saving our planet.
         </p>
 
         {/* Join Waitlist with Google */}

@@ -1,10 +1,10 @@
 "use client";
 import React, { useEffect, useRef } from "react";
 import { gsap } from "gsap";
-import { ScrollTrigger, Draggable } from "gsap/all";
+import { ScrollTrigger } from "gsap/all";
 
-// Register GSAP plugins
-gsap.registerPlugin(ScrollTrigger, Draggable);
+// Register GSAP plugin
+gsap.registerPlugin(ScrollTrigger);
 
 const Opposite = () => {
   const sectionRef = useRef(null);
@@ -13,82 +13,45 @@ const Opposite = () => {
 
   useEffect(() => {
     const context = gsap.context(() => {
-
       // Large Image Animation
-      gsap.fromTo(
-        largeImageRef.current,
-        { opacity: 0, scale: 0.8 },
-        {
-          opacity: 1,
-          scale: 1,
-          duration: 1.5,
-          scrollTrigger: {
-            trigger: largeImageRef.current,
-            start: "top 80%",
-            end: "top 20%",
-            scrub: true,
-          },
-        }
-      );
-
-      // Small Images Animation
-      smallImageRefs.current.forEach((img, index) => {
+      if (largeImageRef.current) {
         gsap.fromTo(
-          img,
-          { x: index % 2 === 0 ? -100 : 100, opacity: 0 },
+          largeImageRef.current,
+          { opacity: 0, scale: 0.8 },
           {
-            x: 0,
             opacity: 1,
+            scale: 1,
             duration: 1.5,
             scrollTrigger: {
-              trigger: img,
-              start: "top 90%",
-              end: "top 50%",
+              trigger: largeImageRef.current,
+              start: "top 80%",
+              end: "top 20%",
               scrub: true,
             },
           }
         );
+      }
 
-        // Apply Hover and Draggable Effect
+      // Small Images Animation (no draggable/hover effects)
+      smallImageRefs.current.forEach((img, index) => {
         if (img) {
-          img.addEventListener('mousemove', (e) => {
-            const rect = img.getBoundingClientRect();
-            const x = e.clientX - rect.left - rect.width / 2;
-            const y = e.clientY - rect.top - rect.height / 2;
-
-            gsap.to(img, {
-              scale: 1.1,
-              rotateX: -y / 20,
-              rotateY: x / 20,
-              duration: 0.2,
-            });
-          });
-
-          img.addEventListener('mouseleave', () => {
-            gsap.to(img, {
-              scale: 1,
-              rotateX: 0,
-              rotateY: 0,
-              duration: 0.5,
-            });
-          });
-
-          Draggable.create(img, {
-            type: "x,y",
-            inertia: true,
-            onRelease: () => {
-              gsap.to(img, {
-                x: 0,
-                y: 0,
-                rotate: 0,
-                duration: 1.2,
-                ease: "elastic.out(1, 0.4)"
-              });
-            },
-          });
+          gsap.fromTo(
+            img,
+            { x: index % 2 === 0 ? -100 : 100, opacity: 0 },
+            {
+              x: 0,
+              opacity: 1,
+              duration: 1.5,
+              scrollTrigger: {
+                trigger: img,
+                start: "top 90%",
+                end: "top 50%",
+                scrub: true,
+              },
+            }
+          );
         }
       });
-
     }, sectionRef);
 
     return () => context.revert();
@@ -102,7 +65,7 @@ const Opposite = () => {
       <div className="w-full flex justify-center">
         <div className="flex flex-col md:grid md:grid-cols-2 gap-6 w-full px-5 md:w-[1200px]">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
-            {['/side1.png', '/slide2.png'].map((src, index) => (
+            {["/side1.png", "/slide2.png"].map((src, index) => (
               <div key={index} className="h-[290px] flex justify-center">
                 <img
                   ref={(el) => { smallImageRefs.current[index] = el; }}
