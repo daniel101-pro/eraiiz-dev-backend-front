@@ -38,7 +38,7 @@ const GridComponent = () => {
   }, []);
 
   return (
-    <div className="max-w-[1500px] mx-auto grid grid-cols-2 gap-4 p-4 rounded-md -mt-5 md:grid-cols-2 lg:grid-cols-4">
+    <div className="max-w-[1500px] mx-auto grid grid-cols-2 gap-4 p-4 rounded-md -mt-20 md:grid-cols-2 lg:grid-cols-4">
       {items.map((item, index) => (
         <div 
           key={item.id} 
