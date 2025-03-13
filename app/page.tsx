@@ -1,9 +1,7 @@
 "use client";
-
 import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-// Removed unused gsap import
-// import gsap from "gsap";
+import Link from "next/link";
 import GridComponent from "./components/GridComponent";
 import PlasticMadeProducts from "./components/PlasticMadeProducts";
 import Opposite from "./components/Opposite";
@@ -56,7 +54,7 @@ const Page = () => {
     const typeWriterAnimation = () => {
       if (index < mainText.length) {
         currentText += mainText[index];
-        if (textRef.current) textRef.current.innerHTML = currentText;
+        if (textRef.current) textRef.current.innerText = currentText;
         index++;
         setTimeout(typeWriterAnimation, 30);
       } else {
@@ -66,7 +64,7 @@ const Page = () => {
 
     const changeSynonym = () => {
       if (textRef.current) {
-        textRef.current.innerHTML = `${mainText} ${synonyms[synonymIndex]}.`;
+        textRef.current.innerHTML = `${mainText} <span class="text-[#008C00] font-bold">${synonyms[synonymIndex]}</span>.`;
       }
       synonymIndex = (synonymIndex + 1) % synonyms.length;
       setTimeout(changeSynonym, 1000);
@@ -97,18 +95,22 @@ const Page = () => {
           ></h1>
 
           <p className="text-gray-500 text-center font-light mt-2 sm:mt-4 mb-10">
-            Shop sustainably with Eraiiz and discover how waste can be transformed to wealth{" "}
-            <br className="hidden sm:block" />
+            Shop sustainably with Eraiiz and discover how waste can be
+            transformed to wealth <br className="hidden sm:block" />
             while keeping the planet safe.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mt-4 sm:mt-6 sm:space-x-4 px-6">
-            <button className="bg-[#008C00] text-white py-3 px-8 rounded-lg w-full sm:w-auto transition-transform duration-300 hover:scale-105">
-              Create your account
-            </button>
-            <button className="bg-[#FFFFFF] text-black py-3 px-8 rounded-lg w-full sm:w-auto border border-[#D1D1D1] transition-transform duration-300 hover:scale-105">
-              Start shopping
-            </button>
+            <Link href="/joinWaitlistPage">
+              <button className="bg-[#008C00] text-white py-3 px-8 rounded-lg w-full sm:w-auto transition-transform duration-300 hover:scale-105">
+                Create your account
+              </button>
+            </Link>
+            <Link href="/joinWaitlistPage">
+              <button className="bg-[#FFFFFF] text-black py-3 px-8 rounded-lg w-full sm:w-auto border border-[#D1D1D1] transition-transform duration-300 hover:scale-105">
+                Start shopping
+              </button>
+            </Link>
           </div>
         </div>
 
@@ -129,7 +131,6 @@ const Page = () => {
               global consumers thereby reducing the level of carbon footprint in
               the whole supply chain.
             </p>
-
             <button className="px-6 py-2 bg-[#008C00] text-white rounded-md hover:bg-black hover:text-white transition-transform duration-300 hover:scale-105">
               Start Shopping
             </button>
@@ -139,14 +140,14 @@ const Page = () => {
           <h1 className="text-3xl font-medium text-center mb-6 text-black">
             Why Eraiiz?
           </h1>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-[950px] p-5">
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 h-[250px] transition-transform duration-300 hover:scale-105">
               <h2 className="font-light text-xl mb-10 text-black">
                 Access to a network of top-picked sustainable choices
               </h2>
               <p className="text-gray-500">
-                We pre-vet all products available on Eraiiz to ensure that they are sustainably sourced and made.
+                We pre-vet all products available on Eraiiz to ensure that they
+                are sustainably sourced and made.
               </p>
             </div>
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 h-[250px] transition-transform duration-300 hover:scale-105">
@@ -154,7 +155,9 @@ const Page = () => {
                 Easy navigation process
               </h2>
               <p className="text-gray-500">
-                Our platform is organized with you in mind, hence, you don&apos;t have to go through any hassle, from product sorting to checking out, we&apos;ve got you covered.
+                Our platform is organized with you in mind, hence, you don&apos;t
+                have to go through any hassle, from product sorting to checking
+                out, we&apos;ve got you covered.
               </p>
             </div>
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 h-[250px] transition-transform duration-300 hover:scale-105">
@@ -162,7 +165,8 @@ const Page = () => {
                 Data-driven approach
               </h2>
               <p className="text-gray-500">
-                We leverage data that are meticulously researched and work with experts to connect you with the best sustainable brand you need.
+                We leverage data that are meticulously researched and work with
+                experts to connect you with the best sustainable brand you need.
               </p>
             </div>
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 h-[250px] flex flex-col justify-between transition-transform duration-300 hover:scale-105">

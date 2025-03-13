@@ -43,7 +43,13 @@ const Navbar = () => {
 
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-7 text-black">
-            {["About Eraiiz", "How to watch?", "Products", "FAQs", "Contact Support"].map((item, index) => (
+            {[
+              "About Eraiiz",
+              "How to watch?",
+              "Products",
+              "FAQs",
+              "Contact Support",
+            ].map((item, index) => (
               <Link key={index} href="/">
                 <span className="hover:text-gray-300 font-bold">{item}</span>
               </Link>
@@ -51,9 +57,12 @@ const Navbar = () => {
           </div>
 
           {/* Sign Up Button (Desktop) */}
-          <div className="hidden md:flex items-center px-6 py-2 rounded-lg text-green-500 font-bold border border-green-500">
+          <Link
+            href="/joinWaitlistPage" // or your desired path
+            className="hidden md:flex items-center px-6 py-2 rounded-lg text-green-500 font-bold border border-green-500"
+          >
             Sign Up Now
-          </div>
+          </Link>
 
           {/* Mobile Menu Icon */}
           <div className="md:hidden flex items-center">
@@ -74,7 +83,13 @@ const Navbar = () => {
 
           {/* Navigation Links */}
           <div className="flex flex-col items-center gap-6 text-xl font-bold text-black">
-            {["About Eraiiz", "How to watch?", "Products", "FAQs", "Contact Support"].map((item, index) => (
+            {[
+              "About Eraiiz",
+              "How to watch?",
+              "Products",
+              "FAQs",
+              "Contact Support",
+            ].map((item, index) => (
               <Link key={index} href="/" className="hover:text-gray-400">
                 {item}
               </Link>
