@@ -6,7 +6,7 @@ export default function JoinWaitlistPage() {
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center px-4 py-8">
       {/* Top Nav (Logo + Language Switcher) */}
-      <nav className="w-full max-w-sm mx-auto flex items-center justify-between mb-6">
+      <nav className="w-full max-w-sm md:max-w-md mx-auto flex items-center justify-between mb-6">
         {/* Logo Image */}
         <div className="flex items-center">
           <Image
@@ -26,13 +26,15 @@ export default function JoinWaitlistPage() {
       </nav>
 
       {/* Main Container */}
-      <div className="w-full max-w-sm mx-auto">
+      <div className="w-full max-w-sm md:max-w-md mx-auto">
         {/* Heading and Subtext */}
-        <h1 className="text-2xl font-semibold text-gray-900 mb-2">
+        <h1 className="text-2xl font-semibold text-gray-900 mb-2 text-center">
           Welcome to Eraiiz
         </h1>
-        <p className="text-gray-500 text-sm mb-6">
-          Join our exclusive waitlist for early access to innovative sustainable solutions and products designed to transform your lifestyle while saving our planet.
+        <p className="text-gray-500 text-sm mb-6 text-center">
+          Join our exclusive waitlist for early access to innovative sustainable
+          solutions and products designed to transform your lifestyle while
+          saving our planet.
         </p>
 
         {/* Join Waitlist with Google */}

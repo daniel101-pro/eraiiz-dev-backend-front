@@ -86,6 +86,7 @@ const Page = () => {
             height={2}
             alt="oneone"
             className="mt-32 sm:mt-32"
+            draggable={false}
           />
         </div>
         <div className="h-full w-full flex flex-col justify-center text-center -mt-36 sm:-mt-[250px] px-4 sm:px-6">
