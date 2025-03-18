@@ -8,6 +8,8 @@ import Opposite from "./components/Opposite";
 import Opposite2 from "./components/Opposite2";
 import Footer from "./components/Footer";
 import CallToAction from "./components/CallToAction";
+import FaqSection from "./components/FaqSection";
+import BlogCarousel from "./components/BlogCarousel";
 
 const Page = () => {
   const textRef = useRef<HTMLHeadingElement>(null);
@@ -182,6 +184,8 @@ const Page = () => {
           <Opposite />
           <PlasticMadeProducts />
           <Opposite2 />
+          <BlogCarousel />
+          <FaqSection />
           <CallToAction />
           <Footer />
         </div>
