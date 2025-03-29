@@ -23,7 +23,7 @@ The amount of carbon emissions reduced by shopping from Eraiiz varies depending 
   },
   {
     question: 'Do recycled products have same durability and life expectancy as other conventional/traditional products?',
-    answer: 'Yes, most recycled products on Eraiiz are designed to meet high-quality standards, ensuring durability and longevity comparable to conventional products.'
+    answer: 'Yes, products on Eraiiz are designed to meet high-quality standards, ensuring durability and longevity comparable to conventional products.'
   },
   {
     question: 'What categories of products are available on Eraiiz?',
@@ -59,11 +59,11 @@ const FAQSection: React.FC = () => {
             className="border border-[#D1D1D1] rounded-lg p-4 bg-white cursor-pointer transition-all"
           >
             <div className="flex justify-between items-center" onClick={() => toggleFAQ(index)}>
-              <h3 className="text-black text-base font-medium">Q: {faq.question}</h3>
+              <h3 className="text-black text-base font-medium flex-1">Q: {faq.question}</h3>
               {openIndex === index ? (
-                <ChevronUp className="text-[#008C00]" />
+                <ChevronUp className="text-[#008C00] ml-2" size={20} />
               ) : (
-                <ChevronDown className="text-[#008C00]" />
+                <ChevronDown className="text-[#008C00] ml-2" size={20} />
               )}
             </div>
             {openIndex === index && (
