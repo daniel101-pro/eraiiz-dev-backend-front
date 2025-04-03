@@ -16,7 +16,7 @@ const BlogPost = () => {
         <p className="text-gray-500 text-sm">Published on March 20, 2025 by Eraiiz Team</p>
 
         <Image
-          src="/blog-hero.jpg"
+          src="/cta.png"
           width={800}
           height={400}
           alt="Sustainable shopping concept"
