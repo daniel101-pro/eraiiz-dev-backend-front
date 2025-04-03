@@ -1,40 +1,19 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { FiMenu, FiX } from "react-icons/fi"; // Black icons for menu & close
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [lastScrollY, setLastScrollY] = useState(0);
-  const [showNavbar, setShowNavbar] = useState(true);
 
   // Toggle mobile menu
   const toggleMenu = () => setIsOpen(!isOpen);
 
-  // Hide navbar on scroll down, show on scroll up
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > lastScrollY) {
-        setShowNavbar(false); // Hide when scrolling down
-      } else {
-        setShowNavbar(true); // Show when scrolling up
-      }
-      setLastScrollY(window.scrollY);
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [lastScrollY]);
-
   return (
     <>
       {/* Navbar */}
-      <div
-        className={`fixed top-0 left-0 w-full bg-white shadow-md py-4 px-6 z-50 transition-transform ${
-          showNavbar ? "translate-y-0" : "-translate-y-full"
-        }`}
-      >
+      <div className="fixed top-0 left-0 w-full bg-white shadow-md py-4 px-6 z-50">
         <nav className="flex justify-between items-center">
           {/* Logo */}
           <Link href="/">
