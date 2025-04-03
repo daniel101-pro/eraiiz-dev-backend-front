@@ -7,16 +7,6 @@ export default function JoinWaitlistPage() {
     <div className="min-h-screen bg-white flex flex-col items-center justify-center px-4 py-8">
       {/* Top Nav (Logo + Language Switcher) */}
       <nav className="w-full max-w-sm mx-auto flex items-center justify-between mb-6">
-        {/* Logo Image */}
-        <div className="flex items-center">
-          <Image
-            src="/logo.png"
-            alt="Eraiiz Logo"
-            width={120}
-            height={40}
-            className="object-contain"
-          />
-        </div>
         {/* Country Switcher */}
         <div className="flex items-center space-x-2">
           <span className="text-sm font-medium">NG</span>
