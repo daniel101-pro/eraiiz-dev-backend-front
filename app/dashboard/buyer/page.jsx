@@ -59,7 +59,7 @@ export default function BuyerDashboard() {
       localStorage.removeItem('user');
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
-      router.push('/login');
+      router.push('/signup');
     } catch (err) {
       console.error('Delete account error:', err);
       alert('Failed to delete account. Please try again.');
