@@ -1,13 +1,19 @@
 "use client";
+
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { FiMenu, FiX } from "react-icons/fi"; // Black icons for menu & close
+import { FiMenu, FiX } from "react-icons/fi";
+
+const navLinks = [
+  { label: "About Eraiiz", href: "/about" },
+  { label: "How to watch?", href: "/how-to-watch" },
+  { label: "Products", href: "/products" },
+  { label: "FAQs", href: "/faqs" },
+];
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-
-  // Toggle mobile menu
   const toggleMenu = () => setIsOpen(!isOpen);
 
   return (
@@ -17,26 +23,21 @@ const Navbar = () => {
         <nav className="flex justify-between items-center">
           {/* Logo */}
           <Link href="/">
-            <Image src="/logo.png" width={70} height={60} alt="logo" />
+            <Image src="/logo.png" width={70} height={60} alt="Eraiiz Logo" />
           </Link>
 
-          {/* Desktop Nav */}
+          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-7 text-black">
-            {[
-              "About Eraiiz",
-              "How to watch?",
-              "Products",
-              "FAQs",
-            ].map((item, index) => (
-              <Link key={index} href="/">
-                <span className="relative group font-bold transition-colors text-black hover:text-green-600">
-                  {item}
+            {navLinks.map((item, index) => (
+              <Link key={index} href={item.href}>
+                <span className="relative group font-bold transition-colors text-black hover:text-green-600 cursor-pointer">
+                  {item.label}
                   <span className="block h-[2px] w-0 bg-green-600 group-hover:w-full transition-all duration-300"></span>
                 </span>
               </Link>
             ))}
-            
-            {/* Contact Support Link */}
+
+            {/* Contact Support */}
             <a
               href="mailto:eraiizinfo@gmail.com"
               className="relative group text-green-600 font-bold transition-colors hover:text-black"
@@ -46,9 +47,9 @@ const Navbar = () => {
             </a>
           </div>
 
-          {/* Sign Up Button (Desktop) */}
+          {/* Sign Up (Desktop) */}
           <Link
-            href="/joinWaitlistPage"
+            href="signup"
             className="hidden md:flex items-center px-6 py-2 rounded-lg text-green-500 font-bold border border-green-500 transition-colors hover:bg-green-500 hover:text-white"
           >
             Sign Up Now
@@ -56,38 +57,37 @@ const Navbar = () => {
 
           {/* Mobile Menu Icon */}
           <div className="md:hidden flex items-center">
-            <button onClick={toggleMenu}>
+            <button onClick={toggleMenu} aria-label="Toggle mobile menu">
               <FiMenu size={30} className="text-black" />
             </button>
           </div>
         </nav>
       </div>
 
-      {/* Full-Screen Mobile Menu */}
+      {/* Mobile Menu Overlay */}
       {isOpen && (
-        <div className="fixed top-0 left-0 w-full h-full bg-white flex flex-col justify-center items-center z-50">
+        <div className="fixed top-0 left-0 w-full h-full bg-white flex flex-col justify-center items-center z-50 transition-all duration-300">
           {/* Close Button */}
-          <button onClick={toggleMenu} className="absolute top-6 right-6">
+          <button
+            onClick={toggleMenu}
+            className="absolute top-6 right-6"
+            aria-label="Close mobile menu"
+          >
             <FiX size={35} className="text-black" />
           </button>
 
-          {/* Navigation Links */}
+          {/* Mobile Navigation Links */}
           <div className="flex flex-col items-center gap-6 text-xl font-bold text-black">
-            {[
-              "About Eraiiz",
-              "How to watch?",
-              "Products",
-              "FAQs",
-            ].map((item, index) => (
-              <Link key={index} href="/" className="relative group">
-                <span className="transition-colors text-black hover:text-green-600">
-                  {item}
+            {navLinks.map((item, index) => (
+              <Link key={index} href={item.href} onClick={() => setIsOpen(false)}>
+                <span className="relative group cursor-pointer hover:text-green-600 transition-colors">
+                  {item.label}
                   <span className="block h-[2px] w-0 bg-green-600 group-hover:w-full transition-all duration-300"></span>
                 </span>
               </Link>
             ))}
 
-            {/* Contact Support Link */}
+            {/* Email */}
             <a
               href="mailto:eraiizinfo@gmail.com"
               className="relative group text-green-600 transition-colors hover:text-black"
@@ -100,7 +100,7 @@ const Navbar = () => {
           {/* Logo at Bottom */}
           <div className="absolute bottom-10">
             <Link href="/">
-              <Image src="/logo.png" width={80} height={70} alt="logo" />
+              <Image src="/logo.png" width={80} height={70} alt="Eraiiz Logo" />
             </Link>
           </div>
         </div>

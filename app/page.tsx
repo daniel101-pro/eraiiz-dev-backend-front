@@ -8,7 +8,7 @@ import Opposite from "./components/Opposite";
 import Opposite2 from "./components/Opposite2";
 import Footer from "./components/Footer";
 import CallToAction from "./components/CallToAction";
-import FaqSection from "./components/FaqSection";
+import FaqSection from "./faqs/page";
 import BlogCarousel from "./components/BlogCarousel";
 
 const Page = () => {
