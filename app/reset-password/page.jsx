@@ -2,8 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 
-export default function ResetPassword() {
+// Fallback component for Suspense
+function ResetPasswordFallback() {
+  return <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-green-50 to-emerald-200">Loading reset password form...</div>;
+}
+
+// Main Reset Password content
+function ResetPasswordContent() {
   const [newPassword, setNewPassword] = useState('');
   const [message, setMessage] = useState('');
   const router = useRouter();
@@ -63,5 +70,14 @@ export default function ResetPassword() {
         )}
       </div>
     </div>
+  );
+}
+
+// Export with Suspense wrapper
+export default function ResetPassword() {
+  return (
+    <Suspense fallback={<ResetPasswordFallback />}>
+      <ResetPasswordContent />
+    </Suspense>
   );
 }
