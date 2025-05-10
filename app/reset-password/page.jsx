@@ -3,16 +3,16 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
-// Fallback component for Suspense
 function ResetPasswordFallback() {
   return <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-green-50 to-emerald-200">Loading reset password form...</div>;
 }
 
-// Main Reset Password content
 function ResetPasswordContent() {
   const [newPassword, setNewPassword] = useState('');
   const [message, setMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
@@ -25,21 +25,21 @@ function ResetPasswordContent() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
     try {
-      const res = await fetch(process.env.NEXT_PUBLIC_API_URL + '/api/auth/reset-password', {
+      const res = await fetch('/api/auth/reset-password', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token, newPassword }),
       });
-
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Password reset failed');
       setMessage('Password reset successful. Redirecting to login...');
       setTimeout(() => router.push('/login'), 2000);
     } catch (err) {
       setMessage(err.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -54,13 +54,14 @@ function ResetPasswordContent() {
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             required
-            className="w-full p-3 mb-4 border border-gray-300 rounded-lg focus:border-emerald-500 focus:outline-none transition-colors"
+            className="w-full p-3 mb-4 border border-gray-300 rounded-lg focus:border-emerald-500 focus:outline-none"
           />
           <button
             type="submit"
             className="w-full bg-emerald-600 text-white p-3 rounded-lg hover:bg-emerald-700 transition duration-200 font-semibold"
+            disabled={isLoading}
           >
-            Reset Password
+            {isLoading ? <LoadingSpinner size={20} color="#ffffff" /> : 'Reset Password'}
           </button>
         </form>
         {message && (
@@ -73,7 +74,6 @@ function ResetPasswordContent() {
   );
 }
 
-// Export with Suspense wrapper
 export default function ResetPassword() {
   return (
     <Suspense fallback={<ResetPasswordFallback />}>
