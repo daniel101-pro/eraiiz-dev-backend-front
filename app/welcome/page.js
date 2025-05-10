@@ -23,7 +23,8 @@ export default function WelcomePage() {
   }, []);
 
   const handleContinue = () => {
-    router.push('/dashboard');
+    const role = localStorage.getItem('role') || 'buyer'; // Get role from localStorage
+    router.push(`/dashboard/${role}`); // Navigate to dynamic route
   };
 
   if (!name) {

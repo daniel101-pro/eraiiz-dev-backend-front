@@ -2,16 +2,19 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function SignupPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('buyer');
+  const [isLoading, setIsLoading] = useState(false); // Add loading state
   const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true); // Start loading
     try {
       console.log('Sending request:', { name, email, password, role });
       const res = await fetch(process.env.NEXT_PUBLIC_API_URL + '/api/auth/register', {
@@ -34,6 +37,8 @@ export default function SignupPage() {
     } catch (err) {
       console.error('Fetch error:', err.message, err);
       alert(`Signup failed: ${err.message}`);
+    } finally {
+      setIsLoading(false); // Stop loading
     }
   };
 
@@ -79,11 +84,14 @@ export default function SignupPage() {
 
         <button
           type="submit"
-          className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700"
+          className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 transition duration-200 font-semibold"
+          disabled={isLoading}
         >
-          Sign Up
+          {isLoading ? <LoadingSpinner size={20} color="#ffffff" /> : 'Sign Up'}
         </button>
-        <p><a href="/login" className="text-blue-500 hover:underline">Login</a> if you already have an account.</p>
+        <p className="mt-4 text-center">
+          <a href="/login" className="text-blue-500 hover:underline">Login</a> if you already have an account.
+        </p>
       </form>
     </div>
   );
