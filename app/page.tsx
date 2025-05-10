@@ -104,12 +104,12 @@ const Page = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mt-4 sm:mt-6 sm:space-x-4 px-6">
-            <Link href="/joinWaitlistPage">
+            <Link href="/signup">
               <button className="bg-[#008C00] text-white py-3 px-8 rounded-lg w-full sm:w-auto transition-transform duration-300 hover:scale-105">
                 Create your account
               </button>
             </Link>
-            <Link href="/joinWaitlistPage">
+            <Link href="/login">
               <button className="bg-[#FFFFFF] text-black py-3 px-8 rounded-lg w-full sm:w-auto border border-[#D1D1D1] transition-transform duration-300 hover:scale-105">
                 Start shopping
               </button>
