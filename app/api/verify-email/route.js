@@ -3,29 +3,24 @@ import { NextResponse } from 'next/server';
 
 export async function POST(req) {
   try {
-    const { email, otp } = await req.json(); // Parse request body
+    const { email, otp } = await req.json();
 
-    // Simulate User model (replace with your actual Mongoose model or database logic)
-    // Assuming User is a Mongoose model, ensure it's imported or mocked
-    const User = require('mongoose').model('User'); // Adjust import based on your setup
+    // Proxy request to the backend
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/verify-email`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, otp }),
+    });
 
-    const user = await User.findOne({ email });
-    if (!user) {
-      return NextResponse.json({ message: 'User not found' }, { status: 404 });
+    const data = await response.json();
+
+    if (!response.ok) {
+      return NextResponse.json({ message: data.message || 'Verification failed' }, { status: response.status });
     }
 
-    if (user.verificationToken !== otp || Date.now() > user.tokenExpiry) {
-      return NextResponse.json({ message: 'Invalid or expired code' }, { status: 400 });
-    }
-
-    user.isVerified = true;
-    user.verificationToken = undefined;
-    user.tokenExpiry = undefined;
-    await user.save();
-
-    return NextResponse.json({ message: 'Email verified successfully' }, { status: 200 });
+    return NextResponse.json(data, { status: 200 });
   } catch (error) {
-    console.error('Verification error:', error);
+    console.error('Verification proxy error:', error);
     return NextResponse.json({ message: 'Server error' }, { status: 500 });
   }
 }
