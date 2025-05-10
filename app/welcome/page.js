@@ -8,16 +8,17 @@ import { motion } from 'framer-motion';
 export default function WelcomePage() {
   const router = useRouter();
   const [name, setName] = useState('EcoHero');
-  const [windowSize, setWindowSize] = useState({ width: window.innerWidth, height: window.innerHeight });
+  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 }); // Initial null values
 
   useEffect(() => {
     // Simulate role from localStorage
-    const role = localStorage.getItem('role') || 'buyer'; // Default to 'buyer' if not set
+    const role = typeof window !== 'undefined' ? localStorage.getItem('role') || 'buyer' : 'buyer';
     if (role === 'seller') setName('EcoVendor');
     else if (role === 'buyer') setName('PlanetGuardian');
 
-    // Update window size for confetti
+    // Set initial window size and handle resize
     const handleResize = () => setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+    setWindowSize({ width: window.innerWidth, height: window.innerHeight }); // Set initial size
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -28,14 +29,16 @@ export default function WelcomePage() {
 
   return (
     <div className="h-screen w-full flex flex-col items-center justify-center bg-gradient-to-br from-green-100 via-green-300 to-emerald-600 text-center px-4 relative overflow-hidden">
-      <Confetti
-        width={windowSize.width}
-        height={windowSize.height}
-        numberOfPieces={200}
-        recycle={false} // Keeps confetti running until unmounted
-        gravity={0.2}
-        colors={['#00cc99', '#66ccff', '#ffcc00', '#ff6666', '#cc99ff']}
-      />
+      {windowSize.width > 0 && windowSize.height > 0 && ( // Only render Confetti when windowSize is set
+        <Confetti
+          width={windowSize.width}
+          height={windowSize.height}
+          numberOfPieces={200}
+          recycle={false}
+          gravity={0.2}
+          colors={['#00cc99', '#66ccff', '#ffcc00', '#ff6666', '#cc99ff']}
+        />
+      )}
 
       <motion.h1
         className="text-5xl md:text-7xl font-extrabold text-white drop-shadow-[0_4px_6px_rgba(0,0,0,0.3)] mb-6"
@@ -64,7 +67,6 @@ export default function WelcomePage() {
         🌿 Embark on Your Eco-Mission
       </motion.button>
 
-      {/* Subtle decorative element */}
       <div className="absolute bottom-0 w-full h-16 bg-gradient-to-t from-emerald-700 to-transparent opacity-50"></div>
     </div>
   );
