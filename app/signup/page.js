@@ -83,6 +83,7 @@ export default function SignupPage() {
         >
           Sign Up
         </button>
+        <p><a href="/login" className="text-blue-500 hover:underline">Login</a> if you already have an account.</p>
       </form>
     </div>
   );
