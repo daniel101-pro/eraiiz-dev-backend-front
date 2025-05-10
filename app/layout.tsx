@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Onest } from "next/font/google";
 import "./globals.css";
-import Navbar from "./components/Navbar";
+
 
 // Import Onest font with appropriate subsets
 const onest = Onest({
@@ -74,9 +74,6 @@ export default function RootLayout({
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
       </head>
       <body className={`${onest.variable} antialiased`}>
-        <div className="relative z-10">
-          <Navbar />
-        </div>
         {children}
       </body>
     </html>

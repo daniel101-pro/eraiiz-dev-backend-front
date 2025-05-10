@@ -10,6 +10,7 @@ import Footer from "./components/Footer";
 import CallToAction from "./components/CallToAction";
 import FaqSection from "./faqs/page";
 import BlogCarousel from "./components/BlogCarousel";
+import Navbar from "./components/Navbar";
 
 const Page = () => {
   const textRef = useRef<HTMLHeadingElement>(null);
@@ -77,6 +78,9 @@ const Page = () => {
 
   return (
     <>
+    <div className="relative z-10">
+          <Navbar />
+        </div>
       <div
         className="h-screen bg-no-repeat bg-top bg-contain"
         style={{ backgroundImage: `url('${backgroundImage}')` }}

@@ -77,7 +77,7 @@ export default function BuyerDashboard() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-emerald-100 via-emerald-200 to-green-100 mt-20">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-emerald-100 via-emerald-200 to-green-100">
       <nav className="bg-emerald-800 text-white p-4 flex justify-between items-center shadow-md">
         <h1 className="text-xl font-bold">Eraiiz Dashboard</h1>
         <div className="flex items-center gap-4">
