@@ -6,6 +6,7 @@ import axios from 'axios';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import Image from 'next/image';
 import { FcGoogle } from 'react-icons/fc';
+import Navbar from '../components/Navbar';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -39,18 +40,12 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      {/* Navigation Bar */}
-      <div className="w-full bg-white border-b border-gray-200 p-4 flex justify-between items-center">
-        <div className="text-2xl font-bold text-green-600">Erailz</div>
-        <div className="space-x-4 text-gray-600">
-          <a href="#" className="hover:text-green-600">About Eraiz</a>
-          <a href="#" className="hover:text-green-600">Become a Supplier</a>
-          <a href="#" className="hover:text-green-600">Help</a>
-          <a href="#" className="hover:text-green-600">Contact Support</a>
-          <span className="text-green-600">NG</span>
-        </div>
+    <>
+    <div className="relative z-10 mb-10">
+        <Navbar />
       </div>
+    
+    <div className="min-h-screen bg-white flex flex-col">
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col custom-md:flex-row items-center justify-center">
@@ -115,5 +110,6 @@ export default function Login() {
         </div>
       </div>
     </div>
+    </>
   );
 }
