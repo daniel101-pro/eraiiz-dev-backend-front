@@ -58,7 +58,7 @@ export default function SignupPage() {
 
   return (
     <>
-      <div className="relative z-10 mb-10">
+      <div className="relative z-10 mb-20">
         <Navbar />
       </div>
       <div className="min-h-screen bg-white flex flex-col mt-10">
