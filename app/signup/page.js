@@ -62,9 +62,7 @@ export default function SignupPage() {
         <Navbar />
       </div>
       <div className="min-h-screen bg-white flex flex-col mt-10">
-        
-
-        {/* Main Content */}
+        {/* Main Contents */}
         <div className="flex-1 flex flex-col custom-md:flex-row items-center justify-center">
           {/* Left Side - Signup Form */}
           <div className="w-full custom-md:w-1/2 p-6 flex items-center justify-center">
