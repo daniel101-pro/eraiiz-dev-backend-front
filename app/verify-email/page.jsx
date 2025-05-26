@@ -2,11 +2,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
+import Image from 'next/image';
+import { ChevronDown } from 'lucide-react';
 
 export default function VerifyEmail() {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [message, setMessage] = useState('');
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState('johndoe45@gmail.com'); // Default to match image
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const inputRefs = useRef([]);
@@ -86,62 +88,112 @@ export default function VerifyEmail() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 to-emerald-200 px-4">
-      <div className="bg-white shadow-lg rounded-lg p-8 max-w-md w-full">
-        <h2 className="text-3xl font-bold text-center text-emerald-700 mb-4">Verify Your Email</h2>
-        <p className="text-gray-600 text-center mb-6">
-          Enter the 6-digit code sent to <span className="font-semibold text-emerald-600">{email}</span>
-        </p>
+    <div className="min-h-screen bg-white flex flex-col">
+      {/* Navigation Bar */}
+      <div className="w-full bg-white border-b border-gray-200 p-4 flex justify-between items-center">
+        <div className="text-2xl font-bold text-green-600 flex items-center">
+          Erailz<span className="ml-1">🌱</span>
+        </div>
+        <div className="flex items-center space-x-4 text-gray-600">
+          <a href="#" className="hover:text-green-600">About Eraiz</a>
+          <a href="#" className="hover:text-green-600">Become a Supplier</a>
+          <a href="#" className="hover:text-green-600">Help</a>
+          <a href="#" className="hover:text-green-600">Contact Support</a>
+          <div className="flex items-center gap-1 text-green-600">
+            <span>NG</span>
+            <ChevronDown className="h-4 w-4" />
+          </div>
+        </div>
+      </div>
 
-        <div className="flex justify-center gap-2 mb-6">
-          {otp.map((digit, index) => (
-            <input
-              key={index}
-              type="text"
-              maxLength="1"
-              value={digit}
-              onChange={(e) => handleOtpChange(index, e.target.value)}
-              onKeyDown={(e) => handleKeyDown(index, e)}
-              ref={(el) => (inputRefs.current[index] = el)}
-              className="w-12 h-12 text-center text-lg font-medium border-2 border-emerald-300 rounded-lg focus:border-emerald-500 focus:outline-none transition-colors"
-              disabled={isLoading}
-            />
-          ))}
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col custom-md:flex-row items-center justify-center">
+        {/* Left Side - Verify Email Form */}
+        <div className="w-full custom-md:w-1/2 p-6 flex items-center justify-center">
+          <div className="max-w-md w-full">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">Check your mail!</h2>
+            <p className="text-center text-gray-500 mb-6">
+              We have sent a 6-digit code to{' '}
+              <span className="font-semibold text-green-600">{email}</span>. Please input it in the
+              field below
+            </p>
+
+            <div className="flex justify-center gap-2 mb-6">
+              {otp.slice(0, 3).map((digit, index) => (
+                <input
+                  key={index}
+                  type="text"
+                  maxLength="1"
+                  value={digit}
+                  onChange={(e) => handleOtpChange(index, e.target.value)}
+                  onKeyDown={(e) => handleKeyDown(index, e)}
+                  ref={(el) => (inputRefs.current[index] = el)}
+                  className="w-12 h-12 text-center text-lg font-medium border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  disabled={isLoading}
+                />
+              ))}
+              <span className="w-12 h-12 flex items-center justify-center">-</span>
+              {otp.slice(3).map((digit, index) => (
+                <input
+                  key={index + 3}
+                  type="text"
+                  maxLength="1"
+                  value={digit}
+                  onChange={(e) => handleOtpChange(index + 3, e.target.value)}
+                  onKeyDown={(e) => handleKeyDown(index + 3, e)}
+                  ref={(el) => (inputRefs.current[index + 3] = el)}
+                  className="w-12 h-12 text-center text-lg font-medium border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  disabled={isLoading}
+                />
+              ))}
+            </div>
+
+            {message && (
+              <p
+                className={`text-center mb-4 ${
+                  message.includes('successfully') ? 'text-green-600' : 'text-red-500'
+                }`}
+              >
+                {message}
+              </p>
+            )}
+
+            <button
+              onClick={handleVerify}
+              disabled={isLoading || otp.some(digit => !digit)}
+              className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition duration-200 font-semibold flex justify-center items-center"
+            >
+              {isLoading ? 'Verifying...' : 'Verify my email'}
+            </button>
+
+            <p className="text-center text-gray-600 mt-4">
+              Didn’t get a code?{' '}
+              <button
+                onClick={handleResend}
+                disabled={isLoading}
+                className={`${
+                  isLoading ? 'text-gray-400 cursor-not-allowed' : 'text-green-600 hover:underline'
+                }`}
+              >
+                {isLoading ? 'Resending...' : 'Resend Code'}
+              </button>
+            </p>
+          </div>
         </div>
 
-        <button
-          onClick={handleVerify}
-          disabled={isLoading || otp.some(digit => !digit)}
-          className={`w-full py-3 rounded-lg font-semibold text-white transition-colors ${
-            isLoading || otp.some(digit => !digit)
-              ? 'bg-emerald-400 cursor-not-allowed'
-              : 'bg-emerald-600 hover:bg-emerald-700'
-          }`}
-        >
-          {isLoading ? 'Verifying...' : 'Verify OTP'}
-        </button>
-
-        <button
-          onClick={handleResend}
-          disabled={isLoading}
-          className={`w-full py-3 mt-4 rounded-lg font-semibold transition-colors ${
-            isLoading
-              ? 'bg-gray-400 text-white cursor-not-allowed'
-              : 'bg-transparent border-2 border-emerald-600 text-emerald-600 hover:bg-emerald-600 hover:text-white'
-          }`}
-        >
-          {isLoading ? 'Resending...' : 'Resend OTP'}
-        </button>
-
-        {message && (
-          <p
-            className={`mt-4 text-center text-sm ${
-              message.includes('successfully') ? 'text-emerald-700' : 'text-red-600'
-            }`}
-          >
-            {message}
-          </p>
-        )}
+        {/* Right Side - Image (Hidden on screens < 1000px) */}
+        <div className="hidden custom-md:flex custom-md:w-1/2 p-6 bg-white border-l border-gray-200 items-center justify-center">
+          <div className="relative w-full h-[calc(100vh-100px)]">
+            <Image
+              src="/signupright.png"
+              alt="Verify Email Illustration"
+              layout="fill"
+              objectFit="cover"
+              className="rounded-lg"
+              draggable={false}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );

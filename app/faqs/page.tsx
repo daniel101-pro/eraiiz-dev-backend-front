@@ -1,6 +1,7 @@
 "use client"
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, HelpCircle } from 'lucide-react';
+import Navbar from '../components/Navbar';
 
 type FAQItem = {
   question: string;
@@ -44,6 +45,10 @@ const FAQSection: React.FC = () => {
   };
 
   return (
+    <>
+        <div className="relative z-10">
+          <Navbar />
+        </div>
     <div className="max-w-4xl mx-auto my-16 p-6">
       <div className="text-center mb-10">
         <div className="flex justify-center items-center text-[#008C00] mb-2">
@@ -79,6 +84,7 @@ const FAQSection: React.FC = () => {
         Can’t find answers to your question? Reach out to us <span className="text-[#008C00]">here</span>
       </div>
     </div>
+    </>
   );
 };
 

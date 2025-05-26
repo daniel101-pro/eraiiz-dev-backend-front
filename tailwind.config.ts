@@ -55,7 +55,10 @@ export default {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
   			sm: 'calc(var(--radius) - 4px)'
-  		}
+  		},
+		screens: {
+        'custom-md': '1000px', // Custom breakpoint at 1000px
+      }
   	}
   },
   plugins: [require("tailwindcss-animate")],

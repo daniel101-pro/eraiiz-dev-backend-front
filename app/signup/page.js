@@ -3,24 +3,34 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import Image from 'next/image';
+import { FaShoppingCart, FaStore } from 'react-icons/fa';
+import { FcGoogle } from 'react-icons/fc';
+import { ChevronDown } from 'lucide-react';
+import countryCodes from '@/lib/countryCodes'; // Import from the new file
 
 export default function SignupPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('buyer');
-  const [isLoading, setIsLoading] = useState(false); // Add loading state
+  const [phone, setPhone] = useState('');
+  const [countryCode, setCountryCode] = useState('+234'); // Default to Nigeria
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  // Derive country name from countryCode
+  const selectedCountry = countryCodes.find((code) => code.code === countryCode)?.name || 'Nigeria';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true); // Start loading
+    setIsLoading(true);
     try {
-      console.log('Sending request:', { name, email, password, role });
+      console.log('Sending request:', { name, email, password, role, phone: `${countryCode}${phone}`, country: selectedCountry });
       const res = await fetch(process.env.NEXT_PUBLIC_API_URL + '/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password, role }),
+        body: JSON.stringify({ name, email, password, role, phone: `${countryCode}${phone}`, country: selectedCountry }),
       });
 
       console.log('Response status:', res.status, 'OK:', res.ok);
@@ -32,67 +42,180 @@ export default function SignupPage() {
       }
 
       localStorage.setItem('verifyingEmail', email);
-      localStorage.setItem('tempPassword', password); // Store password temporarily
+      localStorage.setItem('tempPassword', password);
       router.push('/verify-email');
     } catch (err) {
       console.error('Fetch error:', err.message, err);
       alert(`Signup failed: ${err.message}`);
     } finally {
-      setIsLoading(false); // Stop loading
+      setIsLoading(false);
     }
   };
 
+  const handleGoogleLogin = () => {
+    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`;
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white px-4">
-      <form onSubmit={handleSubmit} className="p-6 max-w-md mx-auto bg-white rounded shadow">
-        <h2 className="text-2xl font-bold mb-6 text-center">Create an Account</h2>
+    <div className="min-h-screen bg-white flex flex-col">
+      {/* Navigation Bar */}
+      <div className="w-full bg-white border-b border-gray-200 p-4 flex justify-between items-center">
+        <div className="text-2xl font-bold text-green-600">Erailz</div>
+        <div className="space-x-4 text-gray-600">
+          <a href="#" className="hover:text-green-600">About Eraiz</a>
+          <a href="#" className="hover:text-green-600">Become a Supplier</a>
+          <a href="#" className="hover:text-green-600">Help</a>
+          <a href="#" className="hover:text-green-600">Contact Support</a>
+          <span className="text-green-600">NG</span>
+        </div>
+      </div>
 
-        <input
-          type="text"
-          placeholder="Full Name"
-          className="block w-full p-2 mb-4 border rounded"
-          required
-          onChange={(e) => setName(e.target.value)}
-        />
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col custom-md:flex-row items-center justify-center">
+        {/* Left Side - Signup Form */}
+        <div className="w-full custom-md:w-1/2 p-6 flex items-center justify-center">
+          <div className="max-w-md w-full">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">Welcome to Eraiz</h2>
+            <p className="text-center text-gray-500 mb-6">
+              Create your account to start buying or selling with Eraiz.
+            </p>
+            <button
+              onClick={handleGoogleLogin}
+              className="w-full bg-white border border-gray-300 text-gray-700 p-3 rounded-lg mb-4 flex items-center justify-center hover:bg-gray-50 transition duration-200 shadow-sm"
+            >
+              <FcGoogle className="mr-2 text-xl" /> Sign up with Google
+            </button>
+            <div className="text-center text-gray-400 mb-4">Or</div>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <input
+                type="text"
+                placeholder="Full Name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="block w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                required
+              />
 
-        <input
-          type="email"
-          placeholder="Email"
-          className="block w-full p-2 mb-4 border rounded"
-          required
-          onChange={(e) => setEmail(e.target.value)}
-        />
+              {/* Role Selection */}
+              <div className="mb-4">
+                <label className="block text-gray-700 mb-2">Select your role</label>
+                <div className="flex space-x-4">
+                  <button
+                    type="button"
+                    onClick={() => setRole('buyer')}
+                    className={`flex items-center px-4 py-2 rounded ${
+                      role === 'buyer' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700'
+                    }`}
+                  >
+                    <FaShoppingCart className="mr-2" /> Buyer
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRole('seller')}
+                    className={`flex items-center px-4 py-2 rounded ${
+                      role === 'seller' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700'
+                    }`}
+                  >
+                    <FaStore className="mr-2" /> Seller
+                  </button>
+                </div>
+              </div>
 
-        <input
-          type="password"
-          placeholder="Password"
-          className="block w-full p-2 mb-4 border rounded"
-          required
-          onChange={(e) => setPassword(e.target.value)}
-        />
+              {/* Dynamic Policy Text */}
+              <div className="mb-4 p-4 bg-gray-50 rounded">
+                {role === 'buyer' ? (
+                  <p className="text-sm text-gray-600">
+                    As a buyer, you agree to purchase items in good faith and follow our payment and return policies.
+                  </p>
+                ) : (
+                  <p className="text-sm text-gray-600">
+                    As a seller, you agree to list accurate products and ship promptly per Eraiz standards.
+                  </p>
+                )}
+              </div>
 
-        <select
-          required
-          value={role}
-          onChange={(e) => setRole(e.target.value)}
-          className="block w-full p-2 mb-6 border rounded"
-        >
-          <option value="">Select your role</option>
-          <option value="buyer">Buyer</option>
-          <option value="seller">Seller (e.g. DColler)</option>
-        </select>
+              {/* Phone Number with Country Code */}
+              <div className="flex space-x-2">
+                <div className="relative w-1/4">
+                  <select
+                    value={countryCode}
+                    onChange={(e) => setCountryCode(e.target.value)}
+                    className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 appearance-none"
+                  >
+                    {countryCodes.map((code) => (
+                      <option key={code.code} value={code.code}>
+                        {code.code} ({code.name})
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                    <ChevronDown className="h-4 w-4 text-gray-400" />
+                  </div>
+                </div>
+                <input
+                  type="tel"
+                  placeholder="Phone Number"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="block w-3/4 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  required
+                />
+              </div>
 
-        <button
-          type="submit"
-          className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 transition duration-200 font-semibold"
-          disabled={isLoading}
-        >
-          {isLoading ? <LoadingSpinner size={20} color="#ffffff" /> : 'Sign Up'}
-        </button>
-        <p className="mt-4 text-center">
-          <a href="/login" className="text-blue-500 hover:underline">Login</a> if you already have an account.
-        </p>
-      </form>
+              <input
+                type="email"
+                placeholder="Email address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="block w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                required
+              />
+              <input
+                type="password"
+                placeholder="Password (At least 8 characters)"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="block w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                required
+              />
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  required
+                  className="mr-2 h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                />
+                <label className="text-sm text-gray-600">
+                  I agree to Eraiz’s terms and conditions
+                </label>
+              </div>
+              <button
+                type="submit"
+                className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition duration-200 font-semibold flex justify-center items-center"
+                disabled={isLoading}
+              >
+                {isLoading ? <LoadingSpinner size={20} color="#ffffff" /> : 'Create my account'}
+              </button>
+              <p className="text-center text-gray-600">
+                Already have an account? <a href="/login" className="text-green-600 hover:underline">Sign in here</a>
+              </p>
+            </form>
+          </div>
+        </div>
+
+        {/* Right Side - Image (Hidden on smaller screens) */}
+        <div className="hidden custom-md:flex custom-md:w-1/2 p-6 bg-white border-l border-gray-200 items-center justify-center">
+          <div className="relative w-full h-[calc(100vh-100px)]">
+            <Image
+              src="/signupright.png"
+              alt="signup-right"
+              layout="fill"
+              objectFit="cover"
+              className="rounded-lg"
+              draggable={false}
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
