@@ -144,9 +144,8 @@ export default function DualNavbar({ handleLogout }) {
                 Eraiiz<span className="ml-1">🌱</span>
               </button>
               <nav className="hidden md:flex items-center space-x-6 text-sm text-gray-600">
-                <Link href="/about" className="hover:text-green-600">About ERaiiz</Link>
+                <Link href="/about" className="hover:text-green-600">About Eraiiz</Link>
                 <Link href="/supplier" className="hover:text-green-600">Become a Supplier</Link>
-                <Link href="/help" className="hover:text-green-600">Help</Link>
                 <Link href="/contact" className="hover:text-green-600">Contact Support</Link>
               </nav>
             </div>

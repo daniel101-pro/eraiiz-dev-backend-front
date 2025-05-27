@@ -163,17 +163,9 @@ export default function BuyerDashboard() {
 
       {/* Footer */}
       <footer className="bg-gray-100 mt-20">
-        <div className="container mx-auto px-4 py-12">
-          <div className="text-center">
-            <button
-              onClick={handleLogout}
-              className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition"
-            >
-              Logout
-            </button>
-            <div className="border-t border-gray-200 mt-6 pt-6 text-sm text-gray-500 text-center">
+        <div className="container mx-auto px-4">
+          <div className="text-center border-t border-gray-200 pt-4 mb-4 text-xs text-gray-500 text-center">
               © {new Date().getFullYear()} ERaiiz. All rights reserved.
-            </div>
           </div>
         </div>
       </footer>
