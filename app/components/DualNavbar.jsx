@@ -126,7 +126,7 @@ export default function DualNavbar({ handleLogout }) {
               <Link href="/category/fruits-waste" className="hover:text-green-600" onClick={toggleSidebar}>
                 Fruits Waste Products
               </Link>
-              <Link href="/category/others" className="hover:text-green-600" onClick={toggleSidebar}>
+              <Link href="/categories" className="hover:text-green-600" onClick={toggleSidebar}>
                 Others
               </Link>
             </nav>
@@ -171,7 +171,7 @@ export default function DualNavbar({ handleLogout }) {
               <Link href="/category/plastic" className="hover:text-green-600">Plastic Made Products</Link>
               <Link href="/category/glass" className="hover:text-green-600">Glass Made Products</Link>
               <Link href="/category/fruits-waste" className="hover:text-green-600">Fruits Waste Products</Link>
-              <Link href="/category/others" className="hover:text-green-600">Others</Link>
+              <Link href="/categories" className="hover:text-green-600">Others</Link>
             </nav>
             <div className="flex items-center gap-4">
               <div className="relative">

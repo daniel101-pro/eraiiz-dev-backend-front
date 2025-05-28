@@ -1,5 +1,5 @@
 'use client';
-import Navbar from '../components/Navbar';
+import DualNavbar from '../components/DualNavbar';
 import Footer from "../components/Footer";
 
 
@@ -14,7 +14,7 @@ export default function AboutPage() {
 
         <>
             <div className="relative z-10">
-                <Navbar />
+                <DualNavbar />
             </div>
             <a
                 href="/"
