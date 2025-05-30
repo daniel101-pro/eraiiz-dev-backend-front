@@ -22,6 +22,7 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  // Removed experimental.turbopack (handled via dev script)
 };
 
 export default nextConfig;

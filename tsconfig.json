@@ -31,6 +31,6 @@
     "pages/signup.js",
     "pages/login.js",
     "pages/categories.js"
-  ],
+, "next.config.ts"  ],
   "exclude": ["node_modules"]
 }
