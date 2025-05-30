@@ -10,6 +10,7 @@ import Orders from '../components/account/Orders';
 import FavoriteItems from '../components/account/FavoriteItems';
 import Notifications from '../components/account/Notifications';
 import SettingsSection from '../components/account/Settings';
+import UploadedProducts from '../components/account/UploadedProducts'; // New component
 
 export default function AccountPage() {
   const [user, setUser] = useState(null);
@@ -91,7 +92,6 @@ export default function AccountPage() {
     router.push('/login');
   };
 
-  // Handle token errors from child components
   const handleTokenError = () => {
     setShowModal(true);
     setTimeout(() => router.push('/login'), 2000);
@@ -118,7 +118,6 @@ export default function AccountPage() {
 
   return (
     <>
-      {/* Fancy Modal */}
       {showModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white rounded-lg p-6 shadow-lg max-w-sm w-full text-center animate-fadeIn md:p-8">
@@ -135,7 +134,6 @@ export default function AccountPage() {
 
       <DualNavbar handleLogout={handleLogout} />
       <div className="flex min-h-screen bg-gray-50">
-        {/* Sidebar */}
         <aside className="w-16 md:w-64 bg-white border-r p-4 md:p-6">
           <div className="mb-4 md:mb-8">
             <div
@@ -175,6 +173,15 @@ export default function AccountPage() {
               <Settings className="h-4 w-4" />
               <span className="hidden md:inline text-sm">Settings</span>
             </div>
+            {user.role === 'seller' && (
+              <div
+                className={`flex items-center justify-center gap-2 px-2 py-1 rounded cursor-pointer ${activeSection === 'Uploaded Products' ? 'bg-green-50' : ''} md:px-4 md:py-2 md:justify-start`}
+                onClick={() => setActiveSection('Uploaded Products')}
+              >
+                <ShoppingCart className="h-4 w-4" />
+                <span className="hidden md:inline text-sm">Uploaded Products</span>
+              </div>
+            )}
           </nav>
           <button
             onClick={handleLogout}
@@ -185,17 +192,16 @@ export default function AccountPage() {
           </button>
         </aside>
 
-        {/* Main Content */}
         <main className="flex-1 p-4 md:p-10">
           {activeSection === 'My Eraiiz Account' && <MyEraiizAccount user={user} setUser={setUser} onTokenError={handleTokenError} />}
           {activeSection === 'Orders' && <Orders onTokenError={handleTokenError} />}
           {activeSection === 'Favorite Items' && <FavoriteItems onTokenError={handleTokenError} />}
           {activeSection === 'Notifications' && <Notifications onTokenError={handleTokenError} />}
           {activeSection === 'Settings' && <SettingsSection onTokenError={handleTokenError} />}
+          {activeSection === 'Uploaded Products' && user.role === 'seller' && <UploadedProducts onTokenError={handleTokenError} />}
         </main>
       </div>
 
-      {/* Inline CSS for animations */}
       <style jsx global>{`
         @keyframes spin {
           0% { transform: rotate(0deg); }

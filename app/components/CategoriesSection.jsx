@@ -1,38 +1,66 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import Image from "next/image";
 import Link from "next/link";
 import { Leaf } from "lucide-react";
+import axios from 'axios';
 
 export default function CategoriesSection() {
-  const categories = [
+  const [categories, setCategories] = useState([
     {
       name: "Plastic Made Products",
-      count: "1,245 products",
-      href: "/category/plastic",
-      image: "/image1.png",
-      icon: <Leaf className="h-4 w-4 text-green-600 mr-1" />,
+      count: "Loading...",
+      href: "/plastic", // Updated
+      image: "/image11.png",
+      id: "plastic",
     },
     {
       name: "Glass Made Products",
-      count: "1,245 products",
-      href: "/category/glass",
-      image: "/image2.png",
-      icon: <Leaf className="h-4 w-4 text-green-600 mr-1" />,
+      count: "Loading...",
+      href: "/glass", // Updated
+      image: "/image22.png",
+      id: "glass",
     },
     {
       name: "Rubber Made Products",
-      count: "1,245 products",
-      href: "/category/rubber",
+      count: "Loading...",
+      href: "/rubber", // Updated
       image: "/image3.png",
-      icon: <Leaf className="h-4 w-4 text-green-600 mr-1" />,
+      id: "rubber",
     },
     {
-      name: "Others",
-      count: "1,245 products",
-      href: "/category/others",
-      image: "/image4.png",
-      icon: <Leaf className="h-4 w-4 text-green-600 mr-1" />,
+      name: "General Recycled Items",
+      count: "Loading...",
+      href: "/recycled", // Updated
+      image: "/image6.png",
+      id: "recycled",
     },
-  ];
+  ]);
+
+  // Fetch product counts
+  useEffect(() => {
+    const fetchProductCounts = async () => {
+      try {
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/products/count`, {
+          timeout: 30000,
+        });
+        console.log('CategoriesSection: Product Counts Response:', response.data);
+        const updatedCategories = categories.map((cat) => {
+          const countData = response.data.find((item) => item.category === cat.name);
+          return {
+            ...cat,
+            count: countData ? `${countData.count.toLocaleString()} products` : '0 products',
+          };
+        });
+        setCategories(updatedCategories);
+      } catch (error) {
+        console.error('CategoriesSection: Fetch Error:', error.response?.data || error.message);
+        setCategories(categories.map((cat) => ({ ...cat, count: 'Error' })));
+      }
+    };
+    fetchProductCounts();
+  }, []);
 
   return (
     <section className="px-4 md:px-8 lg:px-16 py-8">
@@ -47,9 +75,9 @@ export default function CategoriesSection() {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-6">
-        {categories.map((cat, idx) => (
+        {categories.map((cat) => (
           <Link
-            key={idx}
+            key={cat.id}
             href={cat.href}
             className="block group"
           >
@@ -63,10 +91,10 @@ export default function CategoriesSection() {
               />
             </div>
             <div className="mt-3 text-center">
-              {cat.icon && cat.icon}
-              <h3 className="text-base font-semibold text-gray-900 inline">
-                {cat.name}
-              </h3>
+              <div className="flex items-center justify-center">
+                <Leaf className="h-4 w-4 text-green-600 mr-1" />
+                <h3 className="text-base font-semibold text-gray-900">{cat.name}</h3>
+              </div>
               <p className="text-sm text-gray-500">{cat.count}</p>
             </div>
           </Link>

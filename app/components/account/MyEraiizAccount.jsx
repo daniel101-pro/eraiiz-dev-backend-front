@@ -188,6 +188,10 @@ export default function MyEraiizAccount({ user, setUser }) {
                   className="w-full p-2 border rounded mt-1 focus:outline-none focus:ring-2 focus:ring-green-500"
                 />
               </div>
+              <div>
+                <strong>Role:</strong>
+                <p className="mt-1 text-gray-600">{user?.role || 'N/A'}</p>
+              </div>
               <button
                 type="submit"
                 className="mt-4 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition duration-200"
@@ -204,6 +208,7 @@ export default function MyEraiizAccount({ user, setUser }) {
               <p><strong>Phone number:</strong> {user?.phone || 'N/A'}</p>
               <p><strong>Country:</strong> {user?.country || 'N/A'}</p>
               <p><strong>State of residence:</strong> {user?.state || 'N/A'}</p>
+              <p><strong>Role:</strong> {user?.role || 'N/A'}</p>
             </div>
           )}
         </div>

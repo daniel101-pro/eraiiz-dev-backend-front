@@ -2,46 +2,97 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
-
-// Icons
-const ListingsIcon = () => (
-  <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17V7m0 10h6m-6 0V7m6 0H9m-4 7h14" />
-  </svg>
-);
-
-const SalesIcon = () => (
-  <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-4c-3.3 0-6 2.7-6 6s2.7 6 6 6 6-2.7 6-6-2.7-6-6-6zm0-4C6.5 0 2 4.5 2 10s4.5 10 10 10 10-4.5 10-10S17.5 0 12 0z" />
-  </svg>
-);
-
-const ViewsIcon = () => (
-  <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-  </svg>
-);
+import Image from 'next/image';
+import Link from 'next/link';
+import { ShoppingCart, User, ChevronDown, Search, Filter, Menu } from 'lucide-react';
+import CategoriesSection from '../../components/CategoriesSection';
+import DualNavbarSell from '../../components/DualNavbarSell';
 
 export default function SellerDashboard() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [productsForYou, setProductsForYou] = useState([]);
+  const [imageError, setImageError] = useState(null); // For debugging image issues
   const router = useRouter();
 
+  const carouselItems = [
+    {
+      image: '/plastic-products.png',
+      alt: 'Plastic Made Products',
+      title: 'Plastic Made Chairs',
+      subtitle: 'Discover a range of innovative and sustainable products crafted from recycled plastics.',
+      link: '/category/plastic',
+    },
+    {
+      image: '/glass-products.png',
+      alt: 'Glass Made Products',
+      title: 'Glass Made Chairs',
+      subtitle: 'Explore the beauty of sustainability with our Glass Made Products, combining elegance with eco-consciousness.',
+      link: '/category/glass',
+    },
+    {
+      image: '/recycled-products.png',
+      alt: 'Fruits Waste Products',
+      title: 'Fruits Waste Chairs',
+      subtitle: 'Discover innovation in every piece with our Recycled Products — turning waste into purposeful beauty.',
+      link: '/category/fruits-waste',
+    },
+  ];
+
   useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem('user'));
-    if (storedUser && storedUser.role === 'seller') {
-      setUser(storedUser);
-      setLoading(false);
-    } else {
-      router.push(`/dashboard/${storedUser?.role || 'buyer'}`);
-    }
+    const interval = setInterval(() => {
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % carouselItems.length);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [carouselItems.length]);
+
+  useEffect(() => {
+    const fetchSession = async () => {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        router.push('/login');
+        return;
+      }
+      try {
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/session`, {
+          headers: { Authorization: `Bearer ${token}` },
+          timeout: 30000,
+        });
+        if (res.data.role === 'seller') {
+          setUser(res.data);
+          localStorage.setItem('user', JSON.stringify(res.data));
+          setLoading(false);
+        } else {
+          router.push(`/dashboard/${res.data.role || 'buyer'}`);
+        }
+      } catch (err) {
+        console.error('Session error:', err.response?.data || err.message);
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
+        router.push('/login');
+      }
+    };
+    fetchSession();
   }, [router]);
+
+  useEffect(() => {
+    const fetchProductsForYou = async () => {
+      try {
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/products/random?limit=8`);
+        setProductsForYou(res.data);
+      } catch (err) {
+        console.error('Error fetching products for you:', err);
+      }
+    };
+    fetchProductsForYou();
+  }, []);
 
   const handleLogout = async () => {
     try {
-      await axios.post(process.env.NEXT_PUBLIC_API_URL + '/api/auth/logout');
+      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`);
       localStorage.removeItem('user');
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
@@ -52,145 +103,127 @@ export default function SellerDashboard() {
     }
   };
 
-  const handleDeleteAccount = async () => {
-    try {
-      await axios.post(process.env.NEXT_PUBLIC_API_URL + '/api/auth/delete-account', {
-        email: user.email,
-      });
-      localStorage.removeItem('user');
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      router.push('/login');
-    } catch (err) {
-      console.error('Delete account error:', err);
-      alert('Failed to delete account. Please try again.');
-    } finally {
-      setShowDeleteModal(false);
-    }
-  };
-
   if (loading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-200">
-        <p className="text-emerald-700 text-lg">Loading...</p>
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <p className="text-green-600 text-lg">Loading...</p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-emerald-100 via-emerald-200 to-green-100">
-      <nav className="bg-emerald-800 text-white p-4 flex justify-between items-center shadow-md">
-        <h1 className="text-xl font-bold">Eraiiz Seller Dashboard</h1>
-        <div className="flex items-center gap-4">
-          <span className="text-sm">{user.name || 'EcoVendor'}</span>
-        </div>
-      </nav>
-
-      <div className="flex-grow p-8">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-emerald-800 mb-2">
-            Welcome back, {user.name || 'EcoVendor'} 🌱
-          </h1>
-          <p className="text-md text-emerald-700 italic">
-            Your sustainable listings empower change.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-          <div className="bg-white rounded-2xl shadow-lg p-6 flex items-center gap-4 hover:shadow-xl transition-shadow">
-            <ListingsIcon />
-            <div>
-              <h2 className="text-lg font-semibold text-emerald-600">Active Listings</h2>
-              <p className="text-3xl font-bold text-emerald-900">15</p>
+    <div className="flex flex-col min-h-screen">
+      <DualNavbarSell handleLogout={handleLogout} />
+      <main className="flex-1">
+        <div className="container mx-auto px-4 py-8">
+          <div className="mb-12">
+            <div
+              className="flex transition-transform duration-500 ease-in-out mb-4"
+              style={{ transform: `translateX(-${currentIndex * (100 / (window.innerWidth >= 768 ? 2 : 1))}%)` }}
+            >
+              {carouselItems.map((item, index) => (
+                <div
+                  key={index}
+                  className="flex-shrink-0 w-full md:w-1/2 flex flex-col md:flex-row md:items-center p-2 md:mr-4"
+                >
+                  <div className="relative w-full h-80 rounded-l-lg overflow-hidden md:block" style={{ position: 'relative' }}>
+                    <Image
+                      src={item.image}
+                      alt={item.alt}
+                      layout="fill"
+                      objectFit="cover"
+                      className="rounded-l-lg"
+                      draggable={false}
+                      onError={() => setImageError(`Failed to load image: ${item.image}`)}
+                    />
+                    <Link href={item.link} className="md:hidden block w-full h-full">
+                      <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg"></div>
+                      <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-black to-transparent text-white rounded-b-lg">
+                        <h2 className="text-xl font-bold">{item.title}</h2>
+                        <p className="text-sm">{item.subtitle}</p>
+                      </div>
+                    </Link>
+                  </div>
+                  <div className="hidden md:flex flex-col justify-center md:mt-0 md:flex-[0_0_40%] md:pl-4 h-80 border border-gray-200 md:border-l md:border-r md:rounded-r-lg md:flex-row md:items-center">
+                    <div className="md:flex-1">
+                      <h2 className="text-2xl font-medium text-black mb-4">{item.title}</h2>
+                      <p className="text-sm -mt-1 text-gray-500 mb-4 md:mb-0">{item.subtitle}</p>
+                      <Link href={item.link}>
+                        <button
+                          className="bg-green-600 mt-32 text-white px-6 py-2 rounded-md hover:bg-green-700 transition w-fit"
+                        >
+                          Learn More
+                        </button>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
-          <div className="bg-white rounded-2xl shadow-lg p-6 flex items-center gap-4 hover:shadow-xl transition-shadow">
-            <SalesIcon />
-            <div>
-              <h2 className="text-lg font-semibold text-emerald-600">Sales</h2>
-              <p className="text-3xl font-bold text-emerald-900">₦120,000</p>
+            <div className="flex justify-center gap-2">
+              {carouselItems.map((_, index) => (
+                <button
+                  key={index}
+                  className={`w-3 h-3 rounded-full ${currentIndex === index ? 'bg-green-600' : 'bg-gray-200'}`}
+                  onClick={() => setCurrentIndex(index)}
+                />
+              ))}
             </div>
+            {imageError && <p className="text-red-600 text-center mt-4">{imageError}</p>}
           </div>
-          <div className="bg-white rounded-2xl shadow-lg p-6 flex items-center gap-4 hover:shadow-xl transition-shadow">
-            <ViewsIcon />
-            <div>
-              <h2 className="text-lg font-semibold text-emerald-600">Total Views</h2>
-              <p className="text-3xl font-bold text-emerald-900">1,245</p>
-            </div>
-          </div>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10">
-          <div className="bg-emerald-700 text-white rounded-xl p-6 flex items-center gap-4 hover:scale-105 hover:bg-emerald-800 transition transform">
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-            </svg>
-            <div>
-              <h3 className="text-xl font-bold">Add New Listing</h3>
-              <p className="text-sm">Share your sustainable products with the world.</p>
-            </div>
+          <div className="flex justify-center mb-12">
+            <Link href="/dashboard/seller/upload">
+              <button
+                className="bg-green-600 text-white px-8 py-3 rounded-md hover:bg-green-700 transition font-semibold"
+              >
+                Upload Product
+              </button>
+            </Link>
           </div>
-          <div className="bg-emerald-600 text-white rounded-xl p-6 flex items-center gap-4 hover:scale-105 hover:bg-emerald-700 transition transform border-4 border-emerald-400">
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17V7m0 10h6m-6 0V7m6 0H9m-4 7h14" />
-            </svg>
-            <div>
-              <h3 className="text-xl font-bold">Manage Listings</h3>
-              <p className="text-sm">Update, track, or remove your eco-offers.</p>
+
+          <CategoriesSection />
+
+          <div className="mt-12 mb-12">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-semibold text-gray-800">Products for You</h2>
+              <Link href="/for-you">
+                <button className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition">
+                  See All
+                </button>
+              </Link>
             </div>
+            {productsForYou.length === 0 ? (
+              <p className="text-gray-600">No products available at the moment.</p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                {productsForYou.map((product) => (
+                  <Link href={`/product/${product._id}`} key={product._id}>
+                    <div className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition">
+                      <img
+                        src={product.images[0] || 'https://via.placeholder.com/200'}
+                        alt={product.name}
+                        className="w-full h-40 object-cover rounded"
+                      />
+                      <h3 className="mt-2 text-sm font-semibold text-gray-800">{product.name}</h3>
+                      <p className="text-green-600 font-bold">₦{product.price.toLocaleString()}</p>
+                      <p className="text-xs text-gray-500">Category: {product.category}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
         </div>
+      </main>
 
-        <div className="mt-12 text-center text-emerald-900 italic text-lg">
-          “The greatest threat to our planet is the belief that someone else will save it.” — Robert Swan
+      <footer className="bg-gray-100 mt-20">
+        <div className="container mx-auto px-4">
+          <div className="text-center border-t border-gray-200 pt-4 mb-4 text-xs text-gray-500">
+            © {new Date().getFullYear()} ERaiiz. All rights reserved.
+          </div>
         </div>
-      </div>
-
-      <footer className="bg-emerald-900 text-white p-6 flex flex-col items-center gap-4">
-        <div className="flex gap-4">
-          <button
-            onClick={handleLogout}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-4 rounded-lg transition"
-          >
-            Logout
-          </button>
-          <button
-            onClick={() => setShowDeleteModal(true)}
-            className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg transition"
-          >
-            Delete Account
-          </button>
-        </div>
-        <p className="text-sm italic">
-          "Together, we can make sustainability a reality." — Eraiiz Team
-        </p>
-        <p className="text-xs">© {new Date().getFullYear()} Eraiiz. All rights reserved.</p>
       </footer>
-
-      {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-sm w-full">
-            <h2 className="text-xl font-bold text-red-600 mb-4">Delete Account</h2>
-            <p className="text-gray-600 mb-6">
-              Are you sure you want to delete your account? This action cannot be undone.
-            </p>
-            <div className="flex gap-4">
-              <button
-                onClick={handleDeleteAccount}
-                className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg transition"
-              >
-                Yes, Delete
-              </button>
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className="bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded-lg transition"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

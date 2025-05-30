@@ -1,5 +1,7 @@
-"use client"
-import React, { useState } from 'react';
+'use client';
+import React, { useState, useEffect } from 'react';
+import LoadingSpinner from '@/components/LoadingSpinner';
+import axios from 'axios';
 
 const ProductUploadForm = () => {
   const [product, setProduct] = useState({
@@ -10,10 +12,73 @@ const ProductUploadForm = () => {
     images: [],
     attributes: [{ type: '', values: [], stock: '' }],
   });
+  const [session, setSession] = useState(null);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const categories = ['Clothing', 'Furniture', 'Accessories', 'Other'];
+  // Updated categories list
+  const categories = [
+    'Plastic Made Products',
+    'Rubber Made Products',
+    'Glass Made Products',
+    'Wood Made Products',
+    'Palm Frond Made Products',
+    'General Recycled Items',
+  ];
+
+  const refreshToken = async () => {
+    const refreshToken = localStorage.getItem('refreshToken');
+    if (!refreshToken) return null;
+    try {
+      const { data } = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh`,
+        { refreshToken },
+        { timeout: 30000 }
+      );
+      localStorage.setItem('accessToken', data.accessToken);
+      localStorage.setItem('refreshToken', data.refreshToken);
+      console.log('Client: Token Refreshed:', data.accessToken);
+      return data.accessToken;
+    } catch (err) {
+      console.error('Client: Refresh Error:', err.response?.data || err.message);
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    const fetchSession = async () => {
+      let token = localStorage.getItem('accessToken');
+      console.log('Client: Initial Token:', token);
+      if (!token) {
+        setError('Please sign in to access this page.');
+        setIsLoading(false);
+        return;
+      }
+      try {
+        let res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/session`, {
+          headers: { Authorization: `Bearer ${token}` },
+          timeout: 30000,
+        });
+        console.log('Client: Session Response:', res.status, res.data);
+        if (res.status === 401) {
+          token = await refreshToken();
+          if (!token) throw new Error('Unable to refresh token');
+          res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/session`, {
+            headers: { Authorization: `Bearer ${token}` },
+            timeout: 30000,
+          });
+        }
+        setSession(res.data);
+      } catch (err) {
+        console.error('Client: Session Error:', err.response?.data || err.message);
+        setError('Please sign in to access this page.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchSession();
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -49,6 +114,12 @@ const ProductUploadForm = () => {
     setError(null);
     setSuccess(null);
 
+    let token = localStorage.getItem('accessToken');
+    if (!token) {
+      setError('Please sign in to upload products.');
+      return;
+    }
+
     const formData = new FormData();
     formData.append('name', product.name);
     formData.append('description', product.description);
@@ -58,33 +129,84 @@ const ProductUploadForm = () => {
     product.images.forEach((image) => formData.append('images', image));
 
     try {
-      const response = await fetch('/api/products/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        setSuccess('Product uploaded successfully!');
-        setProduct({
-          name: '',
-          description: '',
-          price: '',
-          category: '',
-          images: [],
-          attributes: [{ type: '', values: [], stock: '' }],
-        });
-      } else {
-        setError(data.message || 'Failed to upload product');
+      let response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/products/upload`,
+        formData,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          timeout: 30000,
+        }
+      );
+      console.log('Client: Upload Response:', response.status, response.data);
+      if (response.status === 401) {
+        token = await refreshToken();
+        if (!token) throw new Error('Unable to refresh token');
+        response = await axios.post(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/products/upload`,
+          formData,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+            timeout: 30000,
+          }
+        );
       }
+      setSuccess('Product uploaded successfully!');
+      setProduct({
+        name: '',
+        description: '',
+        price: '',
+        category: '',
+        images: [],
+        attributes: [{ type: '', values: [], stock: '' }],
+      });
     } catch (err) {
-      setError('Server error. Please try again.');
+      console.error('Client: Upload Error:', err.response?.data || err.message);
+      setError(err.response?.data?.message || 'Failed to upload product');
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center">
+        <LoadingSpinner size={40} color="#16a34a" />
+      </div>
+    );
+  }
+
+  if (error || !session) {
+    return (
+      <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">Unauthorized</h2>
+        <p className="text-red-600 text-center mb-6">{error || 'Please sign in to access this page.'}</p>
+        <a
+          href="/login"
+          className="block w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition duration-200 font-semibold text-center"
+        >
+          Sign In
+        </a>
+      </div>
+    );
+  }
+
+  if (session.role !== 'seller') {
+    return (
+      <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">Unauthorized</h2>
+        <p className="text-red-600 text-center mb-6">Only sellers can access this page.</p>
+        <a
+          href="/login"
+          className="block w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition duration-200 font-semibold text-center"
+        >
+          Sign In
+        </a>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md">
       <h2 className="text-2xl font-semibold text-gray-800 mb-6">Upload Product</h2>
+      <p className="text-green-600 mb-4">Welcome, {session.email}!</p>
       {success && <p className="text-green-600 mb-4">{success}</p>}
       {error && <p className="text-red-600 mb-4">{error}</p>}
       <form onSubmit={handleSubmit} className="space-y-4">
