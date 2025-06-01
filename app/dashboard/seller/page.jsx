@@ -56,10 +56,17 @@ export default function SellerDashboard() {
         return;
       }
       try {
-        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/session`, {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+        if (!apiUrl) {
+          throw new Error('NEXT_PUBLIC_API_URL is not defined in environment variables');
+        }
+
+        const res = await axios.get(`${apiUrl}/api/auth/session`, {
           headers: { Authorization: `Bearer ${token}` },
           timeout: 30000,
+          withCredentials: true, // Include cookies if backend uses them
         });
+
         if (res.data.role === 'seller') {
           setUser(res.data);
           localStorage.setItem('user', JSON.stringify(res.data));
@@ -68,7 +75,12 @@ export default function SellerDashboard() {
           router.push(`/dashboard/${res.data.role || 'buyer'}`);
         }
       } catch (err) {
-        console.error('Session error:', err.response?.data || err.message);
+        console.error('Session error:', {
+          message: err.message,
+          response: err.response?.data || 'No response data',
+          status: err.response?.status,
+          statusText: err.response?.statusText,
+        });
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
@@ -81,10 +93,23 @@ export default function SellerDashboard() {
   useEffect(() => {
     const fetchProductsForYou = async () => {
       try {
-        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/products/random?limit=8`);
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+        if (!apiUrl) {
+          throw new Error('NEXT_PUBLIC_API_URL is not defined in environment variables');
+        }
+
+        const res = await axios.get(`${apiUrl}/api/products/random?limit=8`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` },
+          timeout: 30000,
+        });
         setProductsForYou(res.data);
       } catch (err) {
-        console.error('Error fetching products for you:', err);
+        console.error('Error fetching products for you:', {
+          message: err.message,
+          response: err.response?.data || 'No response data',
+          status: err.response?.status,
+          statusText: err.response?.statusText,
+        });
       }
     };
     fetchProductsForYou();
@@ -92,7 +117,15 @@ export default function SellerDashboard() {
 
   const handleLogout = async () => {
     try {
-      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`);
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      if (!apiUrl) {
+        throw new Error('NEXT_PUBLIC_API_URL is not defined in environment variables');
+      }
+
+      await axios.post(`${apiUrl}/api/auth/logout`, {}, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` },
+        timeout: 30000,
+      });
       localStorage.removeItem('user');
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
@@ -105,8 +138,16 @@ export default function SellerDashboard() {
 
   if (loading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <p className="text-green-600 text-lg">Loading...</p>
+      <div className="flex justify-center items-center h-screen bg-gray-50">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="relative">
+            <div className="w-12 h-12 border-4 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+            <div className="absolute inset-0 w-12 h-12 bg-green-100 rounded-full animate-pulse"></div>
+          </div>
+          <p className="text-gray-600 text-lg font-medium animate-fadeIn">
+            welcome to your seller dashboard...
+          </p>
+        </div>
       </div>
     );
   }
@@ -224,6 +265,31 @@ export default function SellerDashboard() {
           </div>
         </div>
       </footer>
+
+      <style jsx global>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        @keyframes pulse {
+          0% { transform: scale(1); opacity: 0.5; }
+          50% { transform: scale(1.1); opacity: 0.8; }
+          100% { transform: scale(1); opacity: 0.5; }
+        }
+        @keyframes fadeIn {
+          0% { opacity: 0; }
+          100% { opacity: 1; }
+        }
+        .animate-spin {
+          animation: spin 1s linear infinite;
+        }
+        .animate-pulse {
+          animation: pulse 2s ease-in-out infinite;
+        }
+        .animate-fadeIn {
+          animation: fadeIn 1s ease-in forwards;
+        }
+      `}</style>
     </div>
   );
 }
