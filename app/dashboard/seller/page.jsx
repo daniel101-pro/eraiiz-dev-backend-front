@@ -64,7 +64,7 @@ export default function SellerDashboard() {
         const res = await axios.get(`${apiUrl}/api/auth/session`, {
           headers: { Authorization: `Bearer ${token}` },
           timeout: 30000,
-          withCredentials: true, // Include cookies if backend uses them
+          withCredentials: true,
         });
 
         if (res.data.role === 'seller') {
