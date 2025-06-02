@@ -40,6 +40,8 @@ export default function ProductDetail() {
           throw new Error('Product not found');
         }
 
+        console.log('Fetched product data:', res.data); // Debug: Log full response
+        console.log('Images array:', res.data.images); // Debug: Log images specifically
         setProduct(res.data);
       } catch (err) {
         console.error('Error fetching product - Raw Error:', err);
@@ -98,96 +100,63 @@ export default function ProductDetail() {
       <div className="flex flex-col md:flex-row gap-6">
         {/* Product Images */}
         <div className="w-full md:w-1/2">
-          <div className="relative w-full h-96 rounded-lg overflow-hidden mb-4">
-            <Image
-              src={product.images[0] ? product.images[0] : undefined}
+          <div className="relative w-full h-96 rounded-lg mb-4">
+            <img
+              src={product.images[0] || 'https://via.placeholder.com/400'}
               alt={product.name}
-              layout="fill"
-              objectFit="cover"
-              className="rounded-lg"
+              className="w-full h-full object-cover rounded-lg"
+              onError={(e) => console.log('Main image load error:', e.target.src, 'Status:', e.target.naturalWidth === 0 ? 'Failed to load' : 'Loaded but not displayed')}
+              onLoad={(e) => console.log('Main image loaded:', e.target.src)}
             />
-            {!product.images[0] && (
-              <img
-                src="https://via.placeholder.com/400"
-                alt={product.name}
-                width={400}
-                height={400}
-                className="rounded-lg object-cover"
-              />
-            )}
           </div>
           <div className="flex gap-2">
+            {/* Thumbnail 1 */}
             <div className="w-16 h-16 rounded overflow-hidden">
-              <Image
-                src={product.images[0] ? product.images[0] : undefined}
+              <img
+                src={product.images[0] || 'https://via.placeholder.com/64'}
                 alt={product.name}
                 width={64}
                 height={64}
-                className="object-cover"
+                className="w-full h-full object-cover rounded"
+                onError={(e) => console.log('Image load error for index 0:', e.target.src, 'Status:', e.target.naturalWidth === 0 ? 'Failed to load' : 'Loaded but not displayed')}
+                onLoad={(e) => console.log('Image loaded for index 0:', e.target.src)}
               />
-              {!product.images[0] && (
-                <img
-                  src="https://via.placeholder.com/64"
-                  alt={product.name}
-                  width={64}
-                  height={64}
-                  className="object-cover rounded overflow-hidden"
-                />
-              )}
             </div>
+            {/* Thumbnail 2 */}
             <div className="w-16 h-16 rounded overflow-hidden">
-              <Image
-                src={product.images[1] ? product.images[1] : undefined}
+              <img
+                src={product.images[1] || 'https://via.placeholder.com/64'}
                 alt={product.name}
                 width={64}
                 height={64}
-                className="object-cover"
+                className="w-full h-full object-cover rounded"
+                onError={(e) => console.log('Image load error for index 1:', e.target.src, 'Status:', e.target.naturalWidth === 0 ? 'Failed to load' : 'Loaded but not displayed')}
+                onLoad={(e) => console.log('Image loaded for index 1:', e.target.src)}
               />
-              {!product.images[1] && (
-                <img
-                  src="https://via.placeholder.com/64"
-                  alt={product.name}
-                  width={64}
-                  height={64}
-                  className="object-cover rounded overflow-hidden"
-                />
-              )}
             </div>
+            {/* Thumbnail 3 */}
             <div className="w-16 h-16 rounded overflow-hidden">
-              <Image
-                src={product.images[2] ? product.images[2] : undefined}
+              <img
+                src={product.images[2] || 'https://via.placeholder.com/64'}
                 alt={product.name}
                 width={64}
                 height={64}
-                className="object-cover"
+                className="w-full h-full object-cover rounded"
+                onError={(e) => console.log('Image load error for index 2:', e.target.src, 'Status:', e.target.naturalWidth === 0 ? 'Failed to load' : 'Loaded but not displayed')}
+                onLoad={(e) => console.log('Image loaded for index 2:', e.target.src)}
               />
-              {!product.images[2] && (
-                <img
-                  src="https://via.placeholder.com/64"
-                  alt={product.name}
-                  width={64}
-                  height={64}
-                  className="object-cover rounded overflow-hidden"
-                />
-              )}
             </div>
+            {/* Thumbnail 4 */}
             <div className="w-16 h-16 rounded overflow-hidden">
-              <Image
-                src={product.images[3] ? product.images[3] : undefined}
+              <img
+                src={product.images[3] || 'https://via.placeholder.com/64'}
                 alt={product.name}
                 width={64}
                 height={64}
-                className="object-cover"
+                className="w-full h-full object-cover rounded"
+                onError={(e) => console.log('Image load error for index 3:', e.target.src, 'Status:', e.target.naturalWidth === 0 ? 'Failed to load' : 'Loaded but not displayed')}
+                onLoad={(e) => console.log('Image loaded for index 3:', e.target.src)}
               />
-              {!product.images[3] && (
-                <img
-                  src="https://via.placeholder.com/64"
-                  alt={product.name}
-                  width={64}
-                  height={64}
-                  className="object-cover rounded overflow-hidden"
-                />
-              )}
             </div>
           </div>
         </div>

@@ -12,7 +12,7 @@ const nextConfig: NextConfig = {
     ],
   },
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: true, // Consider enabling for production builds to catch errors
   },
   rewrites: async () => {
     return [
@@ -22,7 +22,6 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  // Removed experimental.turbopack (handled via dev script)
 };
 
 export default nextConfig;
