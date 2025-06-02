@@ -6,7 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ShoppingCart, User, ChevronDown, Search, Filter, Menu } from 'lucide-react';
 import CategoriesSection from '../../components/CategoriesSection';
-import DualNavbar from '../../components/DualNavbar';
+import DualNavbarSell from '../../components/DualNavbarSell';
 
 export default function BuyerDashboard() {
   const [user, setUser] = useState(null);
@@ -103,7 +103,7 @@ export default function BuyerDashboard() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <DualNavbar handleLogout={handleLogout} />
+      <DualNavbarSell handleLogout={handleLogout} />
       <main className="flex-1">
         <div className="container mx-auto px-4 py-8">
           <div className="mb-12">

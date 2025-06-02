@@ -3,15 +3,15 @@
 // Imports from Next.js and React
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 // Icons from lucide-react
-import { ShoppingCart, User, ChevronDown, Search, Filter, Menu, X } from 'lucide-react';
+import { ShoppingCart, User, ChevronDown, Search, Filter, Menu, X, LogOut } from 'lucide-react';
 
 export default function DualNavbarSell({ handleLogout }) {
   const router = useRouter();
 
-  // State for sidebar, filter modal, and filter settings
+  // State for sidebar, filter modal, filter settings, and currency
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [filterSettings, setFilterSettings] = useState({
@@ -21,6 +21,48 @@ export default function DualNavbarSell({ handleLogout }) {
     inStock: false,
     minRating: '',
   });
+  const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
+  const [selectedCurrency, setSelectedCurrency] = useState('NGN');
+
+  // Currency options
+  const currencies = [
+    { code: 'NGN', symbol: '₦', name: 'Naira' },
+    { code: 'USD', symbol: '$', name: 'US Dollar' },
+    { code: 'EUR', symbol: '€', name: 'Euro' },
+    { code: 'GBP', symbol: '£', name: 'British Pound' },
+    { code: 'JPY', symbol: '¥', name: 'Japanese Yen' },
+    { code: 'CHF', symbol: 'CHF', name: 'Swiss Franc' },
+  ];
+
+  // Function to get user role from localStorage
+  const getUserRole = () => {
+    try {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        return parsedUser?.role || 'buyer';
+      }
+      return 'buyer'; // Default to buyer if no user data
+    } catch (err) {
+      console.error('Error parsing user data:', err);
+      return 'buyer';
+    }
+  };
+
+  // Load saved currency from localStorage on mount
+  useEffect(() => {
+    const savedCurrency = localStorage.getItem('selectedCurrency');
+    if (savedCurrency && currencies.some(c => c.code === savedCurrency)) {
+      setSelectedCurrency(savedCurrency);
+    }
+  }, []);
+
+  // Save selected currency to localStorage
+  const handleCurrencyChange = (code) => {
+    setSelectedCurrency(code);
+    localStorage.setItem('selectedCurrency', code);
+    setIsCurrencyOpen(false);
+  };
 
   // Handle logo click to redirect based on user role
   const handleLogoClick = () => {
@@ -35,6 +77,15 @@ export default function DualNavbarSell({ handleLogout }) {
       }
     } catch (err) {
       console.error('Error parsing user data:', err);
+      router.push('/login');
+    }
+  };
+
+  // Handle logout
+  const onLogout = () => {
+    if (handleLogout) {
+      handleLogout();
+      localStorage.removeItem('user');
       router.push('/login');
     }
   };
@@ -105,11 +156,32 @@ export default function DualNavbarSell({ handleLogout }) {
             <Link href="/account" className="text-gray-600 hover:text-green-600" aria-label="Account">
               <User className="h-5 w-5" />
             </Link>
-            <div className="flex items-center gap-1 text-sm">
-              <span className="flex items-center justify-center w-6 h-6 bg-green-600 text-white rounded-full">
-                NG
-              </span>
-              <ChevronDown className="h-4 w-4 text-green-600" />
+            <button onClick={onLogout} aria-label="Logout" className="text-gray-600 hover:text-green-600">
+              <LogOut className="h-5 w-5" />
+            </button>
+            <div className="relative">
+              <button
+                onClick={() => setIsCurrencyOpen(!isCurrencyOpen)}
+                aria-label="Select Currency"
+                className="flex items-center gap-1 text-sm text-gray-600 hover:text-green-600 focus:outline-none"
+              >
+                {currencies.find(c => c.code === selectedCurrency)?.symbol}
+                <ChevronDown className="h-4 w-4 text-green-600" />
+              </button>
+              {isCurrencyOpen && (
+                <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                  {currencies.map((currency) => (
+                    <button
+                      key={currency.code}
+                      onClick={() => handleCurrencyChange(currency.code)}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:bg-gray-100"
+                      aria-label={`Select ${currency.name}`}
+                    >
+                      {`${currency.symbol} - ${currency.name}`}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -153,9 +225,18 @@ export default function DualNavbarSell({ handleLogout }) {
               <Link href="/contact" className="hover:text-green-600" onClick={toggleSidebar}>
                 Contact Support
               </Link>
-              <Link href="/supplier" className="hover:text-green-600" onClick={toggleSidebar}>
-                Become a Supplier
-              </Link>
+              {getUserRole() === 'buyer' && (
+                <Link href="/supplier/migrate" className="hover:text-green-600" onClick={toggleSidebar}>
+                  Become a Supplier
+                </Link>
+              )}
+              <button
+                onClick={() => { onLogout(); toggleSidebar(); }}
+                className="flex items-center gap-2 text-sm text-gray-600 hover:text-green-600"
+                aria-label="Logout"
+              >
+                <LogOut className="h-4 w-4" /> Logout
+              </button>
             </nav>
 
             <hr className="my-2 border-gray-200" />
@@ -222,6 +303,11 @@ export default function DualNavbarSell({ handleLogout }) {
                 <Link href="/contact" className="hover:text-green-600">
                   Contact Support
                 </Link>
+                {getUserRole() === 'buyer' && (
+                  <Link href="/supplier/migrate" className="hover:text-green-600">
+                    Become a Seller
+                  </Link>
+                )}
               </nav>
             </div>
             <div className="flex items-center gap-4">
@@ -234,11 +320,32 @@ export default function DualNavbarSell({ handleLogout }) {
               <Link href="/account" className="text-gray-600 hover:text-green-600" aria-label="Account">
                 <User className="h-5 w-5" />
               </Link>
-              <div className="flex items-center gap-1 text-sm">
-                <span className="flex items-center justify-center w-6 h-6 bg-green-600 text-white rounded-full">
-                  NG
-                </span>
-                <ChevronDown className="h-4 w-4 text-green-600" />
+              <button onClick={onLogout} aria-label="Logout" className="text-gray-600 hover:text-green-600">
+                <LogOut className="h-5 w-5" />
+              </button>
+              <div className="relative">
+                <button
+                  onClick={() => setIsCurrencyOpen(!isCurrencyOpen)}
+                  aria-label="Select Currency"
+                  className="flex items-center gap-1 text-sm text-gray-600 hover:text-green-600 focus:outline-none"
+                >
+                  {currencies.find(c => c.code === selectedCurrency)?.symbol}
+                  <ChevronDown className="h-4 w-4 text-green-600" />
+                </button>
+                {isCurrencyOpen && (
+                  <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                    {currencies.map((currency) => (
+                      <button
+                        key={currency.code}
+                        onClick={() => handleCurrencyChange(currency.code)}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:bg-gray-100"
+                        aria-label={`Select ${currency.name}`}
+                      >
+                        {`${currency.symbol} - ${currency.name}`}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -319,14 +426,14 @@ export default function DualNavbarSell({ handleLogout }) {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">Price Range (₦)</label>
+                <label className="block text-sm font-medium text-gray-700">Price Range ({currencies.find(c => c.code === selectedCurrency)?.symbol})</label>
                 <div className="flex gap-2">
                   <input
                     type="number"
                     name="minPrice"
                     value={filterSettings.minPrice}
                     onChange={handleFilterChange}
-                    placeholder="Min Price"
+                    placeholder={`Min Price (${currencies.find(c => c.code === selectedCurrency)?.symbol})`}
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-600 focus:border-green-600"
                   />
                   <input
@@ -334,7 +441,7 @@ export default function DualNavbarSell({ handleLogout }) {
                     name="maxPrice"
                     value={filterSettings.maxPrice}
                     onChange={handleFilterChange}
-                    placeholder="Max Price"
+                    placeholder={`Max Price (${currencies.find(c => c.code === selectedCurrency)?.symbol})`}
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-600 focus:border-green-600"
                   />
                 </div>
