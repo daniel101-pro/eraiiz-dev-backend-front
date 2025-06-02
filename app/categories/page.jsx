@@ -55,7 +55,7 @@ export default function CategoriesPage() {
   }, []);
 
   const handleExplore = (categoryId) => {
-    router.push(`/${categoryId}`);
+    router.push(`/categories/${categoryId}`);
   };
 
   return (

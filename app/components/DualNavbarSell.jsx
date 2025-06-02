@@ -66,7 +66,6 @@ export default function DualNavbarSell({ handleLogout }) {
 
   // Handle filter submission
   const handleFilterSubmit = () => {
-    // Construct query parameters from filter settings
     const params = new URLSearchParams();
     if (filterSettings.category) params.append('category', filterSettings.category);
     if (filterSettings.minPrice) params.append('minPrice', filterSettings.minPrice);
@@ -74,7 +73,6 @@ export default function DualNavbarSell({ handleLogout }) {
     if (filterSettings.inStock) params.append('inStock', 'true');
     if (filterSettings.minRating) params.append('minRating', filterSettings.minRating);
 
-    // Redirect to filter page with query parameters
     router.push(`/filter?${params.toString()}`);
     setIsFilterModalOpen(false);
   };
@@ -123,7 +121,6 @@ export default function DualNavbarSell({ handleLogout }) {
           isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
       >
-        {/* Overlay */}
         <div
           className={`fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300 ${
             isSidebarOpen ? 'opacity-100' : 'opacity-0'
@@ -132,7 +129,6 @@ export default function DualNavbarSell({ handleLogout }) {
           aria-hidden="true"
         ></div>
 
-        {/* Sidebar Content */}
         <div
           className={`fixed top-0 left-0 h-full w-64 bg-white shadow-lg transform transition-transform duration-300 ${
             isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
@@ -147,7 +143,6 @@ export default function DualNavbarSell({ handleLogout }) {
             </button>
           </div>
           <div className="p-4 flex flex-col gap-4">
-            {/* Top Navbar Links */}
             <nav className="flex flex-col gap-3 text-sm text-gray-600">
               <Link href="/about" className="hover:text-green-600" onClick={toggleSidebar}>
                 About Eraiiz
@@ -163,18 +158,28 @@ export default function DualNavbarSell({ handleLogout }) {
               </Link>
             </nav>
 
-            {/* Divider */}
             <hr className="my-2 border-gray-200" />
 
-            {/* Bottom Navbar Links */}
             <nav className="flex flex-col gap-3 text-sm text-gray-600">
-              <Link href="/category/plastic" className="hover:text-green-600" onClick={toggleSidebar}>
+              <Link href="/categories/plastic" className="hover:text-green-600" onClick={toggleSidebar}>
                 Plastic Made Products
               </Link>
-              <Link href="/category/glass" className="hover:text-green-600" onClick={toggleSidebar}>
+              <Link href="/categories/glass" className="hover:text-green-600" onClick={toggleSidebar}>
                 Glass Made Products
               </Link>
-              <Link href="/category/fruits-waste" className="hover:text-green-600" onClick={toggleSidebar}>
+              <Link href="/categories/rubber" className="hover:text-green-600" onClick={toggleSidebar}>
+                Rubber Made Products
+              </Link>
+              <Link href="/categories/wood" className="hover:text-green-600" onClick={toggleSidebar}>
+                Wood Made Products
+              </Link>
+              <Link href="/categories/palm-frond" className="hover:text-green-600" onClick={toggleSidebar}>
+                Palm Frond Made Products
+              </Link>
+              <Link href="/categories/recycled" className="hover:text-green-600" onClick={toggleSidebar}>
+                General Recycled Items
+              </Link>
+              <Link href="/categories/fruits" className="hover:text-green-600" onClick={toggleSidebar}>
                 Fruits Waste Products
               </Link>
               <Link href="/categories" className="hover:text-green-600" onClick={toggleSidebar}>
@@ -182,7 +187,6 @@ export default function DualNavbarSell({ handleLogout }) {
               </Link>
             </nav>
 
-            {/* Search and Filter Buttons */}
             <div className="flex flex-col gap-3">
               <button
                 onClick={handleSearchRedirect}
@@ -205,7 +209,6 @@ export default function DualNavbarSell({ handleLogout }) {
 
       {/* Desktop Dual Navbar */}
       <div className="hidden md:block">
-        {/* Top Navbar */}
         <header className="border-b">
           <div className="container mx-auto px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-6">
@@ -241,17 +244,28 @@ export default function DualNavbarSell({ handleLogout }) {
           </div>
         </header>
 
-        {/* Bottom Navbar */}
         <nav className="border-b">
           <div className="container mx-auto px-4 py-2 flex items-center justify-between">
             <nav className="flex items-center space-x-6 text-sm text-gray-600">
-              <Link href="/category/plastic" className="hover:text-green-600">
+              <Link href="/categories/plastic" className="hover:text-green-600">
                 Plastic Made Products
               </Link>
-              <Link href="/category/glass" className="hover:text-green-600">
+              <Link href="/categories/glass" className="hover:text-green-600">
                 Glass Made Products
               </Link>
-              <Link href="/category/fruits-waste" className="hover:text-green-600">
+              <Link href="/categories/rubber" className="hover:text-green-600">
+                Rubber Made Products
+              </Link>
+              <Link href="/categories/wood" className="hover:text-green-600">
+                Wood Made Products
+              </Link>
+              <Link href="/categories/palm-frond" className="hover:text-green-600">
+                Palm Frond Made Products
+              </Link>
+              <Link href="/categories/recycled" className="hover:text-green-600">
+                General Recycled Items
+              </Link>
+              <Link href="/categories/fruits" className="hover:text-green-600">
                 Fruits Waste Products
               </Link>
               <Link href="/categories" className="hover:text-green-600">
@@ -282,7 +296,6 @@ export default function DualNavbarSell({ handleLogout }) {
               </button>
             </div>
             <div className="space-y-4">
-              {/* Category Filter */}
               <div>
                 <label htmlFor="category" className="block text-sm font-medium text-gray-700">
                   Category
@@ -305,7 +318,6 @@ export default function DualNavbarSell({ handleLogout }) {
                 </select>
               </div>
 
-              {/* Price Range Filter */}
               <div>
                 <label className="block text-sm font-medium text-gray-700">Price Range (₦)</label>
                 <div className="flex gap-2">
@@ -328,7 +340,6 @@ export default function DualNavbarSell({ handleLogout }) {
                 </div>
               </div>
 
-              {/* Stock Availability Filter */}
               <div className="flex items-center">
                 <input
                   type="checkbox"
@@ -343,7 +354,6 @@ export default function DualNavbarSell({ handleLogout }) {
                 </label>
               </div>
 
-              {/* Minimum Rating Filter */}
               <div>
                 <label htmlFor="minRating" className="block text-sm font-medium text-gray-700">
                   Minimum Rating
