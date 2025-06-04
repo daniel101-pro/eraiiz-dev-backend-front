@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ShoppingCart, Heart, Bell, Settings, LogOut, User } from 'lucide-react';
-import DualNavbar from '../components/DualNavbar';
 import { refreshAccessToken } from '../utils/auth';
 import MyEraiizAccount from '../components/account/MyEraiizAccount';
 import Orders from '../components/account/Orders';
@@ -11,6 +10,7 @@ import FavoriteItems from '../components/account/FavoriteItems';
 import Notifications from '../components/account/Notifications';
 import SettingsSection from '../components/account/Settings';
 import UploadedProducts from '../components/account/UploadedProducts'; // New component
+import DualNavbarSell from '../components/DualNavbarSell';
 
 export default function AccountPage() {
   const [user, setUser] = useState(null);
@@ -132,7 +132,7 @@ export default function AccountPage() {
         </div>
       )}
 
-      <DualNavbar handleLogout={handleLogout} />
+      <DualNavbarSell handleLogout={handleLogout} />
       <div className="flex min-h-screen bg-gray-50">
         <aside className="w-16 md:w-64 bg-white border-r p-4 md:p-6">
           <div className="mb-4 md:mb-8">

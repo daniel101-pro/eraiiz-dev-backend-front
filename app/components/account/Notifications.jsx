@@ -5,6 +5,7 @@ export default function Notifications() {
   const [notifications, setNotifications] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [ws, setWs] = useState(null);
 
   const fetchNotifications = async () => {
     try {
@@ -14,7 +15,9 @@ export default function Notifications() {
         return;
       }
 
-      const res = await fetch(process.env.NEXT_PUBLIC_API_URL + '/api/notifications', {
+      const url = process.env.NEXT_PUBLIC_API_URL + '/api/notifications';
+      console.log('Fetching from URL:', url); // Debug log
+      const res = await fetch(url, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -23,11 +26,15 @@ export default function Notifications() {
         credentials: 'include',
       });
 
+      console.log('API Response Status:', res.status); // Debug log
       if (!res.ok) {
+        const errorText = await res.text(); // Get error details
+        console.log('API Error Response:', errorText);
         if (res.status === 401) {
           try {
             const newToken = await refreshAccessToken();
-            const retryRes = await fetch(process.env.NEXT_PUBLIC_API_URL + '/api/notifications', {
+            console.log('Refreshed token:', newToken); // Debug log
+            const retryRes = await fetch(url, {
               method: 'GET',
               headers: {
                 'Content-Type': 'application/json',
@@ -35,32 +42,34 @@ export default function Notifications() {
               },
               credentials: 'include',
             });
-            if (!retryRes.ok) throw new Error('Failed to fetch notifications');
+            if (!retryRes.ok) {
+              console.log('Retry Response Status:', retryRes.status);
+              throw new Error('Failed to fetch notifications');
+            }
             const data = await retryRes.json();
             setNotifications(data);
           } catch (refreshErr) {
+            console.error('Refresh token error:', refreshErr.message); // Debug log
             localStorage.removeItem('accessToken');
             localStorage.removeItem('refreshToken');
             window.location.href = '/login';
             return;
           }
         } else {
-          throw new Error('Failed to fetch notifications');
+          throw new Error(`Failed to fetch notifications: ${res.status} - ${errorText}`);
         }
       }
 
       const data = await res.json();
+      console.log('Fetched notifications:', data); // Debug log
       setNotifications(data);
     } catch (err) {
+      console.error('Fetch error:', err.message); // Debug log
       setError(err.message);
     } finally {
       setIsLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchNotifications();
-  }, []);
 
   const handleMarkAsRead = async (notificationId) => {
     try {
@@ -107,8 +116,49 @@ export default function Notifications() {
     }
   };
 
-  if (isLoading) return <div>Loading notifications...</div>;
-  if (error) return <div className="text-red-600">{error}</div>;
+  useEffect(() => {
+    fetchNotifications();
+
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
+      setError('User ID not found');
+      return;
+    }
+
+    const websocket = new WebSocket(`ws://localhost:8080/?userId=${userId}`);
+    setWs(websocket);
+
+    websocket.onopen = () => {
+      console.log('WebSocket connected');
+    };
+
+    websocket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      setNotifications(prev => [data, ...prev].filter(n => n.userId === userId));
+    };
+
+    websocket.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+
+    websocket.onclose = () => {
+      console.log('WebSocket disconnected');
+      setTimeout(() => {
+        const newWs = new WebSocket(`ws://localhost:8080/?userId=${userId}`);
+        setWs(newWs);
+      }, 2000);
+    };
+
+    const interval = setInterval(fetchNotifications, 30000);
+
+    return () => {
+      websocket.close();
+      clearInterval(interval);
+    };
+  }, []);
+
+  if (isLoading) return <div className="flex justify-center"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-blue-500"></div></div>;
+  if (error) return <div className="text-red-600 text-center">{error}</div>;
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm border">
@@ -117,7 +167,7 @@ export default function Notifications() {
         {notifications.length > 0 && (
           <button
             onClick={handleClearAll}
-            className="text-red-600 hover:underline"
+            className="text-red-600 hover:text-red-800 underline"
           >
             Clear All
           </button>
@@ -125,19 +175,20 @@ export default function Notifications() {
       </div>
 
       {notifications.length === 0 ? (
-        <p className="text-gray-700">No notifications found.</p>
+        <p className="text-gray-700 text-center">No notifications found.</p>
       ) : (
         <div className="space-y-4">
           {notifications.map(notif => (
             <div key={notif._id} className={`border-b pb-4 flex justify-between items-center ${notif.read ? 'opacity-50' : ''}`}>
               <div>
+                <p><strong>Type:</strong> {notif.type}</p>
                 <p><strong>Message:</strong> {notif.message}</p>
-                <p><strong>Date:</strong> {new Date(notif.createdAt).toLocaleDateString()}</p>
+                <p><strong>Date:</strong> {new Date(notif.createdAt).toLocaleString()}</p>
               </div>
               {!notif.read && (
                 <button
                   onClick={() => handleMarkAsRead(notif._id)}
-                  className="text-green-600 hover:underline"
+                  className="text-green-600 hover:text-green-800 underline"
                 >
                   Mark as Read
                 </button>
