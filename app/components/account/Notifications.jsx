@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { refreshAccessToken } from '../../utils/auth';
+import { decodeJwt } from '../../utils/jwtDecode';
 
 export default function Notifications() {
   const [notifications, setNotifications] = useState([]);
@@ -16,7 +17,7 @@ export default function Notifications() {
       }
 
       const url = process.env.NEXT_PUBLIC_API_URL + '/api/notifications';
-      console.log('Fetching from URL:', url); // Debug log
+      console.log('Fetching from URL:', url);
       const res = await fetch(url, {
         method: 'GET',
         headers: {
@@ -26,14 +27,14 @@ export default function Notifications() {
         credentials: 'include',
       });
 
-      console.log('API Response Status:', res.status); // Debug log
+      console.log('API Response Status:', res.status);
       if (!res.ok) {
-        const errorText = await res.text(); // Get error details
+        const errorText = await res.text();
         console.log('API Error Response:', errorText);
         if (res.status === 401) {
           try {
             const newToken = await refreshAccessToken();
-            console.log('Refreshed token:', newToken); // Debug log
+            console.log('Refreshed token:', newToken);
             const retryRes = await fetch(url, {
               method: 'GET',
               headers: {
@@ -49,9 +50,10 @@ export default function Notifications() {
             const data = await retryRes.json();
             setNotifications(data);
           } catch (refreshErr) {
-            console.error('Refresh token error:', refreshErr.message); // Debug log
+            console.error('Refresh token error:', refreshErr.message);
             localStorage.removeItem('accessToken');
             localStorage.removeItem('refreshToken');
+            localStorage.removeItem('userId');
             window.location.href = '/login';
             return;
           }
@@ -61,10 +63,10 @@ export default function Notifications() {
       }
 
       const data = await res.json();
-      console.log('Fetched notifications:', data); // Debug log
+      console.log('Fetched notifications:', data);
       setNotifications(data);
     } catch (err) {
-      console.error('Fetch error:', err.message); // Debug log
+      console.error('Fetch error:', err.message);
       setError(err.message);
     } finally {
       setIsLoading(false);
@@ -117,15 +119,29 @@ export default function Notifications() {
   };
 
   useEffect(() => {
-    fetchNotifications();
-
-    const userId = localStorage.getItem('userId');
+    let userId = localStorage.getItem('userId');
     if (!userId) {
-      setError('User ID not found');
+      // Fallback: Extract userId from accessToken
+      const token = localStorage.getItem('accessToken');
+      if (token) {
+        const decoded = decodeJwt(token);
+        if (decoded && decoded.id) {
+          userId = decoded.id;
+          localStorage.setItem('userId', userId); // Save for future use
+        }
+      }
+    }
+
+    if (!userId) {
+      window.location.href = '/login';
       return;
     }
 
-    const websocket = new WebSocket(`ws://localhost:8080/?userId=${userId}`);
+    fetchNotifications();
+
+    const wsUrl = process.env.NEXT_PUBLIC_API_URL.replace('http', 'ws') + `/?userId=${userId}`;
+    console.log('Connecting to WebSocket:', wsUrl);
+    const websocket = new WebSocket(wsUrl);
     setWs(websocket);
 
     websocket.onopen = () => {
@@ -144,7 +160,7 @@ export default function Notifications() {
     websocket.onclose = () => {
       console.log('WebSocket disconnected');
       setTimeout(() => {
-        const newWs = new WebSocket(`ws://localhost:8080/?userId=${userId}`);
+        const newWs = new WebSocket(wsUrl);
         setWs(newWs);
       }, 2000);
     };

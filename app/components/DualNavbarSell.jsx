@@ -11,7 +11,7 @@ import { ShoppingCart, User, ChevronDown, Search, Filter, Menu, X, LogOut } from
 export default function DualNavbarSell({ handleLogout }) {
   const router = useRouter();
 
-  // State for sidebar, filter modal, filter settings, and currency
+  // State for sidebar, filter modal, filter settings, currency, and user role
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [filterSettings, setFilterSettings] = useState({
@@ -23,6 +23,7 @@ export default function DualNavbarSell({ handleLogout }) {
   });
   const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
   const [selectedCurrency, setSelectedCurrency] = useState('NGN');
+  const [userRole, setUserRole] = useState(null); // Initially null to avoid SSR mismatch
 
   // Currency options
   const currencies = [
@@ -34,23 +35,21 @@ export default function DualNavbarSell({ handleLogout }) {
     { code: 'CHF', symbol: 'CHF', name: 'Swiss Franc' },
   ];
 
-  // Function to get user role from localStorage
-  const getUserRole = () => {
-    try {
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        const parsedUser = JSON.parse(storedUser);
-        return parsedUser?.role || 'buyer';
-      }
-      return 'buyer'; // Default to buyer if no user data
-    } catch (err) {
-      console.error('Error parsing user data:', err);
-      return 'buyer';
-    }
-  };
-
-  // Load saved currency from localStorage on mount
+  // Load user role and currency from localStorage only on the client
   useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        setUserRole(parsedUser?.role || 'buyer');
+      } catch (err) {
+        console.error('Error parsing user data:', err);
+        setUserRole('buyer');
+      }
+    } else {
+      setUserRole('buyer');
+    }
+
     const savedCurrency = localStorage.getItem('selectedCurrency');
     if (savedCurrency && currencies.some(c => c.code === savedCurrency)) {
       setSelectedCurrency(savedCurrency);
@@ -66,17 +65,9 @@ export default function DualNavbarSell({ handleLogout }) {
 
   // Handle logo click to redirect based on user role
   const handleLogoClick = () => {
-    try {
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        const parsedUser = JSON.parse(storedUser);
-        const role = parsedUser?.role || 'buyer';
-        router.push(`/dashboard/${role}`);
-      } else {
-        router.push('/login');
-      }
-    } catch (err) {
-      console.error('Error parsing user data:', err);
+    if (userRole) {
+      router.push(`/dashboard/${userRole}`);
+    } else {
       router.push('/login');
     }
   };
@@ -225,7 +216,7 @@ export default function DualNavbarSell({ handleLogout }) {
               <Link href="/contact" className="hover:text-green-600" onClick={toggleSidebar}>
                 Contact Support
               </Link>
-              {getUserRole() === 'buyer' && (
+              {userRole === 'buyer' && (
                 <Link href="/supplier/migrate" className="hover:text-green-600" onClick={toggleSidebar}>
                   Become a Supplier
                 </Link>
@@ -303,7 +294,7 @@ export default function DualNavbarSell({ handleLogout }) {
                 <Link href="/contact" className="hover:text-green-600">
                   Contact Support
                 </Link>
-                {getUserRole() === 'buyer' && (
+                {userRole === 'buyer' && (
                   <Link href="/supplier/migrate" className="hover:text-green-600">
                     Become a Seller
                   </Link>

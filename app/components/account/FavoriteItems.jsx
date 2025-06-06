@@ -1,174 +1,79 @@
-import { useState, useEffect } from 'react';
-import { refreshAccessToken } from '../../utils/auth';
+'use client';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import axios from 'axios';
+import Link from 'next/link';
 
-export default function FavoriteItems() {
+export default function FavoriteItem() {
   const [favorites, setFavorites] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [newFavorite, setNewFavorite] = useState({ name: '', category: '' });
-
-  const fetchFavorites = async () => {
-    try {
-      const token = localStorage.getItem('accessToken');
-      if (!token) {
-        window.location.href = '/login';
-        return;
-      }
-
-      const res = await fetch(process.env.NEXT_PUBLIC_API_URL + '/api/favorites', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        credentials: 'include',
-      });
-
-      if (!res.ok) {
-        if (res.status === 401) {
-          try {
-            const newToken = await refreshAccessToken();
-            const retryRes = await fetch(process.env.NEXT_PUBLIC_API_URL + '/api/favorites', {
-              method: 'GET',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${newToken}`,
-              },
-              credentials: 'include',
-            });
-            if (!retryRes.ok) throw new Error('Failed to fetch favorites');
-            const data = await retryRes.json();
-            setFavorites(data);
-          } catch (refreshErr) {
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('refreshToken');
-            window.location.href = '/login';
-            return;
-          }
-        } else {
-          throw new Error('Failed to fetch favorites');
-        }
-      }
-
-      const data = await res.json();
-      setFavorites(data);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const router = useRouter();
 
   useEffect(() => {
+    const fetchFavorites = async () => {
+      try {
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+          router.push('/login');
+          return;
+        }
+
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+        if (!apiUrl) {
+          throw new Error('NEXT_PUBLIC_API_URL is not defined in environment variables');
+        }
+
+        const res = await axios.get(`${apiUrl}/api/favorites`, {
+          headers: { Authorization: `Bearer ${token}` },
+          timeout: 30000,
+          withCredentials: true,
+        });
+
+        setFavorites(res.data);
+      } catch (err) {
+        console.error('Error fetching favorites:', err);
+        setError('Failed to load favorites. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchFavorites();
-  }, []);
+  }, [router]);
 
-  const handleRemoveFavorite = async (favoriteId) => {
-    try {
-      const token = localStorage.getItem('accessToken');
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/favorites/${favoriteId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        credentials: 'include',
-      });
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-gray-50">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-blue-500"></div>
+      </div>
+    );
+  }
 
-      if (!res.ok) {
-        throw new Error('Failed to remove favorite');
-      }
-
-      setFavorites(favorites.filter(fav => fav._id !== favoriteId));
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-
-  const handleAddFavorite = async (e) => {
-    e.preventDefault();
-    try {
-      const token = localStorage.getItem('accessToken');
-      const res = await fetch(process.env.NEXT_PUBLIC_API_URL + '/api/favorites', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        credentials: 'include',
-        body: JSON.stringify(newFavorite),
-      });
-
-      if (!res.ok) {
-        throw new Error('Failed to add favorite');
-      }
-
-      const data = await res.json();
-      setFavorites([...favorites, data]);
-      setNewFavorite({ name: '', category: '' });
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-
-  if (isLoading) return <div>Loading favorites...</div>;
-  if (error) return <div className="text-red-600">{error}</div>;
+  if (error) {
+    return <div className="text-red-600 text-center">{error}</div>;
+  }
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm border">
-      <h1 className="text-2xl font-semibold mb-8">Favorite Items</h1>
-
-      {/* Add New Favorite Form */}
-      <div className="mb-8">
-        <h2 className="text-lg font-semibold mb-4">Add New Favorite</h2>
-        <form onSubmit={handleAddFavorite} className="flex gap-4 items-end">
-          <div>
-            <label className="block text-sm text-gray-700">Item Name:</label>
-            <input
-              type="text"
-              value={newFavorite.name}
-              onChange={(e) => setNewFavorite({ ...newFavorite, name: e.target.value })}
-              className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm text-gray-700">Category:</label>
-            <input
-              type="text"
-              value={newFavorite.category}
-              onChange={(e) => setNewFavorite({ ...newFavorite, category: e.target.value })}
-              className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            className="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition duration-200"
-          >
-            Add Favorite
-          </button>
-        </form>
-      </div>
-
-      {/* Favorites List */}
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-2xl font-semibold text-gray-800 mb-6">Your Favorites</h1>
       {favorites.length === 0 ? (
-        <p className="text-gray-700">No favorite items found.</p>
+        <p className="text-gray-600 text-center">You have no favorite products yet.</p>
       ) : (
-        <div className="space-y-4">
-          {favorites.map(fav => (
-            <div key={fav._id} className="border-b pb-4 flex justify-between items-center">
-              <div>
-                <p><strong>Name:</strong> {fav.name}</p>
-                <p><strong>Category:</strong> {fav.category}</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          {favorites.map((favorite) => (
+            <Link href={`/product/${favorite.productId}`} key={favorite._id}>
+              <div className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition">
+                <img
+                  src={favorite.image || 'https://via.placeholder.com/200'}
+                  alt={favorite.name}
+                  className="w-full h-40 object-cover rounded mb-2"
+                />
+                <h3 className="text-sm font-semibold text-gray-800">{favorite.name}</h3>
+                <p className="text-green-600 font-bold">₦{favorite.price.toLocaleString()}</p>
+                <p className="text-xs text-gray-500">Category: {favorite.category}</p>
               </div>
-              <button
-                onClick={() => handleRemoveFavorite(fav._id)}
-                className="text-red-600 hover:underline"
-              >
-                Remove
-              </button>
-            </div>
+            </Link>
           ))}
         </div>
       )}

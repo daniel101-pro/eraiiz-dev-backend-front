@@ -1,34 +1,55 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import axios from 'axios';
 import Image from 'next/image';
 import Link from 'next/link';
 
 export default function ProductDetail() {
   const { id } = useParams();
-  const router = useRouter();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState('S');
 
+  const refreshToken = async () => {
+    try {
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (!refreshToken) throw new Error('No refresh token found');
+
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      const res = await axios.post(`${apiUrl}/api/auth/refresh`, { refreshToken }, {
+        timeout: 30000,
+        withCredentials: true,
+      });
+
+      const newAccessToken = res.data.accessToken;
+      localStorage.setItem('accessToken', newAccessToken);
+      return newAccessToken;
+    } catch (err) {
+      console.error('Token refresh error:', err);
+      localStorage.clear();
+      window.location.href = '/login'; // Redirect to login on refresh failure
+      throw err;
+    }
+  };
+
   useEffect(() => {
     console.log('Product ID from useParams:', id); // Debug: Check the ID
 
     const fetchProduct = async () => {
-      let apiUrl; // Declare apiUrl outside try block
+      let apiUrl;
       try {
         apiUrl = process.env.NEXT_PUBLIC_API_URL;
         if (!apiUrl) {
           throw new Error('NEXT_PUBLIC_API_URL is not defined in environment variables');
         }
 
-        const token = localStorage.getItem('accessToken');
+        let token = localStorage.getItem('accessToken');
         if (!token) {
-          throw new Error('Access token not found in localStorage');
+          throw new Error('No access token found');
         }
 
         const res = await axios.get(`${apiUrl}/api/products/${id}`, {
@@ -40,8 +61,8 @@ export default function ProductDetail() {
           throw new Error('Product not found');
         }
 
-        console.log('Fetched product data:', res.data); // Debug: Log full response
-        console.log('Images array:', res.data.images); // Debug: Log images specifically
+        console.log('Fetched product data:', res.data);
+        console.log('Images array:', res.data.images);
         setProduct(res.data);
       } catch (err) {
         console.error('Error fetching product - Raw Error:', err);
@@ -52,8 +73,17 @@ export default function ProductDetail() {
           status: err.response?.status,
           statusText: err.response?.statusText,
         });
-        setError('Product not found or failed to load');
-        router.push('/404');
+
+        if (err.response?.status === 401) {
+          const newToken = await refreshToken();
+          const retryRes = await axios.get(`${apiUrl}/api/products/${id}`, {
+            headers: { Authorization: `Bearer ${newToken}` },
+            timeout: 30000,
+          });
+          setProduct(retryRes.data);
+        } else {
+          setError(err.response?.data?.message || err.message || 'Failed to load product');
+        }
       } finally {
         setLoading(false);
       }
@@ -64,9 +94,9 @@ export default function ProductDetail() {
     } else {
       console.error('No product ID provided');
       setError('No product ID provided');
-      router.push('/404');
+      setLoading(false);
     }
-  }, [id, router]);
+  }, [id]);
 
   if (loading) {
     return (
@@ -85,7 +115,12 @@ export default function ProductDetail() {
   }
 
   if (error || !product) {
-    return <div className="text-red-600 text-center">{error || 'Product not found'}</div>;
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Link href="/dashboard/seller" className="text-green-600 mb-4 inline-block">← Back to products section</Link>
+        <div className="text-red-600 text-center">{error || 'Product not found'}</div>
+      </div>
+    );
   }
 
   const sizes = ['S', 'L', 'XL', 'XXL', 'XXXL'];

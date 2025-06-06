@@ -31,6 +31,6 @@
     "pages/signup.js",
     "pages/login.js",
     "pages/categories.js"
-, "next.config.ts"  ],
+, "next.config.ts", "app/components/ProductList.jsx"  ],
   "exclude": ["node_modules"]
 }

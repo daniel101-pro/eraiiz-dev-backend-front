@@ -4,7 +4,9 @@ import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ShoppingCart, User, ChevronDown, Search, Filter, Menu } from 'lucide-react';
+import { ShoppingCart, User, ChevronDown, Search, Filter, Menu, Heart } from 'lucide-react';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import CategoriesSection from '../../components/CategoriesSection';
 import DualNavbarSell from '../../components/DualNavbarSell';
 
@@ -13,7 +15,8 @@ export default function SellerDashboard() {
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [productsForYou, setProductsForYou] = useState([]);
-  const [imageError, setImageError] = useState(null); // For debugging image issues
+  const [favoritedProducts, setFavoritedProducts] = useState(new Map());
+  const [imageError, setImageError] = useState(null);
   const router = useRouter();
 
   const carouselItems = [
@@ -81,14 +84,39 @@ export default function SellerDashboard() {
           status: err.response?.status,
           statusText: err.response?.statusText,
         });
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('user');
-        router.push('/login');
+        if (err.response?.status === 401) {
+          await refreshToken();
+        } else {
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('user');
+          router.push('/login');
+        }
       }
     };
     fetchSession();
   }, [router]);
+
+  const refreshToken = async () => {
+    try {
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (!refreshToken) throw new Error('No refresh token found');
+
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      const res = await axios.post(`${apiUrl}/api/auth/refresh`, { refreshToken }, {
+        timeout: 30000,
+        withCredentials: true,
+      });
+
+      const newAccessToken = res.data.accessToken;
+      localStorage.setItem('accessToken', newAccessToken);
+      await fetchSession();
+    } catch (err) {
+      console.error('Token refresh error:', err);
+      localStorage.clear();
+      router.push('/login');
+    }
+  };
 
   useEffect(() => {
     const fetchProductsForYou = async () => {
@@ -115,6 +143,47 @@ export default function SellerDashboard() {
     fetchProductsForYou();
   }, []);
 
+  useEffect(() => {
+    const fetchFavorites = async () => {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+        const token = localStorage.getItem('accessToken');
+        const res = await axios.get(`${apiUrl}/api/favorites`, {
+          headers: { Authorization: `Bearer ${token}` },
+          timeout: 30000,
+          withCredentials: true,
+        });
+        const favoriteMap = new Map(
+          res.data.map((fav) => [fav.productId, fav._id])
+        );
+        setFavoritedProducts(favoriteMap);
+      } catch (err) {
+        console.error('Error fetching favorites:', {
+          message: err.message,
+          response: err.response?.data || 'No response data',
+          status: err.response?.status,
+          statusText: err.response?.statusText,
+        });
+        toast.error('Failed to load favorites. Some features may not work as expected.', {
+          position: 'top-right',
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          style: {
+            backgroundColor: '#F44336',
+            color: '#FFFFFF',
+            borderRadius: '8px',
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          },
+        });
+        setFavoritedProducts(new Map());
+      }
+    };
+    fetchFavorites();
+  }, []);
+
   const handleLogout = async () => {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
@@ -136,6 +205,102 @@ export default function SellerDashboard() {
     }
   };
 
+  const handleAddToFavorites = async (productId) => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        throw new Error('No access token found');
+      }
+
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      if (!apiUrl) {
+        throw new Error('NEXT_PUBLIC_API_URL is not defined');
+      }
+
+      const favoriteId = favoritedProducts.get(productId);
+      const isFavorited = !!favoriteId;
+
+      setFavoritedProducts((prev) => {
+        const updated = new Map(prev);
+        if (isFavorited) {
+          updated.delete(productId);
+        } else {
+          updated.set(productId, 'temp');
+        }
+        return updated;
+      });
+
+      if (isFavorited) {
+        await axios.delete(`${apiUrl}/api/favorites/${favoriteId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+          timeout: 30000,
+          withCredentials: true,
+        });
+      } else {
+        const res = await axios.post(`${apiUrl}/api/favorites/${productId}`, {}, {
+          headers: { Authorization: `Bearer ${token}` },
+          timeout: 30000,
+          withCredentials: true,
+        });
+        setFavoritedProducts((prev) => {
+          const updated = new Map(prev);
+          updated.set(productId, res.data._id);
+          return updated;
+        });
+      }
+
+      toast.success(isFavorited ? 'Removed from favorites!' : 'Added to favorites!', {
+        position: 'top-right',
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        style: {
+          backgroundColor: '#4CAF50',
+          color: '#FFFFFF',
+          borderRadius: '8px',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+        },
+      });
+    } catch (err) {
+      console.error('Add to favorites error:', {
+        message: err.message || 'Unknown error',
+        response: err.response ? err.response.data : 'No response data',
+        status: err.response ? err.response.status : 'No status',
+        statusText: err.response ? err.response.statusText : 'No status text',
+        productId,
+        stack: err.stack || 'No stack trace',
+      });
+
+      setFavoritedProducts((prev) => {
+        const updated = new Map(prev);
+        const isFavorited = prev.has(productId);
+        if (isFavorited) {
+          updated.set(productId, prev.get(productId));
+        } else {
+          updated.delete(productId);
+        }
+        return updated;
+      });
+
+      toast.error(`Failed to update favorites: ${err.response?.data?.message || err.message || 'Unknown error'}`, {
+        position: 'top-right',
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        style: {
+          backgroundColor: '#F44336',
+          color: '#FFFFFF',
+          borderRadius: '8px',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+        },
+      });
+    }
+  };
+
   if (loading || !user) {
     return (
       <div className="flex justify-center items-center h-screen bg-gray-50">
@@ -154,7 +319,11 @@ export default function SellerDashboard() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <DualNavbarSell handleLogout={handleLogout} />
+      <DualNavbarSell
+        handleLogout={handleLogout}
+        toggleSidebar={() => {}}
+        productsForYou={productsForYou}
+      />
       <main className="flex-1">
         <div className="container mx-auto px-4 py-8">
           <div className="mb-12">
@@ -239,8 +408,8 @@ export default function SellerDashboard() {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                 {productsForYou.map((product) => (
-                  <Link href={`/product/${product._id}`} key={product._id}>
-                    <div className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition">
+                  <div key={product._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition relative">
+                    <Link href={`/product/${product._id}`}>
                       <img
                         src={product.images[0] || 'https://via.placeholder.com/200'}
                         alt={product.name}
@@ -249,8 +418,18 @@ export default function SellerDashboard() {
                       <h3 className="mt-2 text-sm font-semibold text-gray-800">{product.name}</h3>
                       <p className="text-green-600 font-bold">₦{product.price.toLocaleString()}</p>
                       <p className="text-xs text-gray-500">Category: {product.category}</p>
-                    </div>
-                  </Link>
+                    </Link>
+                    <button
+                      onClick={() => handleAddToFavorites(product._id)}
+                      className="absolute top-2 right-2 transition-colors"
+                    >
+                      <Heart
+                        size={20}
+                        fill={favoritedProducts.has(product._id) ? 'red' : 'none'}
+                        className={favoritedProducts.has(product._id) ? 'text-red-500' : 'text-gray-600 hover:text-red-500'}
+                      />
+                    </button>
+                  </div>
                 ))}
               </div>
             )}
@@ -266,6 +445,7 @@ export default function SellerDashboard() {
         </div>
       </footer>
 
+      <ToastContainer />
       <style jsx global>{`
         @keyframes spin {
           0% { transform: rotate(0deg); }
