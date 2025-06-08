@@ -2,53 +2,337 @@
 
 import { useEffect } from 'react';
 import Image from 'next/image';
-import DualNavbar from '../components/DualNavbar';
+import Link from 'next/link';
+import DualNavbarSell from '../components/DualNavbarSell';
+import { useCart } from '../context/CartContext';
+import toast, { Toaster } from 'react-hot-toast';
+
+const BackButton = () => {
+    return (
+        <Link 
+            href="/categories"
+            className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors duration-200 mb-4 md:mb-6"
+        >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back
+        </Link>
+    );
+};
+
+const ProgressBar = () => {
+    return (
+        <>
+            {/* Mobile Progress */}
+            <div className="md:hidden flex flex-col items-center px-4 mt-[120px] mb-8">
+                <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full border-2 border-green-600 bg-white flex items-center justify-center text-green-600">
+                        1
+                    </div>
+                    <span className="text-green-600 text-lg">Cart review</span>
+                </div>
+            </div>
+
+            {/* Desktop Progress */}
+            <div className="hidden md:flex items-center justify-center space-x-4 max-w-3xl mx-auto px-4 mt-[120px] mb-8">
+                <div className="flex items-center">
+                    <div className="w-8 h-8 rounded-full border border-green-500 bg-white flex items-center justify-center text-green-500">
+                        1
+                    </div>
+                    <span className="ml-2 text-green-500">Cart review</span>
+                </div>
+                <div className="flex-1 h-[1px] bg-gray-200"></div>
+                <div className="flex items-center">
+                    <div className="w-8 h-8 rounded-full border border-gray-300 bg-white flex items-center justify-center text-gray-500">
+                        2
+                    </div>
+                    <span className="ml-2 text-gray-500">Billing address</span>
+                </div>
+                <div className="flex-1 h-[1px] bg-gray-200"></div>
+                <div className="flex items-center">
+                    <div className="w-8 h-8 rounded-full border border-gray-300 bg-white flex items-center justify-center text-gray-500">
+                        3
+                    </div>
+                    <span className="ml-2 text-gray-500">Payment</span>
+                </div>
+            </div>
+        </>
+    );
+};
 
 export default function CartPage() {
+    const { cartItems, removeFromCart, updateQuantity, getCartTotal, clearCart } = useCart();
+
     useEffect(() => {
         document.title = 'Cart | Eraiz';
     }, []);
 
+    const handleRemoveItem = (id, size) => {
+        removeFromCart(id, size);
+        toast.success('Item removed from cart', {
+            duration: 2000,
+            position: 'top-center',
+            style: {
+                background: '#EF4444',
+                color: '#fff',
+                padding: '16px',
+                borderRadius: '8px',
+            },
+            icon: '🗑️',
+        });
+    };
+
+    const handleClearCart = () => {
+        clearCart();
+        toast.success('Cart cleared', {
+            duration: 2000,
+            position: 'top-center',
+            style: {
+                background: '#EF4444',
+                color: '#fff',
+                padding: '16px',
+                borderRadius: '8px',
+            },
+            icon: '🗑️',
+        });
+    };
+
+    if (cartItems.length === 0) {
+        return (
+            <>
+                <DualNavbarSell />
+                <ProgressBar />
+                <div className="min-h-[calc(100vh-200px)] bg-white flex flex-col items-center justify-center px-4">
+                    <div className="max-w-md mx-auto p-6 flex flex-col items-center text-center">
+                        <div className="mb-6">
+                            <Image
+                                src="/empty-cart.png"
+                                alt="Empty cart illustration"
+                                width={200}
+                                height={200}
+                                className="object-contain"
+                            />
+                        </div>
+                        <h1 className="text-2xl font-bold text-gray-800 mb-4">Oops! Your cart is currently empty</h1>
+                        <p className="text-sm text-gray-600 mb-6">
+                            It looks like you haven't added anything just yet. Browse through our collections and find something you love. Once you're ready, come back here to review and check out your items!
+                        </p>
+                        <a
+                            href="/categories"
+                            className="w-full bg-green-500 text-white py-3 rounded-lg font-medium hover:bg-green-600 transition duration-200">
+                            <button>
+                                Add items to cart
+                            </button>
+                        </a>
+                    </div>
+                </div>
+            </>
+        );
+    }
+
     return (
         <>
+            <DualNavbarSell />
+            <ProgressBar />
+            <Toaster />
+            
+            {/* Mobile Layout */}
+            <div className="md:hidden px-4 py-6">
+                <BackButton />
+                <h2 className="text-2xl text-gray-900 mb-6">Cart items</h2>
 
-            <DualNavbar />
+                <div className="space-y-6">
+                    {cartItems.map((item) => (
+                        <div key={`${item._id}-${item.selectedSize}`} className="flex flex-col gap-4">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-20 h-20 relative rounded-lg overflow-hidden">
+                                        <Image
+                                            src={item.images[0]}
+                                            alt={item.name}
+                                            layout="fill"
+                                            objectFit="cover"
+                                        />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg text-gray-900">Name of Order</h3>
+                                        <p className="text-gray-600 mt-1">Quantity</p>
+                                        <div className="flex items-center gap-2 mt-2">
+                                            <button
+                                                onClick={() => updateQuantity(item._id, item.selectedSize, Math.max(1, item.quantity - 1))}
+                                                className="w-10 h-10 flex items-center justify-center bg-white border border-gray-200 rounded-lg text-gray-600 text-2xl"
+                                            >
+                                                −
+                                            </button>
+                                            <div className="w-16 h-10 flex items-center justify-center bg-white border border-gray-200 rounded-lg text-gray-900">
+                                                {item.quantity}
+                                            </div>
+                                            <button
+                                                onClick={() => updateQuantity(item._id, item.selectedSize, item.quantity + 1)}
+                                                className="w-10 h-10 flex items-center justify-center bg-green-600 rounded-lg text-white text-2xl"
+                                            >
+                                                +
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="text-lg font-medium">₦3,500</div>
+                            </div>
 
-            <a
-                href="/"
-                className="text-sm text-black hover:text-green-600 bg-green-50 w-[114px] flex px-2 py-1 rounded-lg mt-[120px] md:mx-10 lg:mx-[300px] mx-6 border border-green-200 -mt-1"
-            >
-                <span className="mr-2 text-green-500">1</span>Cart Review
-            </a>
-            <div className="min-h-screen bg-white flex flex-col items-center justify-center ">
+                            <div className="flex justify-end">
+                                <button 
+                                    onClick={() => handleRemoveItem(item._id, item.selectedSize)}
+                                    className="w-10 h-10 flex items-center justify-center text-red-500"
+                                >
+                                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
 
-                {/* Main Content */}
-                <div className="max-w-md mx-auto p-6 flex flex-col items-center text-center -mt-60">
-                    {/* Illustration */}
-                    <div className="mb-6">
-                        <Image
-                            src="/empty-cart.png"
-                            alt="Empty cart illustration"
-                            width={200}
-                            height={200}
-                            className="object-contain"
-                        />
-                    </div>
-
-                    {/* Message */}
-                    <h1 className="text-2xl font-bold text-gray-800 mb-4">Oops! Your cart is currently empty</h1>
-                    <p className="text-sm text-gray-600 mb-6">
-                        It looks like you haven’t added anything just yet. Browse through our collections and find something you love. Once you’re ready, come back here to review and check out your items!
-                    </p>
-
-                    {/* Button */}
-                    <a
-                        href="categories"
-                        className="w-full bg-green-500 text-white py-3 rounded-lg font-medium hover:bg-green-600 transition duration-200">
-                        <button >
-                            Add items to cart
+                <div className="mt-8 bg-white rounded-2xl p-4">
+                    <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                            <span className="text-gray-600">Subtotal</span>
+                            <span className="text-gray-900">NGN {getCartTotal().toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                            <span className="text-gray-600">Discount</span>
+                            <span className="text-gray-900">NGN 0</span>
+                        </div>
+                        <div className="pt-4 border-t border-gray-100">
+                            <div className="flex justify-between items-center">
+                                <span className="text-gray-900">Total amount</span>
+                                <span className="text-gray-900">NGN {getCartTotal().toLocaleString()}</span>
+                            </div>
+                        </div>
+                        <button 
+                            onClick={() => window.location.href = '/checkout/billing'}
+                            className="w-full bg-green-600 text-white py-4 rounded-xl font-medium text-lg"
+                        >
+                            Proceed to checkout
                         </button>
-                    </a>
+                    </div>
+                </div>
+            </div>
+
+            {/* Desktop Layout */}
+            <div className="hidden md:block container mx-auto px-4 py-8">
+                <div className="max-w-7xl mx-auto">
+                    <BackButton />
+                    <div className="flex flex-col lg:flex-row gap-8">
+                        {/* Left Column - Cart Items */}
+                        <div className="lg:w-2/3">
+                            <div className="bg-white rounded-2xl p-6 shadow-sm">
+                                {/* Cart Header */}
+                                <div className="flex justify-between items-center mb-8">
+                                    <h2 className="text-2xl text-gray-800 font-medium">Cart items</h2>
+                                    <button 
+                                        onClick={handleClearCart}
+                                        className="text-red-500 hover:text-red-600 bg-red-50 px-4 py-2 rounded-full text-sm transition-colors duration-200"
+                                    >
+                                        Clear Cart
+                                    </button>
+                                </div>
+
+                                {/* Cart Items */}
+                                <div className="space-y-8">
+                                    {cartItems.map((item) => (
+                                        <div key={`${item._id}-${item.selectedSize}`}>
+                                            <div className="flex items-center gap-4">
+                                                {/* Product Image */}
+                                                <div className="w-24 h-24 relative rounded-xl overflow-hidden">
+                                                    <Image
+                                                        src={item.images[0]}
+                                                        alt={item.name}
+                                                        layout="fill"
+                                                        objectFit="cover"
+                                                    />
+                                                </div>
+                                                
+                                                {/* Product Details */}
+                                                <div className="flex-1">
+                                                    <h3 className="text-gray-700 text-lg mb-1">{item.name}</h3>
+                                                    <p className="text-gray-900 font-semibold text-xl mb-4">NGN {item.price.toLocaleString()}</p>
+                                                    <div className="flex items-center gap-2">
+                                                        <p className="text-gray-500">Quantity</p>
+                                                        <div className="flex items-center gap-2">
+                                                            <button
+                                                                onClick={() => updateQuantity(item._id, item.selectedSize, Math.max(1, item.quantity - 1))}
+                                                                className="w-12 h-12 flex items-center justify-center bg-white border-2 border-gray-200 rounded-xl text-gray-600 text-2xl hover:border-gray-300 transition-colors duration-200"
+                                                            >
+                                                                −
+                                                            </button>
+                                                            <div className="w-28 h-12 flex items-center justify-center bg-white border-2 border-gray-200 rounded-xl text-gray-900">
+                                                                {item.quantity}
+                                                            </div>
+                                                            <button
+                                                                onClick={() => updateQuantity(item._id, item.selectedSize, item.quantity + 1)}
+                                                                className="w-12 h-12 flex items-center justify-center bg-green-600 rounded-xl text-white text-2xl hover:bg-green-700 transition-colors duration-200"
+                                                            >
+                                                                +
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Action Buttons */}
+                                                <div className="flex flex-col items-end gap-2">
+                                                    <button className="text-green-600 border border-green-600 rounded-full px-4 py-2 flex items-center gap-2 hover:bg-green-50 transition-colors duration-200">
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                                        </svg>
+                                                        Edit order
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => handleRemoveItem(item._id, item.selectedSize)}
+                                                        className="text-red-500 bg-red-50 rounded-full px-4 py-2 flex items-center gap-2 hover:bg-red-100 transition-colors duration-200"
+                                                    >
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                        Remove item
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Right Column - Order Summary */}
+                        <div className="lg:w-1/3">
+                            <div className="bg-white rounded-2xl p-6 shadow-sm sticky top-4">
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-gray-600">Subtotal</span>
+                                        <span className="text-gray-900">NGN {getCartTotal().toLocaleString()}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-gray-600">Discount</span>
+                                        <span className="text-gray-900">NGN 0</span>
+                                    </div>
+                                    <div className="pt-4 mt-4 border-t border-gray-100">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-gray-900 font-medium">Total amount</span>
+                                            <span className="text-gray-900 font-medium">NGN {getCartTotal().toLocaleString()}</span>
+                                        </div>
+                                    </div>
+                                    <button 
+                                        onClick={() => window.location.href = '/checkout/billing'}
+                                        className="w-full bg-green-500 text-white py-3 rounded-xl font-medium hover:bg-green-600 transition-all duration-200 transform hover:scale-105 active:scale-95"
+                                    >
+                                        Proceed to checkout
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </>

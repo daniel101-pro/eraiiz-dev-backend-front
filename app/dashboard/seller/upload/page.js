@@ -1,5 +1,5 @@
 import ProductUploadForm from '../../../components/ProductUploadForm';
-import DualNavbar from '../../../components/DualNavbar';
+import DualNavbarSell from '../../../components/DualNavbarSell';
 
 // Viewport export for themeColor
 export const viewport = {
@@ -9,14 +9,14 @@ export const viewport = {
 // Metadata export
 export const metadata = {
   metadataBase: new URL('http://localhost:3001'),
-  title: 'Seller Upload - Eraiiz',
-  description: 'Upload products as a seller on Eraiiz.',
+  title: 'Upload Product - Eraiiz',
+  description: 'Upload your product to Eraiiz marketplace',
 };
 
 export default function UploadProductPage() {
   return (
     <div className="min-h-screen bg-gray-100">
-      <DualNavbar />
+      <DualNavbarSell />
       <main className="container mx-auto py-8 mt-20">
         <ProductUploadForm />
       </main>

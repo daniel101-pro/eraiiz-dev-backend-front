@@ -1,10 +1,16 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import { refreshAccessToken } from '../../app/utils/auth';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useCurrency } from '../context/CurrencyContext';
 
 export default function ProductList() {
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { convertPrice, formatPrice } = useCurrency();
 
   const fetchProducts = async () => {
     try {
@@ -100,26 +106,35 @@ export default function ProductList() {
   if (error) return <div className="text-red-600 text-center">{error}</div>;
 
   return (
-    <div className="bg-white rounded-lg">
-      {products.length === 0 ? (
-        <p className="text-gray-700 text-center">No products found.</p>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {products.map(product => (
-            <div key={product._id} className="border p-4 rounded-lg shadow-sm">
-              <h2 className="text-lg font-semibold">{product.name}</h2>
-              <p><strong>Category:</strong> {product.category}</p>
-              <p><strong>Price:</strong> {product.price}</p>
-              <button
-                onClick={() => handleAddToFavorites(product._id)}
-                className="mt-4 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition duration-200"
-              >
-                Add to Favorites
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+      {products.map((product) => (
+        <Link
+          key={product._id}
+          href={`/product/${product._id}`}
+          className="group bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200"
+        >
+          <div className="aspect-square relative overflow-hidden rounded-t-lg">
+            <Image
+              src={product.images[0]}
+              alt={product.name}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-200"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            />
+          </div>
+          <div className="p-4">
+            <h3 className="text-sm font-medium text-gray-900 truncate">
+              {product.name}
+            </h3>
+            <p className="mt-1 text-sm text-gray-500 truncate">
+              {product.description}
+            </p>
+            <p className="mt-2 text-sm font-semibold text-gray-900">
+              {formatPrice(convertPrice(product.price))}
+            </p>
+          </div>
+        </Link>
+      ))}
     </div>
   );
 }

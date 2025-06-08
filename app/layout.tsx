@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Onest } from "next/font/google";
 import "./globals.css";
+import { CartProvider } from './context/CartContext';
+import { CurrencyProvider } from './context/CurrencyContext';
 
 
 // Import Onest font with appropriate subsets
@@ -74,7 +76,11 @@ export default function RootLayout({
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
       </head>
       <body className={`${onest.variable} antialiased`}>
-        {children}
+        <CartProvider>
+          <CurrencyProvider>
+            {children}
+          </CurrencyProvider>
+        </CartProvider>
       </body>
     </html>
   );

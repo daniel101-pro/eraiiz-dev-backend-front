@@ -5,8 +5,7 @@ import axios from 'axios';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ShoppingCart, User, ChevronDown, Search, Filter, Menu, Heart } from 'lucide-react';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast, Toaster } from 'react-hot-toast';
 import CategoriesSection from '../../components/CategoriesSection';
 import DualNavbarSell from '../../components/DualNavbarSell';
 
@@ -165,18 +164,9 @@ export default function SellerDashboard() {
           statusText: err.response?.statusText,
         });
         toast.error('Failed to load favorites. Some features may not work as expected.', {
-          position: 'top-right',
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          style: {
-            backgroundColor: '#F44336',
-            color: '#FFFFFF',
-            borderRadius: '8px',
-            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-          },
+          id: 'fetch-favorites-error',
+          duration: 3000,
+          position: 'top-center',
         });
         setFavoritedProducts(new Map());
       }
@@ -207,96 +197,97 @@ export default function SellerDashboard() {
 
   const handleAddToFavorites = async (productId) => {
     try {
-      const token = localStorage.getItem('accessToken');
-      if (!token) {
-        throw new Error('No access token found');
-      }
-
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      if (!apiUrl) {
-        throw new Error('NEXT_PUBLIC_API_URL is not defined');
+      const token = localStorage.getItem('accessToken');
+      
+      if (!token) {
+        toast.error('Please log in to add favorites', {
+          id: 'login-required',
+          duration: 3000,
+          position: 'top-center',
+        });
+        router.push('/login');
+        return;
       }
 
+      // Optimistically update UI
+      const isFavorited = favoritedProducts.has(productId);
       const favoriteId = favoritedProducts.get(productId);
-      const isFavorited = !!favoriteId;
 
       setFavoritedProducts((prev) => {
         const updated = new Map(prev);
         if (isFavorited) {
           updated.delete(productId);
         } else {
-          updated.set(productId, 'temp');
+          // Use a temporary ID until we get the real one from the server
+          updated.set(productId, 'pending');
         }
         return updated;
       });
 
-      if (isFavorited) {
-        await axios.delete(`${apiUrl}/api/favorites/${favoriteId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-          timeout: 30000,
-          withCredentials: true,
+      try {
+        if (isFavorited && favoriteId) {
+          await axios.delete(`${apiUrl}/api/favorites/${favoriteId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+            timeout: 30000,
+            withCredentials: true,
+          });
+        } else {
+          const res = await axios.post(`${apiUrl}/api/favorites/${productId}`, {}, {
+            headers: { Authorization: `Bearer ${token}` },
+            timeout: 30000,
+            withCredentials: true,
+          });
+          
+          // Update with real ID from server
+          setFavoritedProducts((prev) => {
+            const updated = new Map(prev);
+            updated.set(productId, res.data._id);
+            return updated;
+          });
+        }
+
+        toast.success(isFavorited ? 'Removed from favorites!' : 'Added to favorites!', {
+          id: 'favorite-success',
+          duration: 3000,
+          position: 'top-center',
         });
-      } else {
-        const res = await axios.post(`${apiUrl}/api/favorites/${productId}`, {}, {
-          headers: { Authorization: `Bearer ${token}` },
-          timeout: 30000,
-          withCredentials: true,
-        });
+      } catch (error) {
+        // Revert optimistic update on error
         setFavoritedProducts((prev) => {
           const updated = new Map(prev);
-          updated.set(productId, res.data._id);
+          if (isFavorited) {
+            updated.set(productId, favoriteId);
+          } else {
+            updated.delete(productId);
+          }
           return updated;
         });
-      }
 
-      toast.success(isFavorited ? 'Removed from favorites!' : 'Added to favorites!', {
-        position: 'top-right',
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        style: {
-          backgroundColor: '#4CAF50',
-          color: '#FFFFFF',
-          borderRadius: '8px',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-        },
-      });
-    } catch (err) {
-      console.error('Add to favorites error:', {
-        message: err.message || 'Unknown error',
-        response: err.response ? err.response.data : 'No response data',
-        status: err.response ? err.response.status : 'No status',
-        statusText: err.response ? err.response.statusText : 'No status text',
-        productId,
-        stack: err.stack || 'No stack trace',
-      });
-
-      setFavoritedProducts((prev) => {
-        const updated = new Map(prev);
-        const isFavorited = prev.has(productId);
-        if (isFavorited) {
-          updated.set(productId, prev.get(productId));
-        } else {
-          updated.delete(productId);
+        // Handle specific error cases
+        if (error.response?.status === 401) {
+          toast.error('Session expired. Please log in again', {
+            id: 'session-expired',
+            duration: 3000,
+            position: 'top-center',
+          });
+          router.push('/login');
+          return;
         }
-        return updated;
-      });
 
-      toast.error(`Failed to update favorites: ${err.response?.data?.message || err.message || 'Unknown error'}`, {
-        position: 'top-right',
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        style: {
-          backgroundColor: '#F44336',
-          color: '#FFFFFF',
-          borderRadius: '8px',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-        },
+        toast.error('Failed to update favorites. Please try again.', {
+          id: 'favorite-error',
+          duration: 3000,
+          position: 'top-center',
+        });
+      }
+    } catch (error) {
+      // Handle any unexpected errors
+      console.error('Unexpected error in handleAddToFavorites:', error);
+      toast.error('An unexpected error occurred. Please try again.', {
+        id: 'unexpected-error',
+        duration: 3000,
+        position: 'top-center',
       });
     }
   };
@@ -323,6 +314,18 @@ export default function SellerDashboard() {
         handleLogout={handleLogout}
         toggleSidebar={() => {}}
         productsForYou={productsForYou}
+      />
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          duration: 2000,
+          style: {
+            background: '#333',
+            color: '#fff',
+            padding: '16px',
+            borderRadius: '12px',
+          },
+        }}
       />
       <main className="flex-1">
         <div className="container mx-auto px-4 py-8">
@@ -444,32 +447,6 @@ export default function SellerDashboard() {
           </div>
         </div>
       </footer>
-
-      <ToastContainer />
-      <style jsx global>{`
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-        @keyframes pulse {
-          0% { transform: scale(1); opacity: 0.5; }
-          50% { transform: scale(1.1); opacity: 0.8; }
-          100% { transform: scale(1); opacity: 0.5; }
-        }
-        @keyframes fadeIn {
-          0% { opacity: 0; }
-          100% { opacity: 1; }
-        }
-        .animate-spin {
-          animation: spin 1s linear infinite;
-        }
-        .animate-pulse {
-          animation: pulse 2s ease-in-out infinite;
-        }
-        .animate-fadeIn {
-          animation: fadeIn 1s ease-in forwards;
-        }
-      `}</style>
     </div>
   );
 }

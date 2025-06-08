@@ -4,14 +4,18 @@
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { useCurrency } from '../context/CurrencyContext';
+import { useCart } from '../context/CartContext';
 
 // Icons from lucide-react
 import { ShoppingCart, User, ChevronDown, Search, Filter, Menu, X, LogOut } from 'lucide-react';
 
 export default function DualNavbarSell({ handleLogout }) {
   const router = useRouter();
+  const { selectedCurrency, setSelectedCurrency } = useCurrency();
+  const { cartItems } = useCart();
 
-  // State for sidebar, filter modal, filter settings, currency, and user role
+  // State for sidebar, filter modal, filter settings, and user role
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [filterSettings, setFilterSettings] = useState({
@@ -22,7 +26,6 @@ export default function DualNavbarSell({ handleLogout }) {
     minRating: '',
   });
   const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
-  const [selectedCurrency, setSelectedCurrency] = useState('NGN');
   const [userRole, setUserRole] = useState(null); // Initially null to avoid SSR mismatch
 
   // Currency options
@@ -35,7 +38,7 @@ export default function DualNavbarSell({ handleLogout }) {
     { code: 'CHF', symbol: 'CHF', name: 'Swiss Franc' },
   ];
 
-  // Load user role and currency from localStorage only on the client
+  // Load user role from localStorage only on the client
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
@@ -49,17 +52,11 @@ export default function DualNavbarSell({ handleLogout }) {
     } else {
       setUserRole('buyer');
     }
-
-    const savedCurrency = localStorage.getItem('selectedCurrency');
-    if (savedCurrency && currencies.some(c => c.code === savedCurrency)) {
-      setSelectedCurrency(savedCurrency);
-    }
   }, []);
 
-  // Save selected currency to localStorage
+  // Handle currency change
   const handleCurrencyChange = (code) => {
     setSelectedCurrency(code);
-    localStorage.setItem('selectedCurrency', code);
     setIsCurrencyOpen(false);
   };
 
@@ -124,6 +121,18 @@ export default function DualNavbarSell({ handleLogout }) {
     router.push('/search');
   };
 
+  // Add this small component for the cart badge
+  const CartBadge = () => (
+    <div className="relative">
+      <ShoppingCart className="h-5 w-5" />
+      {cartItems.length > 0 && (
+        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
+          {cartItems.length}
+        </span>
+      )}
+    </div>
+  );
+
   return (
     <>
       {/* Mobile Navbar */}
@@ -142,7 +151,7 @@ export default function DualNavbarSell({ handleLogout }) {
               <Search className="h-5 w-5" />
             </button>
             <Link href="/cart" className="text-gray-600 hover:text-green-600" aria-label="Cart">
-              <ShoppingCart className="h-5 w-5" />
+              <CartBadge />
             </Link>
             <Link href="/account" className="text-gray-600 hover:text-green-600" aria-label="Account">
               <User className="h-5 w-5" />
@@ -306,7 +315,7 @@ export default function DualNavbarSell({ handleLogout }) {
                 <Search className="h-5 w-5" />
               </button>
               <Link href="/cart" className="text-gray-600 hover:text-green-600" aria-label="Cart">
-                <ShoppingCart className="h-5 w-5" />
+                <CartBadge />
               </Link>
               <Link href="/account" className="text-gray-600 hover:text-green-600" aria-label="Account">
                 <User className="h-5 w-5" />
