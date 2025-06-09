@@ -374,76 +374,76 @@ const ProductUploadForm = () => {
           {/* Left Column */}
           <div className="space-y-6">
             {/* Basic Information */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Product Name</label>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Product Name</label>
               <p className="text-xs text-gray-500 mb-1">
                 Choose a clear, catchy name that helps customers find your product
               </p>
-              <input
-                type="text"
-                name="name"
-                value={product.name}
-                onChange={handleInputChange}
+          <input
+            type="text"
+            name="name"
+            value={product.name}
+            onChange={handleInputChange}
                 className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                required
-              />
-            </div>
+            required
+          />
+        </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Description</label>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Description</label>
               <p className="text-xs text-gray-500 mb-1">
                 Paint a picture with words - describe what makes your product special
               </p>
-              <textarea
-                name="description"
-                value={product.description}
-                onChange={handleInputChange}
+          <textarea
+            name="description"
+            value={product.description}
+            onChange={handleInputChange}
                 rows={4}
                 className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                required
-              />
-            </div>
+            required
+          />
+        </div>
 
-            <div>
+        <div>
               <label className="block text-sm font-medium text-gray-700">Price</label>
               <p className="text-xs text-gray-500 mb-1">
                 Set a competitive price that reflects your product's value
               </p>
               <div className="relative mt-1">
                 <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 pointer-events-none">₦</span>
-                <input
-                  type="number"
-                  name="price"
-                  value={product.price}
-                  onChange={handleInputChange}
+          <input
+            type="number"
+            name="price"
+            value={product.price}
+            onChange={handleInputChange}
                   className="block w-full pl-7 rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   min="0"
-                  step="0.01"
-                  required
-                />
-              </div>
+            step="0.01"
+            required
+          />
+        </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Category</label>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Category</label>
               <p className="text-xs text-gray-500 mb-1">
                 Help customers discover your product in the right category
               </p>
-              <select
-                name="category"
-                value={product.category}
-                onChange={handleInputChange}
+          <select
+            name="category"
+            value={product.category}
+            onChange={handleInputChange}
                 className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                required
-              >
+            required
+          >
                 <option value="" className="text-gray-400">Select</option>
-                {categories.map((cat) => (
+            {categories.map((cat) => (
                   <option key={cat} value={cat} className="text-gray-700">
-                    {cat}
-                  </option>
-                ))}
-              </select>
-            </div>
+                {cat}
+              </option>
+            ))}
+          </select>
+        </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700">Material</label>
@@ -494,17 +494,17 @@ const ProductUploadForm = () => {
 
           {/* Right Column */}
           <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Product Images</label>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Product Images</label>
               <p className="text-xs text-gray-500 mb-1">
                 Show your product's best angles - high-quality images increase sales
               </p>
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={handleImageUpload}
+          <input
+            type="file"
+            multiple
+            accept="image/*"
+            onChange={handleImageUpload}
                   className="hidden"
                   id="image-upload"
                 />
@@ -554,17 +554,17 @@ const ProductUploadForm = () => {
                         </svg>
                       </button>
                     </div>
-                  ))}
-                </div>
+            ))}
+          </div>
               )}
-            </div>
+        </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700">Product Attributes</label>
               <p className="text-xs text-gray-500 mb-1">
                 Define custom attributes like colors, patterns, or variations
               </p>
-              <div>
+        <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Attributes
                   <button
@@ -575,7 +575,7 @@ const ProductUploadForm = () => {
                     + Add Attribute
                   </button>
                 </label>
-                {product.attributes.map((attr, index) => (
+          {product.attributes.map((attr, index) => (
                   <div key={index} className="border border-gray-200 rounded-lg p-4 mb-4">
                     <div className="flex justify-between items-center mb-2">
                       <h4 className="text-sm font-medium text-gray-700">Attribute {index + 1}</h4>
@@ -592,29 +592,29 @@ const ProductUploadForm = () => {
                       )}
                     </div>
                     <div className="space-y-3">
-                      <input
-                        type="text"
-                        placeholder="Attribute Type (e.g., Size, Length)"
-                        value={attr.type}
-                        onChange={(e) => handleAttributeChange(index, 'type', e.target.value)}
+              <input
+                type="text"
+                placeholder="Attribute Type (e.g., Size, Length)"
+                value={attr.type}
+                onChange={(e) => handleAttributeChange(index, 'type', e.target.value)}
                         className="block w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        required
-                      />
-                      <input
-                        type="text"
+                required
+              />
+              <input
+                type="text"
                         placeholder="Values (comma-separated, e.g., S,M,L)"
-                        onChange={(e) => handleAttributeValues(index, e.target.value)}
+                onChange={(e) => handleAttributeValues(index, e.target.value)}
                         className="block w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        required
-                      />
-                      <input
-                        type="number"
+                required
+              />
+              <input
+                type="number"
                         placeholder="Stock quantity"
-                        value={attr.stock}
-                        onChange={(e) => handleAttributeChange(index, 'stock', e.target.value)}
+                value={attr.stock}
+                onChange={(e) => handleAttributeChange(index, 'stock', e.target.value)}
                         className="block w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        required
-                      />
+                required
+              />
                     </div>
                   </div>
                 ))}
@@ -654,8 +654,8 @@ const ProductUploadForm = () => {
                         placeholder="Stock"
                       />
                     )}
-                  </div>
-                ))}
+            </div>
+          ))}
               </div>
             </div>
 

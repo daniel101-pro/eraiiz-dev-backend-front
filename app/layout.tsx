@@ -3,6 +3,7 @@ import { Onest } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from './context/CartContext';
 import { CurrencyProvider } from './context/CurrencyContext';
+import { Toaster } from 'react-hot-toast';
 
 
 // Import Onest font with appropriate subsets
@@ -79,6 +80,18 @@ export default function RootLayout({
         <CartProvider>
           <CurrencyProvider>
             {children}
+            <Toaster
+              position="top-center"
+              toastOptions={{
+                duration: 2000,
+                style: {
+                  background: '#333',
+                  color: '#fff',
+                  padding: '16px',
+                  borderRadius: '12px',
+                },
+              }}
+            />
           </CurrencyProvider>
         </CartProvider>
       </body>

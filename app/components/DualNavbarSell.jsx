@@ -13,7 +13,7 @@ import { ShoppingCart, User, ChevronDown, Search, Filter, Menu, X, LogOut } from
 export default function DualNavbarSell({ handleLogout }) {
   const router = useRouter();
   const { selectedCurrency, setSelectedCurrency } = useCurrency();
-  const { cartItems } = useCart();
+  const { cartItems, clearCart } = useCart();
 
   // State for sidebar, filter modal, filter settings, and user role
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -72,6 +72,10 @@ export default function DualNavbarSell({ handleLogout }) {
   // Handle logout
   const onLogout = () => {
     if (handleLogout) {
+      // Clear cart first
+      clearCart();
+      
+      // Then handle logout
       handleLogout();
       localStorage.removeItem('user');
       router.push('/login');

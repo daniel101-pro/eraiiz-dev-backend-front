@@ -156,7 +156,8 @@ export default function CartPage() {
                                         />
                                     </div>
                                     <div>
-                                        <h3 className="text-lg text-gray-900">Name of Order</h3>
+                                        <h3 className="text-lg text-gray-900">{item.name}</h3>
+                                        <p className="text-sm text-gray-500">Size: {item.selectedSize}</p>
                                         <p className="text-gray-600 mt-1">Quantity</p>
                                         <div className="flex items-center gap-2 mt-2">
                                             <button
@@ -177,7 +178,9 @@ export default function CartPage() {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="text-lg font-medium">₦3,500</div>
+                                <div className="text-lg font-medium">
+                                    ₦{(item.price * item.quantity).toLocaleString()}
+                                </div>
                             </div>
 
                             <div className="flex justify-end">
@@ -198,23 +201,32 @@ export default function CartPage() {
                     <div className="space-y-4">
                         <div className="flex justify-between items-center">
                             <span className="text-gray-600">Subtotal</span>
-                            <span className="text-gray-900">NGN {getCartTotal().toLocaleString()}</span>
+                            <span className="text-gray-900 font-medium">₦{getCartTotal().toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                            <span className="text-gray-600">Discount</span>
-                            <span className="text-gray-900">NGN 0</span>
+                            <span className="text-gray-600">Shipping</span>
+                            <span className="text-gray-900 font-medium">Calculated at checkout</span>
                         </div>
-                        <div className="pt-4 border-t border-gray-100">
+                        <div className="border-t border-gray-200 pt-4">
                             <div className="flex justify-between items-center">
-                                <span className="text-gray-900">Total amount</span>
-                                <span className="text-gray-900">NGN {getCartTotal().toLocaleString()}</span>
+                                <span className="text-gray-900 font-semibold">Total</span>
+                                <span className="text-gray-900 font-semibold">₦{getCartTotal().toLocaleString()}</span>
                             </div>
                         </div>
-                        <button 
-                            onClick={() => window.location.href = '/checkout/billing'}
-                            className="w-full bg-green-600 text-white py-4 rounded-xl font-medium text-lg"
+                    </div>
+
+                    <div className="mt-6 space-y-4">
+                        <Link 
+                            href="/checkout/billing"
+                            className="block w-full bg-green-600 text-white text-center py-3 rounded-lg font-medium hover:bg-green-700 transition duration-200"
                         >
-                            Proceed to checkout
+                            Proceed to Checkout
+                        </Link>
+                        <button
+                            onClick={handleClearCart}
+                            className="block w-full text-red-500 text-center py-3 rounded-lg font-medium hover:bg-red-50 transition duration-200"
+                        >
+                            Clear Cart
                         </button>
                     </div>
                 </div>
@@ -257,26 +269,24 @@ export default function CartPage() {
                                                 {/* Product Details */}
                                                 <div className="flex-1">
                                                     <h3 className="text-gray-700 text-lg mb-1">{item.name}</h3>
-                                                    <p className="text-gray-900 font-semibold text-xl mb-4">NGN {item.price.toLocaleString()}</p>
+                                                    <p className="text-sm text-gray-500">Size: {item.selectedSize}</p>
+                                                    <p className="text-gray-600 mt-1">Quantity</p>
                                                     <div className="flex items-center gap-2">
-                                                        <p className="text-gray-500">Quantity</p>
-                                                        <div className="flex items-center gap-2">
-                                                            <button
-                                                                onClick={() => updateQuantity(item._id, item.selectedSize, Math.max(1, item.quantity - 1))}
-                                                                className="w-12 h-12 flex items-center justify-center bg-white border-2 border-gray-200 rounded-xl text-gray-600 text-2xl hover:border-gray-300 transition-colors duration-200"
-                                                            >
-                                                                −
-                                                            </button>
-                                                            <div className="w-28 h-12 flex items-center justify-center bg-white border-2 border-gray-200 rounded-xl text-gray-900">
-                                                                {item.quantity}
-                                                            </div>
-                                                            <button
-                                                                onClick={() => updateQuantity(item._id, item.selectedSize, item.quantity + 1)}
-                                                                className="w-12 h-12 flex items-center justify-center bg-green-600 rounded-xl text-white text-2xl hover:bg-green-700 transition-colors duration-200"
-                                                            >
-                                                                +
-                                                            </button>
+                                                        <button
+                                                            onClick={() => updateQuantity(item._id, item.selectedSize, Math.max(1, item.quantity - 1))}
+                                                            className="w-12 h-12 flex items-center justify-center bg-white border-2 border-gray-200 rounded-xl text-gray-600 text-2xl hover:border-gray-300 transition-colors duration-200"
+                                                        >
+                                                            −
+                                                        </button>
+                                                        <div className="w-28 h-12 flex items-center justify-center bg-white border-2 border-gray-200 rounded-xl text-gray-900">
+                                                            {item.quantity}
                                                         </div>
+                                                        <button
+                                                            onClick={() => updateQuantity(item._id, item.selectedSize, item.quantity + 1)}
+                                                            className="w-12 h-12 flex items-center justify-center bg-green-600 rounded-xl text-white text-2xl hover:bg-green-700 transition-colors duration-200"
+                                                        >
+                                                            +
+                                                        </button>
                                                     </div>
                                                 </div>
 
@@ -311,16 +321,16 @@ export default function CartPage() {
                                 <div className="space-y-4">
                                     <div className="flex justify-between items-center">
                                         <span className="text-gray-600">Subtotal</span>
-                                        <span className="text-gray-900">NGN {getCartTotal().toLocaleString()}</span>
+                                        <span className="text-gray-900 font-medium">₦{getCartTotal().toLocaleString()}</span>
                                     </div>
                                     <div className="flex justify-between items-center">
-                                        <span className="text-gray-600">Discount</span>
-                                        <span className="text-gray-900">NGN 0</span>
+                                        <span className="text-gray-600">Shipping</span>
+                                        <span className="text-gray-900 font-medium">Calculated at checkout</span>
                                     </div>
                                     <div className="pt-4 mt-4 border-t border-gray-100">
                                         <div className="flex justify-between items-center">
-                                            <span className="text-gray-900 font-medium">Total amount</span>
-                                            <span className="text-gray-900 font-medium">NGN {getCartTotal().toLocaleString()}</span>
+                                            <span className="text-gray-900 font-semibold">Total</span>
+                                            <span className="text-gray-900 font-semibold">₦{getCartTotal().toLocaleString()}</span>
                                         </div>
                                     </div>
                                     <button 

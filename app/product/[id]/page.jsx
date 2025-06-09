@@ -351,6 +351,17 @@ export default function ProductDetail() {
     return (product.ratingDistribution[rating] / product.totalReviews) * 100;
   };
 
+  const calculateDiscountedPrice = () => {
+    if (!product?.bonus?.enabled) return null;
+    
+    const originalPrice = product.price;
+    if (product.bonus.type === 'percentage') {
+      return originalPrice - (originalPrice * (product.bonus.value / 100));
+    } else {
+      return originalPrice - product.bonus.value;
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen bg-gray-50">
@@ -403,7 +414,17 @@ export default function ProductDetail() {
         {/* Product Images and Main Info */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10 mb-16">
           {/* Left Column - Product Images */}
-          <ImageGallery images={product.images} />
+          <div className="relative">
+            <ImageGallery images={product.images} />
+            {product.bonus?.enabled && (
+              <div className="absolute top-4 left-4 z-10 bg-red-500 text-white px-3 py-1.5 rounded-full text-sm font-semibold">
+                {product.bonus.type === 'percentage' 
+                  ? `-${product.bonus.value}% OFF`
+                  : `-₦${product.bonus.value.toLocaleString()} OFF`
+                }
+              </div>
+            )}
+          </div>
 
           {/* Right Column - Product Details */}
           <div>
@@ -423,9 +444,28 @@ export default function ProductDetail() {
             </div>
 
             <div className="mt-4">
-              <div className="flex items-baseline">
-                <span className="text-2xl font-medium text-gray-900">₦{product.price?.toLocaleString()}</span>
-              </div>
+              {product.bonus?.enabled ? (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl font-medium text-gray-400 line-through">
+                      {formatPrice(convertPrice(product.price))}
+                    </span>
+                    <span className="bg-red-100 text-red-600 text-sm px-2 py-1 rounded">
+                      {product.bonus.type === 'percentage' 
+                        ? `${product.bonus.value}% OFF`
+                        : `₦${product.bonus.value.toLocaleString()} OFF`
+                      }
+                    </span>
+                  </div>
+                  <div className="text-3xl font-bold text-red-600">
+                    {formatPrice(convertPrice(calculateDiscountedPrice()))}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-2xl font-medium text-gray-900">
+                  {formatPrice(convertPrice(product.price))}
+                </div>
+              )}
             </div>
 
             {/* Size Selection */}

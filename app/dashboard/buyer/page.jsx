@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { ShoppingCart, User, ChevronDown, Search, Filter, Menu } from 'lucide-react';
 import CategoriesSection from '../../components/CategoriesSection';
 import DualNavbarSell from '../../components/DualNavbarSell';
+import ProductCard from '../../components/ProductCard';
 
 export default function BuyerDashboard() {
   const [user, setUser] = useState(null);
@@ -105,67 +106,71 @@ export default function BuyerDashboard() {
     <div className="flex flex-col min-h-screen">
       <DualNavbarSell handleLogout={handleLogout} />
       <main className="flex-1">
-        <div className="container mx-auto px-4 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-12">
-            <div
-              className="flex transition-transform duration-500 ease-in-out mb-4"
-              style={{ transform: `translateX(-${currentIndex * (100 / (window.innerWidth >= 768 ? 2 : 1))}%)` }}
-            >
-              {carouselItems.map((item, index) => (
-                <div
-                  key={index}
-                  className="flex-shrink-0 w-full md:w-1/2 flex flex-col md:flex-row md:items-center p-2 md:mr-4"
-                >
-                  <div className="relative w-full h-80 rounded-l-lg overflow-hidden md:block" style={{ position: 'relative' }}>
-                    <Image
-                      src={item.image}
-                      alt={item.alt}
-                      layout="fill"
-                      objectFit="cover"
-                      className="rounded-l-lg"
-                      draggable={false}
-                      onError={() => setImageError(`Failed to load image: ${item.image}`)}
-                    />
-                    <Link href={item.link} className="md:hidden block w-full h-full">
-                      <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg"></div>
-                      <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-black to-transparent text-white rounded-b-lg">
-                        <h2 className="text-xl font-bold">{item.title}</h2>
-                        <p className="text-sm">{item.subtitle}</p>
-                      </div>
-                    </Link>
-                  </div>
-                  <div className="hidden md:flex flex-col justify-center md:mt-0 md:flex-[0_0_40%] md:pl-4 h-80 border border-gray-200 md:border-l md:border-r md:rounded-r-lg md:flex-row md:items-center">
-                    <div className="md:flex-1">
-                      <h2 className="text-2xl font-medium text-black mb-4">{item.title}</h2>
-                      <p className="text-sm -mt-1 text-gray-500 mb-4 md:mb-0">{item.subtitle}</p>
-                      <Link href={item.link}>
-                        <button
-                          className="bg-green-600 mt-32 text-white px-6 py-2 rounded-md hover:bg-green-700 transition w-fit"
-                        >
-                          Learn More
-                        </button>
+            <div className="relative overflow-hidden rounded-lg">
+              <div
+                className="flex transition-transform duration-500 ease-in-out mb-4"
+                style={{ transform: `translateX(-${currentIndex * (100 / (window.innerWidth >= 768 ? 2 : 1))}%)` }}
+              >
+                {carouselItems.map((item, index) => (
+                  <div
+                    key={index}
+                    className="flex-shrink-0 w-full md:w-1/2 flex flex-col md:flex-row md:items-center p-2 md:mr-4"
+                  >
+                    <div className="relative w-full h-80 rounded-l-lg overflow-hidden md:block" style={{ position: 'relative' }}>
+                      <Image
+                        src={item.image}
+                        alt={item.alt}
+                        layout="fill"
+                        objectFit="cover"
+                        className="rounded-l-lg"
+                        draggable={false}
+                        onError={() => setImageError(`Failed to load image: ${item.image}`)}
+                      />
+                      <Link href={item.link} className="md:hidden block w-full h-full">
+                        <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg"></div>
+                        <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-black to-transparent text-white rounded-b-lg">
+                          <h2 className="text-xl font-bold">{item.title}</h2>
+                          <p className="text-sm">{item.subtitle}</p>
+                        </div>
                       </Link>
                     </div>
+                    <div className="hidden md:flex flex-col justify-center md:mt-0 md:flex-[0_0_40%] md:pl-4 h-80 border border-gray-200 md:border-l md:border-r md:rounded-r-lg md:flex-row md:items-center">
+                      <div className="md:flex-1">
+                        <h2 className="text-2xl font-medium text-black mb-4">{item.title}</h2>
+                        <p className="text-sm -mt-1 text-gray-500 mb-4 md:mb-0">{item.subtitle}</p>
+                        <Link href={item.link}>
+                          <button
+                            className="bg-green-600 mt-32 text-white px-6 py-2 rounded-md hover:bg-green-700 transition w-fit"
+                          >
+                            Learn More
+                          </button>
+                        </Link>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+              <div className="flex justify-center gap-2">
+                {carouselItems.map((_, index) => (
+                  <button
+                    key={index}
+                    className={`w-3 h-3 rounded-full ${currentIndex === index ? 'bg-green-600' : 'bg-gray-200'}`}
+                    onClick={() => setCurrentIndex(index)}
+                  />
+                ))}
+              </div>
+              {imageError && <p className="text-red-600 text-center mt-4">{imageError}</p>}
             </div>
-            <div className="flex justify-center gap-2">
-              {carouselItems.map((_, index) => (
-                <button
-                  key={index}
-                  className={`w-3 h-3 rounded-full ${currentIndex === index ? 'bg-green-600' : 'bg-gray-200'}`}
-                  onClick={() => setCurrentIndex(index)}
-                />
-              ))}
-            </div>
-            {imageError && <p className="text-red-600 text-center mt-4">{imageError}</p>}
           </div>
 
-          <CategoriesSection />
+          <div className="mb-12">
+            <CategoriesSection />
+          </div>
 
-          <div className="mt-12 mb-12">
-            <div className="flex justify-between items-center mb-4">
+          <div className="px-4 md:px-8 lg:px-16 py-8">
+            <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-semibold text-gray-800">Products for You</h2>
               <Link href="/for-you">
                 <button className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition">
@@ -176,20 +181,9 @@ export default function BuyerDashboard() {
             {productsForYou.length === 0 ? (
               <p className="text-gray-600">No products available at the moment.</p>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 items-start">
                 {productsForYou.map((product) => (
-                  <Link href={`/product/${product._id}`} key={product._id}>
-                    <div className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition">
-                      <img
-                        src={product.images[0] || 'https://via.placeholder.com/200'}
-                        alt={product.name}
-                        className="w-full h-40 object-cover rounded"
-                      />
-                      <h3 className="mt-2 text-sm font-semibold text-gray-800">{product.name}</h3>
-                      <p className="text-green-600 font-bold">₦{product.price.toLocaleString()}</p>
-                      <p className="text-xs text-gray-500">Category: {product.category}</p>
-                    </div>
-                  </Link>
+                  <ProductCard key={product._id} product={product} />
                 ))}
               </div>
             )}

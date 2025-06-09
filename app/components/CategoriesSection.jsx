@@ -63,7 +63,7 @@ export default function CategoriesSection() {
   }, []);
 
   return (
-    <section className="px-4 md:px-8 lg:px-16 py-8">
+    <section>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-semibold">Explore these categories</h2>
         <Link

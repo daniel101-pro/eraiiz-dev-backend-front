@@ -11,6 +11,7 @@ import Notifications from '../components/account/Notifications';
 import SettingsSection from '../components/account/Settings';
 import UploadedProducts from '../components/account/UploadedProducts'; // New component
 import DualNavbarSell from '../components/DualNavbarSell';
+import { useCart } from '../context/CartContext';
 
 export default function AccountPage() {
   const [user, setUser] = useState(null);
@@ -19,6 +20,7 @@ export default function AccountPage() {
   const [activeSection, setActiveSection] = useState('My Eraiiz Account');
   const [showModal, setShowModal] = useState(false); // State for modal visibility
   const router = useRouter();
+  const { clearCart } = useCart();
 
   const fetchUser = async (token) => {
     try {
@@ -85,6 +87,10 @@ export default function AccountPage() {
   }, [router]);
 
   const handleLogout = () => {
+    // Clear cart first
+    clearCart();
+    
+    // Then clear user data
     localStorage.removeItem('user');
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');

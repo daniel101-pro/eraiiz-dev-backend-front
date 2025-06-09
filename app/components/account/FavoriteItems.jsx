@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import Link from 'next/link';
+import ProductCard from '../ProductCard';
 
 export default function FavoriteItem() {
   const [favorites, setFavorites] = useState([]);
@@ -60,20 +61,17 @@ export default function FavoriteItem() {
       {favorites.length === 0 ? (
         <p className="text-gray-600 text-center">You have no favorite products yet.</p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 items-start">
           {favorites.map((favorite) => (
-            <Link href={`/product/${favorite.productId}`} key={favorite._id}>
-              <div className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition">
-                <img
-                  src={favorite.image || 'https://via.placeholder.com/200'}
-                  alt={favorite.name}
-                  className="w-full h-40 object-cover rounded mb-2"
-                />
-                <h3 className="text-sm font-semibold text-gray-800">{favorite.name}</h3>
-                <p className="text-green-600 font-bold">₦{favorite.price.toLocaleString()}</p>
-                <p className="text-xs text-gray-500">Category: {favorite.category}</p>
-              </div>
-            </Link>
+            <ProductCard key={favorite._id} product={{
+              _id: favorite.productId,
+              name: favorite.name,
+              price: favorite.price,
+              category: favorite.category,
+              images: [favorite.image],
+              totalReviews: favorite.totalReviews,
+              averageRating: favorite.averageRating
+            }} />
           ))}
         </div>
       )}

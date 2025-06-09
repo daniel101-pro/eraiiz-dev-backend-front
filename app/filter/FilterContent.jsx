@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import axios from 'axios';
 import Link from 'next/link';
+import ProductCard from '../components/ProductCard';
 
 export default function FilterContent() {
   const router = useRouter();
@@ -72,26 +73,9 @@ export default function FilterContent() {
       )}
 
       {!loading && products.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 items-start">
           {products.map((product) => (
-            <Link
-              key={product._id}
-              href={`/product/${product._id}`}
-              className="block border rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
-            >
-              <div className="w-full h-48 overflow-hidden">
-                <img
-                  src={product.images[0] || 'https://via.placeholder.com/200'}
-                  alt={product.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="p-4">
-                <h3 className="text-lg font-semibold">{product.name}</h3>
-                <p className="text-green-600 font-semibold">₦{product.price.toLocaleString()}</p>
-                <p className="text-sm text-gray-600">{product.category}</p>
-              </div>
-            </Link>
+            <ProductCard key={product._id} product={product} />
           ))}
         </div>
       )}

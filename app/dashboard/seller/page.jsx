@@ -8,6 +8,7 @@ import { ShoppingCart, User, ChevronDown, Search, Filter, Menu, Heart } from 'lu
 import { toast, Toaster } from 'react-hot-toast';
 import CategoriesSection from '../../components/CategoriesSection';
 import DualNavbarSell from '../../components/DualNavbarSell';
+import ProductCard from '../../components/ProductCard';
 
 export default function SellerDashboard() {
   const [user, setUser] = useState(null);
@@ -409,30 +410,9 @@ export default function SellerDashboard() {
             {productsForYou.length === 0 ? (
               <p className="text-gray-600">No products available at the moment.</p>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 {productsForYou.map((product) => (
-                  <div key={product._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition relative">
-                    <Link href={`/product/${product._id}`}>
-                      <img
-                        src={product.images[0] || 'https://via.placeholder.com/200'}
-                        alt={product.name}
-                        className="w-full h-40 object-cover rounded"
-                      />
-                      <h3 className="mt-2 text-sm font-semibold text-gray-800">{product.name}</h3>
-                      <p className="text-green-600 font-bold">₦{product.price.toLocaleString()}</p>
-                      <p className="text-xs text-gray-500">Category: {product.category}</p>
-                    </Link>
-                    <button
-                      onClick={() => handleAddToFavorites(product._id)}
-                      className="absolute top-2 right-2 transition-colors"
-                    >
-                      <Heart
-                        size={20}
-                        fill={favoritedProducts.has(product._id) ? 'red' : 'none'}
-                        className={favoritedProducts.has(product._id) ? 'text-red-500' : 'text-gray-600 hover:text-red-500'}
-                      />
-                    </button>
-                  </div>
+                  <ProductCard key={product._id} product={product} />
                 ))}
               </div>
             )}
