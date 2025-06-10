@@ -5,9 +5,10 @@ import { useRouter } from 'next/navigation';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import Image from 'next/image';
 import { FaShoppingCart, FaStore } from 'react-icons/fa';
-import { FcGoogle } from 'react-icons/fc';
 import { ChevronDown } from 'lucide-react';
-import countryCodes from '@/lib/countryCodes'; // Import from the new file
+import countryCodes from '@/lib/countryCodes';
+import GoogleAuthButton from '../components/GoogleAuthButton';
+import toast from 'react-hot-toast';
 
 export default function SignupPage() {
   const [name, setName] = useState('');
@@ -26,16 +27,13 @@ export default function SignupPage() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      console.log('Sending request:', { name, email, password, role, phone: `${countryCode}${phone}`, country: selectedCountry });
       const res = await fetch(process.env.NEXT_PUBLIC_API_URL + '/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password, role, phone: `${countryCode}${phone}`, country: selectedCountry }),
       });
 
-      console.log('Response status:', res.status, 'OK:', res.ok);
       const data = await res.json();
-      console.log('Response data:', data);
 
       if (!res.ok) {
         throw new Error(data.message || 'Signup failed');
@@ -43,17 +41,14 @@ export default function SignupPage() {
 
       localStorage.setItem('verifyingEmail', email);
       localStorage.setItem('tempPassword', password);
+      toast.success('Account created successfully! Please verify your email.');
       router.push('/verify-email');
     } catch (err) {
       console.error('Fetch error:', err.message, err);
-      alert(`Signup failed: ${err.message}`);
+      toast.error(`Signup failed: ${err.message}`);
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleGoogleLogin = () => {
-    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`;
   };
 
   return (
@@ -62,22 +57,18 @@ export default function SignupPage() {
         <Navbar />
       </div>
       <div className="min-h-screen bg-white flex flex-col mt-10">
-        {/* Main Contents */}
         <div className="flex-1 flex flex-col custom-md:flex-row items-center justify-center">
-          {/* Left Side - Signup Form */}
           <div className="w-full custom-md:w-1/2 p-6 flex items-center justify-center">
             <div className="max-w-md w-full">
               <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">Welcome to Eraiz</h2>
               <p className="text-center text-gray-500 mb-6">
                 Create your account to start buying or selling with Eraiz.
               </p>
-              <button
-                onClick={handleGoogleLogin}
-                className="w-full bg-white border border-gray-300 text-gray-700 p-3 rounded-lg mb-4 flex items-center justify-center hover:bg-gray-50 transition duration-200 shadow-sm"
-              >
-                <FcGoogle className="mr-2 text-xl" /> Sign up with Google
-              </button>
+              
+              <GoogleAuthButton text="Sign up with Google" />
+              
               <div className="text-center text-gray-400 mb-4">Or</div>
+              
               <form onSubmit={handleSubmit} className="space-y-4">
                 <input
                   type="text"
@@ -175,7 +166,7 @@ export default function SignupPage() {
                     className="mr-2 h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
                   />
                   <label className="text-sm text-gray-600">
-                    I agree to Eraiz’s terms and conditions
+                    I agree to Eraiz's terms and conditions
                   </label>
                 </div>
                 <button

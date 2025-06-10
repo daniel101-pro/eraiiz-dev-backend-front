@@ -1,305 +1,242 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect } from 'react';
-import toast from 'react-hot-toast';
 import axios from 'axios';
+import toast from 'react-hot-toast';
 
 const CartContext = createContext();
 
 export function CartProvider({ children }) {
-    const [cartItems, setCartItems] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [cart, setCart] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    // Fetch cart from backend when user logs in
     const fetchCartFromBackend = async () => {
         try {
             const token = localStorage.getItem('accessToken');
             if (!token) {
-                setCartItems([]);
-                setIsLoading(false);
-                return;
+                setLoading(false);
+                return; // Don't try to fetch if no token
             }
 
             const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/cart/`, {
                 headers: { 
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
-                },
-                withCredentials: true
+                }
             });
-
-            if (response.data) {
-                // Transform backend cart items to match our frontend structure
-                const transformedItems = response.data.map(item => ({
-                    ...item.productId,
-                    quantity: item.quantity,
-                    selectedSize: item.selectedSize,
-                }));
-
-                setCartItems(transformedItems);
+            
+            if (response.data && Array.isArray(response.data.items)) {
+                setCart(response.data.items);
             }
         } catch (error) {
-            console.error('Error fetching cart:', error);
             if (error.response?.status === 401) {
-                // Handle unauthorized error
-                localStorage.removeItem('accessToken');
-                localStorage.removeItem('refreshToken');
-                window.location.href = '/login';
+                // Token might be expired, try to refresh
+                try {
+                    const refreshToken = localStorage.getItem('refreshToken');
+                    if (refreshToken) {
+                        const refreshResponse = await axios.post(
+                            `${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh`,
+                            { refreshToken }
+                        );
+                        
+                        if (refreshResponse.data.accessToken) {
+                            localStorage.setItem('accessToken', refreshResponse.data.accessToken);
+                            // Retry the cart fetch with new token
+                            const retryResponse = await axios.get(
+                                `${process.env.NEXT_PUBLIC_API_URL}/api/cart/`,
+                                {
+                                    headers: {
+                                        'Authorization': `Bearer ${refreshResponse.data.accessToken}`,
+                                        'Content-Type': 'application/json'
+                                    }
+                                }
+                            );
+                            if (retryResponse.data && Array.isArray(retryResponse.data.items)) {
+                                setCart(retryResponse.data.items);
+                            }
+                        }
+                    }
+                } catch (refreshError) {
+                    console.error('Error refreshing token:', refreshError);
+                    // Clear tokens if refresh failed
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('refreshToken');
+                    localStorage.removeItem('user');
+                }
             } else {
-                toast.error('Failed to load your cart');
+                console.error('Error fetching cart:', error);
             }
         } finally {
-            setIsLoading(false);
+            setLoading(false);
         }
     };
 
-    // Load cart when component mounts and when user/token changes
-    useEffect(() => {
-        fetchCartFromBackend();
-        
-        // Listen for storage events to sync cart across tabs
-        const handleStorageChange = (e) => {
-            if (e.key === 'user' || e.key === 'accessToken') {
-                fetchCartFromBackend();
-            }
-        };
-        
-        window.addEventListener('storage', handleStorageChange);
-        return () => window.removeEventListener('storage', handleStorageChange);
-    }, []);
-
-    const addToCart = async (product, quantity = 1, selectedSize = 'S') => {
-        const token = localStorage.getItem('accessToken');
-        if (!token) {
-            toast.error('Please log in to add items to cart');
-            return;
-        }
-
-        if (!product || !product._id) {
-            toast.error('Invalid product');
-            return;
-        }
-
-        if (quantity < 1) {
-            toast.error('Invalid quantity');
-            return;
-        }
-
-        // Store the previous state in case we need to revert
-        const previousItems = [...cartItems];
-
+    const addToCart = async (product, quantity = 1) => {
         try {
-            // First update the UI optimistically
-            setCartItems(prevItems => {
-                const existingItemIndex = prevItems.findIndex(
-                    item => item._id === product._id && item.selectedSize === selectedSize
-                );
+            const token = localStorage.getItem('accessToken');
+            if (!token) {
+                toast.error('Please log in to add items to cart');
+                return;
+            }
 
-                if (existingItemIndex >= 0) {
-                    const updatedItems = [...prevItems];
-                    const newQuantity = updatedItems[existingItemIndex].quantity + quantity;
-                    
-                    if (newQuantity > 99) {
-                        toast.error('Maximum quantity reached');
-                        return prevItems;
-                    }
-                    
-                    updatedItems[existingItemIndex] = {
-                        ...updatedItems[existingItemIndex],
-                        quantity: newQuantity
-                    };
-                    return updatedItems;
-                } else {
-                    return [...prevItems, {
-                        ...product,
-                        quantity,
-                        selectedSize,
-                    }];
-                }
-            });
-
+            // Optimistically update UI
+            const updatedCart = [...cart];
+            const existingItemIndex = updatedCart.findIndex(item => item.product._id === product._id);
+            
+            if (existingItemIndex !== -1) {
+                updatedCart[existingItemIndex].quantity += quantity;
+            } else {
+                updatedCart.push({ product, quantity });
+            }
+            setCart(updatedCart);
+            
             // Show success toast
-            toast.success('Added to cart!');
+            toast.success('Item added to cart');
 
-            // Then sync with backend
-            await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/cart/items`, {
-                productId: product._id,
-                quantity,
-                selectedSize
-            }, {
-                headers: { 
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                withCredentials: true
-            });
-
+            // Sync with backend
+            await axios.post(
+                `${process.env.NEXT_PUBLIC_API_URL}/api/cart/add`,
+                { productId: product._id, quantity },
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
         } catch (error) {
-            console.error('Error adding to cart:', error);
-            // Revert the optimistic update
-            setCartItems(previousItems);
+            // Revert optimistic update on error
+            await fetchCartFromBackend();
             if (error.response?.status === 401) {
-                toast.error('Please log in to continue');
-                window.location.href = '/login';
+                toast.error('Please log in to add items to cart');
             } else {
                 toast.error('Failed to add item to cart');
             }
+            console.error('Error adding to cart:', error);
         }
     };
 
-    const removeFromCart = async (productId, selectedSize) => {
-        const token = localStorage.getItem('accessToken');
-        if (!token) {
-            toast.error('Please log in to continue');
-            return;
-        }
-
-        // Store the previous state
-        const previousItems = [...cartItems];
-
+    const removeFromCart = async (productId) => {
         try {
-            // First update the UI optimistically
-            setCartItems(prevItems =>
-                prevItems.filter(item => !(item._id === productId && item.selectedSize === selectedSize))
-            );
+            const token = localStorage.getItem('accessToken');
+            if (!token) {
+                toast.error('Please log in to remove items from cart');
+                return;
+            }
 
+            // Optimistically update UI
+            const updatedCart = cart.filter(item => item.product._id !== productId);
+            setCart(updatedCart);
+            
             // Show success toast
-            toast.success('Removed from cart!');
+            toast.success('Item removed from cart');
 
-            // Then sync with backend
-            await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/api/cart/items/${productId}/${selectedSize}`, {
-                headers: { 
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                withCredentials: true
-            });
-
+            // Sync with backend
+            await axios.delete(
+                `${process.env.NEXT_PUBLIC_API_URL}/api/cart/remove/${productId}`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
         } catch (error) {
+            // Revert optimistic update on error
+            await fetchCartFromBackend();
+            toast.error('Failed to remove item from cart');
             console.error('Error removing from cart:', error);
-            // Revert the optimistic update
-            setCartItems(previousItems);
-            if (error.response?.status === 401) {
-                toast.error('Please log in to continue');
-                window.location.href = '/login';
-            } else {
-                toast.error('Failed to remove item from cart');
-            }
         }
     };
 
-    const updateQuantity = async (productId, selectedSize, newQuantity) => {
-        const token = localStorage.getItem('accessToken');
-        if (!token) {
-            toast.error('Please log in to continue');
-            return;
-        }
-
-        // Store the previous state
-        const previousItems = [...cartItems];
-
+    const updateQuantity = async (productId, newQuantity) => {
         try {
-            // First update the UI optimistically
-            setCartItems(prevItems =>
-                prevItems.map(item =>
-                    item._id === productId && item.selectedSize === selectedSize
-                        ? { ...item, quantity: newQuantity }
-                        : item
-                )
+            const token = localStorage.getItem('accessToken');
+            if (!token) {
+                toast.error('Please log in to update cart');
+                return;
+            }
+
+            // Optimistically update UI
+            const updatedCart = cart.map(item => {
+                if (item.product._id === productId) {
+                    return { ...item, quantity: newQuantity };
+                }
+                return item;
+            });
+            setCart(updatedCart);
+
+            // Sync with backend
+            await axios.put(
+                `${process.env.NEXT_PUBLIC_API_URL}/api/cart/update/${productId}`,
+                { quantity: newQuantity },
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
             );
-
-            // Show success toast
-            toast.success(newQuantity === 0 ? 'Removed from cart!' : 'Quantity updated!');
-
-            if (newQuantity === 0) {
-                // Remove item if quantity is 0
-                await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/api/cart/items/${productId}/${selectedSize}`, {
-                    headers: { 
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    withCredentials: true
-                });
-            } else {
-                // Update quantity in backend
-                await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/cart/items`, {
-                    productId,
-                    quantity: newQuantity,
-                    selectedSize
-                }, {
-                    headers: { 
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    withCredentials: true
-                });
-            }
-
+            
+            toast.success('Cart updated');
         } catch (error) {
-            console.error('Error updating quantity:', error);
-            // Revert the optimistic update
-            setCartItems(previousItems);
-            if (error.response?.status === 401) {
-                toast.error('Please log in to continue');
-                window.location.href = '/login';
-            } else {
-                toast.error('Failed to update quantity');
-            }
+            // Revert optimistic update on error
+            await fetchCartFromBackend();
+            toast.error('Failed to update cart');
+            console.error('Error updating cart:', error);
         }
     };
 
     const clearCart = async () => {
-        const token = localStorage.getItem('accessToken');
-        if (!token) {
-            toast.error('Please log in to continue');
-            return;
-        }
-
-        // Store the previous state
-        const previousItems = [...cartItems];
-
         try {
-            // First update the UI optimistically
-            setCartItems([]);
-
-            // Show success toast
-            toast.success('Cart cleared!');
-
-            // Then sync with backend
-            await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/api/cart`, {
-                headers: { 
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                withCredentials: true
-            });
-
-        } catch (error) {
-            console.error('Error clearing cart:', error);
-            // Revert the optimistic update
-            setCartItems(previousItems);
-            if (error.response?.status === 401) {
-                toast.error('Please log in to continue');
-                window.location.href = '/login';
-            } else {
-                toast.error('Failed to clear cart');
+            const token = localStorage.getItem('accessToken');
+            if (!token) {
+                toast.error('Please log in to clear cart');
+                return;
             }
+
+            // Optimistically update UI
+            setCart([]);
+            
+            // Show success toast
+            toast.success('Cart cleared');
+
+            // Sync with backend
+            await axios.delete(
+                `${process.env.NEXT_PUBLIC_API_URL}/api/cart/clear`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+        } catch (error) {
+            // Revert optimistic update on error
+            await fetchCartFromBackend();
+            toast.error('Failed to clear cart');
+            console.error('Error clearing cart:', error);
         }
     };
 
-    const getCartTotal = () => {
-        return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
-    };
+    useEffect(() => {
+        // Only fetch cart if user is logged in
+        if (typeof window !== 'undefined' && localStorage.getItem('accessToken')) {
+            fetchCartFromBackend();
+        } else {
+            setLoading(false);
+        }
+    }, []);
 
     return (
         <CartContext.Provider value={{
-            cartItems,
+            cart,
+            loading,
             addToCart,
             removeFromCart,
             updateQuantity,
             clearCart,
-            getCartTotal,
-            isLoading
+            fetchCartFromBackend
         }}>
             {children}
         </CartContext.Provider>
