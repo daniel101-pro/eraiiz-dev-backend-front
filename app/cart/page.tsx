@@ -1,4 +1,3 @@
-import { Metadata } from 'next';
 import dynamic from 'next/dynamic';
 
 // Dynamically import the client component with SSR disabled
@@ -10,11 +9,6 @@ const CartClient = dynamic(() => import('./CartClient'), {
     </div>
   ),
 });
-
-export const metadata: Metadata = {
-  title: 'Cart | Eraiiz',
-  description: 'View and manage your shopping cart on Eraiiz.',
-};
 
 export default function CartPage() {
   return <CartClient />;
