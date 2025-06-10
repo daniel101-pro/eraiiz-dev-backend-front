@@ -62,41 +62,58 @@ const ProgressBar = () => {
 };
 
 export default function CartPage() {
-    const { cartItems, removeFromCart, updateQuantity, getCartTotal, clearCart } = useCart();
+    const { cartItems = [], removeFromCart, updateQuantity, getCartTotal, clearCart } = useCart() || {};
 
     useEffect(() => {
         document.title = 'Cart | Eraiz';
     }, []);
 
     const handleRemoveItem = (id, size) => {
-        removeFromCart(id, size);
-        toast.success('Item removed from cart', {
-            duration: 2000,
-            position: 'top-center',
-            style: {
-                background: '#EF4444',
-                color: '#fff',
-                padding: '16px',
-                borderRadius: '8px',
-            },
-            icon: '🗑️',
-        });
+        if (removeFromCart) {
+            removeFromCart(id, size);
+            toast.success('Item removed from cart', {
+                duration: 2000,
+                position: 'top-center',
+                style: {
+                    background: '#EF4444',
+                    color: '#fff',
+                    padding: '16px',
+                    borderRadius: '8px',
+                },
+                icon: '🗑️',
+            });
+        }
     };
 
     const handleClearCart = () => {
-        clearCart();
-        toast.success('Cart cleared', {
-            duration: 2000,
-            position: 'top-center',
-            style: {
-                background: '#EF4444',
-                color: '#fff',
-                padding: '16px',
-                borderRadius: '8px',
-            },
-            icon: '🗑️',
-        });
+        if (clearCart) {
+            clearCart();
+            toast.success('Cart cleared', {
+                duration: 2000,
+                position: 'top-center',
+                style: {
+                    background: '#EF4444',
+                    color: '#fff',
+                    padding: '16px',
+                    borderRadius: '8px',
+                },
+                icon: '🗑️',
+            });
+        }
     };
+
+    // Early return for loading state
+    if (!cartItems) {
+        return (
+            <>
+                <DualNavbarSell />
+                <ProgressBar />
+                <div className="min-h-[calc(100vh-200px)] bg-white flex items-center justify-center">
+                    <div className="w-16 h-16 border-4 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+            </>
+        );
+    }
 
     if (cartItems.length === 0) {
         return (
@@ -114,17 +131,16 @@ export default function CartPage() {
                                 className="object-contain"
                             />
                         </div>
-                        <h1 className="text-2xl font-bold text-gray-800 mb-4">Oops! Your cart is currently empty</h1>
+                        <h1 className="text-2xl font-bold text-gray-800 mb-4">Your cart is empty</h1>
                         <p className="text-sm text-gray-600 mb-6">
-                            It looks like you haven't added anything just yet. Browse through our collections and find something you love. Once you're ready, come back here to review and check out your items!
+                            Browse through our collections and find something you love.
                         </p>
-                        <a
+                        <Link
                             href="/categories"
-                            className="w-full bg-green-500 text-white py-3 rounded-lg font-medium hover:bg-green-600 transition duration-200">
-                            <button>
-                                Add items to cart
-                            </button>
-                        </a>
+                            className="w-full bg-green-500 text-white py-3 rounded-lg font-medium hover:bg-green-600 transition duration-200"
+                        >
+                            Browse Products
+                        </Link>
                     </div>
                 </div>
             </>
@@ -149,28 +165,28 @@ export default function CartPage() {
                                 <div className="flex items-center gap-3">
                                     <div className="w-20 h-20 relative rounded-lg overflow-hidden">
                                         <Image
-                                            src={item.images[0]}
-                                            alt={item.name}
+                                            src={item.images?.[0] || '/placeholder.png'}
+                                            alt={item.name || 'Product'}
                                             layout="fill"
                                             objectFit="cover"
                                         />
                                     </div>
                                     <div>
-                                        <h3 className="text-lg text-gray-900">{item.name}</h3>
-                                        <p className="text-sm text-gray-500">Size: {item.selectedSize}</p>
+                                        <h3 className="text-lg text-gray-900">{item.name || 'Product'}</h3>
+                                        <p className="text-sm text-gray-500">Size: {item.selectedSize || 'N/A'}</p>
                                         <p className="text-gray-600 mt-1">Quantity</p>
                                         <div className="flex items-center gap-2 mt-2">
                                             <button
-                                                onClick={() => updateQuantity(item._id, item.selectedSize, Math.max(1, item.quantity - 1))}
+                                                onClick={() => updateQuantity?.(item._id, item.selectedSize, Math.max(1, item.quantity - 1))}
                                                 className="w-10 h-10 flex items-center justify-center bg-white border border-gray-200 rounded-lg text-gray-600 text-2xl"
                                             >
                                                 −
                                             </button>
                                             <div className="w-16 h-10 flex items-center justify-center bg-white border border-gray-200 rounded-lg text-gray-900">
-                                                {item.quantity}
+                                                {item.quantity || 1}
                                             </div>
                                             <button
-                                                onClick={() => updateQuantity(item._id, item.selectedSize, item.quantity + 1)}
+                                                onClick={() => updateQuantity?.(item._id, item.selectedSize, (item.quantity || 1) + 1)}
                                                 className="w-10 h-10 flex items-center justify-center bg-green-600 rounded-lg text-white text-2xl"
                                             >
                                                 +
@@ -179,7 +195,7 @@ export default function CartPage() {
                                     </div>
                                 </div>
                                 <div className="text-lg font-medium">
-                                    ₦{(item.price * item.quantity).toLocaleString()}
+                                    ₦{((item.price || 0) * (item.quantity || 1)).toLocaleString()}
                                 </div>
                             </div>
 
@@ -201,7 +217,7 @@ export default function CartPage() {
                     <div className="space-y-4">
                         <div className="flex justify-between items-center">
                             <span className="text-gray-600">Subtotal</span>
-                            <span className="text-gray-900 font-medium">₦{getCartTotal().toLocaleString()}</span>
+                            <span className="text-gray-900 font-medium">₦{(getCartTotal?.() || 0).toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between items-center">
                             <span className="text-gray-600">Shipping</span>
@@ -210,7 +226,7 @@ export default function CartPage() {
                         <div className="border-t border-gray-200 pt-4">
                             <div className="flex justify-between items-center">
                                 <span className="text-gray-900 font-semibold">Total</span>
-                                <span className="text-gray-900 font-semibold">₦{getCartTotal().toLocaleString()}</span>
+                                <span className="text-gray-900 font-semibold">₦{(getCartTotal?.() || 0).toLocaleString()}</span>
                             </div>
                         </div>
                     </div>
@@ -259,8 +275,8 @@ export default function CartPage() {
                                                 {/* Product Image */}
                                                 <div className="w-24 h-24 relative rounded-xl overflow-hidden">
                                                     <Image
-                                                        src={item.images[0]}
-                                                        alt={item.name}
+                                                        src={item.images?.[0] || '/placeholder.png'}
+                                                        alt={item.name || 'Product'}
                                                         layout="fill"
                                                         objectFit="cover"
                                                     />
@@ -268,21 +284,21 @@ export default function CartPage() {
                                                 
                                                 {/* Product Details */}
                                                 <div className="flex-1">
-                                                    <h3 className="text-gray-700 text-lg mb-1">{item.name}</h3>
-                                                    <p className="text-sm text-gray-500">Size: {item.selectedSize}</p>
+                                                    <h3 className="text-gray-700 text-lg mb-1">{item.name || 'Product'}</h3>
+                                                    <p className="text-sm text-gray-500">Size: {item.selectedSize || 'N/A'}</p>
                                                     <p className="text-gray-600 mt-1">Quantity</p>
                                                     <div className="flex items-center gap-2">
                                                         <button
-                                                            onClick={() => updateQuantity(item._id, item.selectedSize, Math.max(1, item.quantity - 1))}
+                                                            onClick={() => updateQuantity?.(item._id, item.selectedSize, Math.max(1, (item.quantity || 1) - 1))}
                                                             className="w-12 h-12 flex items-center justify-center bg-white border-2 border-gray-200 rounded-xl text-gray-600 text-2xl hover:border-gray-300 transition-colors duration-200"
                                                         >
                                                             −
                                                         </button>
                                                         <div className="w-28 h-12 flex items-center justify-center bg-white border-2 border-gray-200 rounded-xl text-gray-900">
-                                                            {item.quantity}
+                                                            {item.quantity || 1}
                                                         </div>
                                                         <button
-                                                            onClick={() => updateQuantity(item._id, item.selectedSize, item.quantity + 1)}
+                                                            onClick={() => updateQuantity?.(item._id, item.selectedSize, (item.quantity || 1) + 1)}
                                                             className="w-12 h-12 flex items-center justify-center bg-green-600 rounded-xl text-white text-2xl hover:bg-green-700 transition-colors duration-200"
                                                         >
                                                             +
@@ -292,12 +308,6 @@ export default function CartPage() {
 
                                                 {/* Action Buttons */}
                                                 <div className="flex flex-col items-end gap-2">
-                                                    <button className="text-green-600 border border-green-600 rounded-full px-4 py-2 flex items-center gap-2 hover:bg-green-50 transition-colors duration-200">
-                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                                        </svg>
-                                                        Edit order
-                                                    </button>
                                                     <button 
                                                         onClick={() => handleRemoveItem(item._id, item.selectedSize)}
                                                         className="text-red-500 bg-red-50 rounded-full px-4 py-2 flex items-center gap-2 hover:bg-red-100 transition-colors duration-200"
@@ -321,7 +331,7 @@ export default function CartPage() {
                                 <div className="space-y-4">
                                     <div className="flex justify-between items-center">
                                         <span className="text-gray-600">Subtotal</span>
-                                        <span className="text-gray-900 font-medium">₦{getCartTotal().toLocaleString()}</span>
+                                        <span className="text-gray-900 font-medium">₦{(getCartTotal?.() || 0).toLocaleString()}</span>
                                     </div>
                                     <div className="flex justify-between items-center">
                                         <span className="text-gray-600">Shipping</span>
@@ -330,15 +340,15 @@ export default function CartPage() {
                                     <div className="pt-4 mt-4 border-t border-gray-100">
                                         <div className="flex justify-between items-center">
                                             <span className="text-gray-900 font-semibold">Total</span>
-                                            <span className="text-gray-900 font-semibold">₦{getCartTotal().toLocaleString()}</span>
+                                            <span className="text-gray-900 font-semibold">₦{(getCartTotal?.() || 0).toLocaleString()}</span>
                                         </div>
                                     </div>
-                                    <button 
-                                        onClick={() => window.location.href = '/checkout/billing'}
-                                        className="w-full bg-green-500 text-white py-3 rounded-xl font-medium hover:bg-green-600 transition-all duration-200 transform hover:scale-105 active:scale-95"
+                                    <Link 
+                                        href="/checkout/billing"
+                                        className="block w-full bg-green-500 text-white text-center py-3 rounded-xl font-medium hover:bg-green-600 transition-all duration-200 transform hover:scale-105 active:scale-95"
                                     >
                                         Proceed to checkout
-                                    </button>
+                                    </Link>
                                 </div>
                             </div>
                         </div>
