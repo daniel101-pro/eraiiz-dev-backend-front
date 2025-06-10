@@ -1,6 +1,11 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
+
+export const viewport: Viewport = {
+  themeColor: "#0D9488",
+};
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://eraiiz.com'),
   title: "Eraiiz - Shop Sustainable, Live Responsible",
   description:
     "Eraiiz is the ultimate global platform for eco-friendly shopping. Discover ethically-made products that promote sustainable living. Join the Eraiiz movement to make a positive impact on the planet, one responsible purchase at a time.",
@@ -49,5 +54,4 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
-  themeColor: "#0D9488",
 }; 
