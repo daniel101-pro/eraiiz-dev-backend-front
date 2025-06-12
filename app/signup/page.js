@@ -14,6 +14,8 @@ export default function SignupPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const [role, setRole] = useState('buyer');
   const [phone, setPhone] = useState('');
   const [countryCode, setCountryCode] = useState('+234'); // Default to Nigeria
@@ -26,6 +28,14 @@ export default function SignupPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setPasswordError('');
+
+    if (password !== confirmPassword) {
+      setPasswordError('Passwords do not match');
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch(process.env.NEXT_PUBLIC_API_URL + '/api/auth/register', {
         method: 'POST',
@@ -60,9 +70,9 @@ export default function SignupPage() {
         <div className="flex-1 flex flex-col custom-md:flex-row items-center justify-center">
           <div className="w-full custom-md:w-1/2 p-6 flex items-center justify-center">
             <div className="max-w-md w-full">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">Welcome to Eraiz</h2>
+              <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">Welcome to Eraiiz</h2>
               <p className="text-center text-gray-500 mb-6">
-                Create your account to start buying or selling with Eraiz.
+                Create your account to start buying or selling with Eraiiz.
               </p>
               
               <GoogleAuthButton text="Sign up with Google" />
@@ -110,7 +120,7 @@ export default function SignupPage() {
                     </p>
                   ) : (
                     <p className="text-sm text-gray-600">
-                      As a seller, you agree to list accurate products and ship promptly per Eraiz standards.
+                      As a seller, you agree to list accurate products and ship promptly per Eraiiz standards.
                     </p>
                   )}
                 </div>
@@ -159,6 +169,15 @@ export default function SignupPage() {
                   className="block w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                   required
                 />
+                <input
+                  type="password"
+                  placeholder="Confirm Password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="block w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  required
+                />
+                {passwordError && <p className="text-red-500 text-sm mt-1">{passwordError}</p>}
                 <div className="flex items-center">
                   <input
                     type="checkbox"
@@ -166,7 +185,7 @@ export default function SignupPage() {
                     className="mr-2 h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
                   />
                   <label className="text-sm text-gray-600">
-                    I agree to Eraiz's terms and conditions
+                    I agree to Eraiiz's terms and conditions
                   </label>
                 </div>
                 <button

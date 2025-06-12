@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useCurrency } from '../context/CurrencyContext';
 import { useCart } from '../context/CartContext';
+import Image from 'next/image';
 
 // Icons from lucide-react
 import { ShoppingCart, User, ChevronDown, Search, Filter, Menu, X, LogOut } from 'lucide-react';
@@ -146,9 +147,17 @@ export default function DualNavbarSell({ handleLogout }) {
             <button onClick={toggleSidebar} aria-label="Open Sidebar">
               <Menu className="h-6 w-6 text-gray-600" />
             </button>
-            <button onClick={handleLogoClick} className="text-xl font-bold text-green-600 flex items-center">
-              Eraiiz<span className="ml-1">🌱</span>
-            </button>
+            <div className="flex items-center">
+              <button onClick={handleLogoClick} className="flex items-center focus:outline-none" aria-label="Go to dashboard">
+                <Image
+                  src="/logo.png"
+                  alt="Eraiiz Logo"
+                  width={60}
+                  height={20}
+                  className="h-5 w-auto"
+                />
+              </button>
+            </div>
           </div>
           <div className="flex items-center gap-4">
             <button onClick={handleSearchRedirect} aria-label="Search" className="text-gray-600 hover:text-green-600">
@@ -160,33 +169,6 @@ export default function DualNavbarSell({ handleLogout }) {
             <Link href="/account" className="text-gray-600 hover:text-green-600" aria-label="Account">
               <User className="h-5 w-5" />
             </Link>
-            <button onClick={onLogout} aria-label="Logout" className="text-gray-600 hover:text-green-600">
-              <LogOut className="h-5 w-5" />
-            </button>
-            <div className="relative">
-              <button
-                onClick={() => setIsCurrencyOpen(!isCurrencyOpen)}
-                aria-label="Select Currency"
-                className="flex items-center gap-1 text-sm text-gray-600 hover:text-green-600 focus:outline-none"
-              >
-                {currencies.find(c => c.code === selectedCurrency)?.symbol}
-                <ChevronDown className="h-4 w-4 text-green-600" />
-              </button>
-              {isCurrencyOpen && (
-                <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-md shadow-lg z-10">
-                  {currencies.map((currency) => (
-                    <button
-                      key={currency.code}
-                      onClick={() => handleCurrencyChange(currency.code)}
-                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:bg-gray-100"
-                      aria-label={`Select ${currency.name}`}
-                    >
-                      {`${currency.symbol} - ${currency.name}`}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
           </div>
         </div>
       </header>
@@ -211,9 +193,17 @@ export default function DualNavbarSell({ handleLogout }) {
           }`}
         >
           <div className="flex items-center justify-between p-4 border-b">
-            <button onClick={handleLogoClick} className="text-xl font-bold text-green-600 flex items-center">
-              Eraiiz<span className="ml-1">🌱</span>
-            </button>
+            <div className="flex items-center">
+              <button onClick={handleLogoClick} className="flex items-center focus:outline-none" aria-label="Go to dashboard">
+                <Image
+                  src="/logo.png"
+                  alt="Eraiiz Logo"
+                  width={60}
+                  height={20}
+                  className="h-5 w-auto"
+                />
+              </button>
+            </div>
             <button onClick={toggleSidebar} aria-label="Close Sidebar">
               <X className="h-6 w-6 text-gray-600" />
             </button>
@@ -297,9 +287,17 @@ export default function DualNavbarSell({ handleLogout }) {
         <header className="border-b">
           <div className="container mx-auto px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-6">
-              <button onClick={handleLogoClick} className="text-xl font-bold text-green-600 flex items-center">
-                Eraiiz<span className="ml-1">🌱</span>
-              </button>
+              <div className="flex items-center">
+                <button onClick={handleLogoClick} className="flex items-center focus:outline-none" aria-label="Go to dashboard">
+                  <Image
+                    src="/logo.png"
+                    alt="Eraiiz Logo"
+                    width={60}
+                    height={20}
+                    className="h-5 w-auto"
+                  />
+                </button>
+              </div>
               <nav className="hidden md:flex items-center space-x-6 text-sm text-gray-600">
                 <Link href="/about" className="hover:text-green-600">
                   About Eraiiz
@@ -314,43 +312,13 @@ export default function DualNavbarSell({ handleLogout }) {
                 )}
               </nav>
             </div>
-            <div className="flex items-center gap-4">
-              <button onClick={handleSearchRedirect} aria-label="Search" className="text-gray-600 hover:text-green-600">
-                <Search className="h-5 w-5" />
-              </button>
-              <Link href="/cart" className="text-gray-600 hover:text-green-600" aria-label="Cart">
-                <CartBadge />
+            <div className="flex items-center space-x-4">
+              <Link href="/cart" className="text-gray-600 hover:text-gray-900">
+                <ShoppingCart className="h-6 w-6" />
               </Link>
-              <Link href="/account" className="text-gray-600 hover:text-green-600" aria-label="Account">
-                <User className="h-5 w-5" />
+              <Link href="/account" className="text-gray-600 hover:text-gray-900">
+                <User className="h-6 w-6" />
               </Link>
-              <button onClick={onLogout} aria-label="Logout" className="text-gray-600 hover:text-green-600">
-                <LogOut className="h-5 w-5" />
-              </button>
-              <div className="relative">
-                <button
-                  onClick={() => setIsCurrencyOpen(!isCurrencyOpen)}
-                  aria-label="Select Currency"
-                  className="flex items-center gap-1 text-sm text-gray-600 hover:text-green-600 focus:outline-none"
-                >
-                  {currencies.find(c => c.code === selectedCurrency)?.symbol}
-                  <ChevronDown className="h-4 w-4 text-green-600" />
-                </button>
-                {isCurrencyOpen && (
-                  <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-md shadow-lg z-10">
-                    {currencies.map((currency) => (
-                      <button
-                        key={currency.code}
-                        onClick={() => handleCurrencyChange(currency.code)}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:bg-gray-100"
-                        aria-label={`Select ${currency.name}`}
-                      >
-                        {`${currency.symbol} - ${currency.name}`}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
             </div>
           </div>
         </header>

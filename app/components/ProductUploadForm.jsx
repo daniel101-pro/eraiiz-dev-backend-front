@@ -4,6 +4,7 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import axios from 'axios';
 import Image from 'next/image';
 import { toast, Toaster } from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
 
 const ProductUploadForm = () => {
   const [product, setProduct] = useState({
@@ -14,7 +15,6 @@ const ProductUploadForm = () => {
     material: '',
     details: [''],
     images: [],
-    attributes: [{ type: '', values: [], stock: '' }],
     sizes: {
       S: { available: false, stock: 0 },
       L: { available: false, stock: 0 },
@@ -33,6 +33,7 @@ const ProductUploadForm = () => {
   const [success, setSuccess] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
 
   // Updated categories list
   const categories = [
@@ -134,32 +135,6 @@ const ProductUploadForm = () => {
     }));
   };
 
-  const handleAttributeChange = (index, field, value) => {
-    const updatedAttributes = [...product.attributes];
-    updatedAttributes[index][field] = value;
-    setProduct((prev) => ({ ...prev, attributes: updatedAttributes }));
-  };
-
-  const addAttribute = () => {
-    setProduct((prev) => ({
-      ...prev,
-      attributes: [...prev.attributes, { type: '', values: [], stock: '' }],
-    }));
-  };
-
-  const removeAttribute = (index) => {
-    setProduct((prev) => ({
-      ...prev,
-      attributes: prev.attributes.filter((_, i) => i !== index),
-    }));
-  };
-
-  const handleAttributeValues = (index, value) => {
-    const updatedAttributes = [...product.attributes];
-    updatedAttributes[index].values = value.split(',').map((v) => v.trim());
-    setProduct((prev) => ({ ...prev, attributes: updatedAttributes }));
-  };
-
   const handleSizeToggle = (size) => {
     setProduct((prev) => ({
       ...prev,
@@ -250,7 +225,6 @@ const ProductUploadForm = () => {
     formData.append('category', product.category);
     formData.append('material', product.material);
     formData.append('details', JSON.stringify(filteredDetails));
-    formData.append('attributes', JSON.stringify(product.attributes));
     formData.append('sizes', JSON.stringify(product.sizes));
     formData.append('bonus', JSON.stringify(product.bonus));
     product.images.forEach((image) => formData.append('images', image));
@@ -278,28 +252,13 @@ const ProductUploadForm = () => {
         );
       }
       toast.success('Product uploaded successfully!');
-      setProduct({
-        name: '',
-        description: '',
-        price: '',
-        category: '',
-        material: '',
-        details: [''],
-        images: [],
-        attributes: [{ type: '', values: [], stock: '' }],
-        sizes: {
-          S: { available: false, stock: 0 },
-          L: { available: false, stock: 0 },
-          XL: { available: false, stock: 0 },
-          XXL: { available: false, stock: 0 },
-          XXXL: { available: false, stock: 0 }
-        },
-        bonus: {
-          enabled: false,
-          type: 'percentage', // or 'fixed'
-          value: 0
-        }
-      });
+      // Redirect to success page with product ID
+      const productId = response.data?.productId || response.data?._id || response.data?.product?._id;
+      if (productId) {
+        router.push(`/dashboard/seller/upload/success?productId=${productId}`);
+      } else {
+        router.push('/dashboard/seller/upload/success');
+      }
     } catch (err) {
       console.error('Client: Upload Error:', err.response?.data || err.message);
       toast.error(err.response?.data?.message || 'Failed to upload product');
@@ -558,68 +517,6 @@ const ProductUploadForm = () => {
           </div>
               )}
         </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Product Attributes</label>
-              <p className="text-xs text-gray-500 mb-1">
-                Define custom attributes like colors, patterns, or variations
-              </p>
-        <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Attributes
-                  <button
-                    type="button"
-                    onClick={addAttribute}
-                    className="ml-2 text-green-600 hover:text-green-700 text-sm"
-                  >
-                    + Add Attribute
-                  </button>
-                </label>
-          {product.attributes.map((attr, index) => (
-                  <div key={index} className="border border-gray-200 rounded-lg p-4 mb-4">
-                    <div className="flex justify-between items-center mb-2">
-                      <h4 className="text-sm font-medium text-gray-700">Attribute {index + 1}</h4>
-                      {index > 0 && (
-                        <button
-                          type="button"
-                          onClick={() => removeAttribute(index)}
-                          className="text-red-500 hover:text-red-600"
-                        >
-                          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
-                      )}
-                    </div>
-                    <div className="space-y-3">
-              <input
-                type="text"
-                placeholder="Attribute Type (e.g., Size, Length)"
-                value={attr.type}
-                onChange={(e) => handleAttributeChange(index, 'type', e.target.value)}
-                        className="block w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                required
-              />
-              <input
-                type="text"
-                        placeholder="Values (comma-separated, e.g., S,M,L)"
-                onChange={(e) => handleAttributeValues(index, e.target.value)}
-                        className="block w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                required
-              />
-              <input
-                type="number"
-                        placeholder="Stock quantity"
-                value={attr.stock}
-                onChange={(e) => handleAttributeChange(index, 'stock', e.target.value)}
-                        className="block w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                required
-              />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
 
             {/* Size Selection */}
             <div>

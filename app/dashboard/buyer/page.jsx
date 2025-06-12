@@ -171,17 +171,18 @@ export default function BuyerDashboard() {
 
           <div className="px-4 md:px-8 lg:px-16 py-8">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-semibold text-gray-800">Products for You</h2>
+              <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">Products for You</h2>
               <Link href="/for-you">
-                <button className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition">
-                  See All
+                <button className="flex items-center gap-1 px-4 py-1.5 bg-[#F8FFF8] border border-[#CDEFCB] text-gray-700 rounded-xl text-sm font-medium">
+                  See all
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
                 </button>
               </Link>
             </div>
             {productsForYou.length === 0 ? (
               <p className="text-gray-600">No products available at the moment.</p>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 items-start">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 items-start">
                 {productsForYou.map((product) => (
                   <ProductCard key={product._id} product={product} />
                 ))}

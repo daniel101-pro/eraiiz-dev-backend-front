@@ -51,9 +51,9 @@ export default function Login() {
         <div className="flex-1 flex flex-col custom-md:flex-row items-center justify-center">
           <div className="w-full custom-md:w-1/2 p-6 flex items-center justify-center">
             <div className="max-w-md w-full">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">Login to Eraiz</h2>
+              <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">Login to Eraiiz</h2>
               <p className="text-center text-gray-500 mb-6">
-                Sign in to your account to continue buying or selling with Eraiz.
+                Sign in to your account to continue buying or selling with Eraiiz.
               </p>
               
               <GoogleAuthButton text="Sign in with Google" />

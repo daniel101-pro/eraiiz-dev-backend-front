@@ -7,7 +7,7 @@ import { useEffect } from 'react';
 
 export default function AboutPage() {
     useEffect(() => {
-        document.title = 'About Us | Eraiz';
+        document.title = 'About Us | Eraiiz';
     }, []);
 
     return (
@@ -31,9 +31,9 @@ export default function AboutPage() {
                         Redefining climate change to include right shopping choices
                     </h1>
                     <p className="text-sm text-gray-600 mb-10 text-justify leading-relaxed">
-                        Eraiz was founded by a team of passionate climate enthusiasts with a shared vision: to reinvent the online shopping system that will create awareness of zero-waste culture in order to promote sustainable practice for environmental sustainability. We believe that as technological advancement continues to surge, online shopping, if not sustainably influenced, would negatively affect the environment exponentially. Our team has an understanding of the industry landscape, and we leverage this expertise to curate a network of sustainable brands.
+                        Eraiiz was founded by a team of passionate climate enthusiasts with a shared vision: to reinvent the online shopping system that will create awareness of zero-waste culture in order to promote sustainable practice for environmental sustainability. We believe that as technological advancement continues to surge, online shopping, if not sustainably influenced, would negatively affect the environment exponentially. Our team has an understanding of the industry landscape, and we leverage this expertise to curate a network of sustainable brands.
                         <br /><br />
-                        Eraiz goes beyond just connecting businesses with global customers. We are committed to forging an environment that is free from waste.
+                        Eraiiz goes beyond just connecting businesses with global customers. We are committed to forging an environment that is free from waste.
                     </p>
 
                     {/* Mission and Vision Cards */}
@@ -77,7 +77,7 @@ export default function AboutPage() {
                             </li>
                             <li>
                                 <span className=" text-gray-800">Community:</span>
-                                <span className=" text-sm"> Through our #Eraizforgood program, we aim to create a supportive environment, especially for those affected by the effect of climate change disasters.</span>
+                                <span className=" text-sm"> Through our #Eraiizforgood program, we aim to create a supportive environment, especially for those affected by the effect of climate change disasters.</span>
                             </li>
                         </ul>
                     </div>

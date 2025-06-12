@@ -21,9 +21,17 @@ const Navbar = () => {
       <div className="fixed top-0 left-0 w-full bg-white shadow-md py-4 px-6 z-50">
         <nav className="flex justify-between items-center">
           {/* Logo */}
-          <Link href="/">
-            <Image src="/logo.png" width={70} height={60} alt="Eraiiz Logo" />
-          </Link>
+          <div className="flex items-center">
+            <Link href="/" className="flex items-center">
+              <Image
+                src="/logo.png"
+                alt="Eraiiz Logo"
+                width={120}
+                height={40}
+                className="h-8 w-auto"
+              />
+            </Link>
+          </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-7 text-black">
