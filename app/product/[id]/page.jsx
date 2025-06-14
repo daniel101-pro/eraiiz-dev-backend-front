@@ -273,8 +273,18 @@ export default function ProductDetail() {
         position: 'top-center',
       });
 
+      // Format cart item
+      const cartItem = {
+        _id: product._id,
+        name: product.name,
+        price: product.price,
+        quantity: quantity,
+        selectedSize: selectedSize,
+        images: product.images
+      };
+
       // Add to cart in the background
-      await addToCart(product, quantity, selectedSize);
+      await addToCart(cartItem);
       setIsInCartState(true);
       
     } catch (err) {

@@ -131,7 +131,7 @@ export default function DualNavbarSell({ handleLogout }) {
     <div className="relative">
       <ShoppingCart className="h-5 w-5" />
       {cartItems.length > 0 && (
-        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
+        <span className="absolute -top-2 -right-2 bg-white text-[#3F8E3F] border-2 border-[#3F8E3F] text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium shadow-sm">
           {cartItems.length}
         </span>
       )}
@@ -313,8 +313,13 @@ export default function DualNavbarSell({ handleLogout }) {
               </nav>
             </div>
             <div className="flex items-center space-x-4">
-              <Link href="/cart" className="text-gray-600 hover:text-gray-900">
+              <Link href="/cart" className="text-gray-600 hover:text-gray-900 relative">
                 <ShoppingCart className="h-6 w-6" />
+                {cartItems.length > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-white text-[#3F8E3F] border-2 border-[#3F8E3F] text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium shadow-sm">
+                    {cartItems.length}
+                  </span>
+                )}
               </Link>
               <Link href="/account" className="text-gray-600 hover:text-gray-900">
                 <User className="h-6 w-6" />

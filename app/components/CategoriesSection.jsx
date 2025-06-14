@@ -68,9 +68,10 @@ export default function CategoriesSection() {
         <h2 className="text-2xl font-semibold">Explore these categories</h2>
         <Link
           href="/categories"
-          className="text-white font-medium text-sm bg-green-600 px-3 py-1 rounded-full hover:bg-green-700 transition"
+          className="flex items-center gap-1 px-4 py-1.5 bg-[#F8FFF8] border border-[#CDEFCB] text-gray-700 rounded-xl text-sm font-medium hover:bg-[#ECF9EC] transition"
         >
           See all
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
         </Link>
       </div>
 

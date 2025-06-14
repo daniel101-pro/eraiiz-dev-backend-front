@@ -167,7 +167,7 @@ export default function CartClient() {
 
                 <div className="space-y-6">
                     {cartItems.map((item: CartItem) => (
-                        <div key={`${item._id}-${item.selectedSize}`} className="flex flex-col gap-4">
+                        <div key={`${item._id}-${item.selectedSize}`} className="flex flex-col gap-4 bg-white border border-[#CDEFCB] rounded-2xl p-4 shadow-sm">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <div className="w-20 h-20 relative rounded-lg overflow-hidden">
@@ -277,7 +277,7 @@ export default function CartClient() {
                                 {/* Cart Items */}
                                 <div className="space-y-8">
                                     {cartItems.map((item: CartItem) => (
-                                        <div key={`${item._id}-${item.selectedSize}`}>
+                                        <div key={`${item._id}-${item.selectedSize}`} className="bg-white border border-[#CDEFCB] rounded-2xl p-6 shadow-sm">
                                             <div className="flex items-center gap-4">
                                                 {/* Product Image */}
                                                 <div className="w-24 h-24 relative rounded-xl overflow-hidden">
