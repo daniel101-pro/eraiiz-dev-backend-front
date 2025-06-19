@@ -9,7 +9,7 @@ import { useCart } from '../context/CartContext';
 import Image from 'next/image';
 
 // Icons from lucide-react
-import { ShoppingCart, User, ChevronDown, Search, Filter, Menu, X, LogOut } from 'lucide-react';
+import { ShoppingCart, User, ChevronDown, Search, Filter, Menu, X, LogOut, Clock, ArrowRight } from 'lucide-react';
 
 export default function DualNavbarSell({ handleLogout }) {
   const router = useRouter();
@@ -19,6 +19,11 @@ export default function DualNavbarSell({ handleLogout }) {
   // State for sidebar, filter modal, filter settings, and user role
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const [isDesktopSearchOpen, setIsDesktopSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchHistory, setSearchHistory] = useState([]);
+  const [suggestions, setSuggestions] = useState([]);
   const [filterSettings, setFilterSettings] = useState({
     category: '',
     minPrice: '',
@@ -54,6 +59,44 @@ export default function DualNavbarSell({ handleLogout }) {
       setUserRole('buyer');
     }
   }, []);
+
+  // Load search history from localStorage
+  useEffect(() => {
+    const history = localStorage.getItem('searchHistory');
+    if (history) {
+      setSearchHistory(JSON.parse(history));
+    }
+  }, []);
+
+  // Save search history to localStorage
+  const saveToHistory = (query) => {
+    const updatedHistory = [query, ...searchHistory.filter(item => item !== query)].slice(0, 5);
+    setSearchHistory(updatedHistory);
+    localStorage.setItem('searchHistory', JSON.stringify(updatedHistory));
+  };
+
+  // Mock function to get suggestions - replace with actual API call
+  const fetchSuggestions = async (query) => {
+    // This should be replaced with an actual API call to your backend
+    // For now, we'll just mock some suggestions
+    if (!query.trim()) {
+      setSuggestions([]);
+      return;
+    }
+
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    // Mock suggestions based on query
+    const mockSuggestions = [
+      `${query} in plastic products`,
+      `${query} recycled items`,
+      `${query} eco-friendly`,
+      `${query} sustainable`,
+    ].filter(suggestion => suggestion.toLowerCase().includes(query.toLowerCase()));
+
+    setSuggestions(mockSuggestions);
+  };
 
   // Handle currency change
   const handleCurrencyChange = (code) => {
@@ -121,9 +164,22 @@ export default function DualNavbarSell({ handleLogout }) {
     setIsFilterModalOpen(false);
   };
 
-  // Handle search redirect
-  const handleSearchRedirect = () => {
-    router.push('/search');
+  // Handle search query changes
+  const handleSearchChange = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    fetchSuggestions(query);
+  };
+
+  // Handle search submission
+  const handleSearch = (query = searchQuery) => {
+    if (!query.trim()) return;
+    
+    saveToHistory(query);
+    setIsMobileSearchOpen(false);
+    setIsDesktopSearchOpen(false);
+    setSearchQuery('');
+    router.push(`/search?q=${encodeURIComponent(query)}`);
   };
 
   // Add this small component for the cart badge
@@ -160,7 +216,11 @@ export default function DualNavbarSell({ handleLogout }) {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <button onClick={handleSearchRedirect} aria-label="Search" className="text-gray-600 hover:text-green-600">
+            <button 
+              onClick={() => setIsMobileSearchOpen(true)} 
+              aria-label="Search" 
+              className="text-gray-600 hover:text-green-600"
+            >
               <Search className="h-5 w-5" />
             </button>
             <Link href="/cart" className="text-gray-600 hover:text-green-600" aria-label="Cart">
@@ -172,6 +232,103 @@ export default function DualNavbarSell({ handleLogout }) {
           </div>
         </div>
       </header>
+
+      {/* Mobile Search Modal */}
+      {isMobileSearchOpen && (
+        <div className="md:hidden fixed inset-0 z-50 bg-white">
+          <div className="flex flex-col h-full">
+            {/* Search Header */}
+            <div className="border-b p-4">
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => {
+                    setIsMobileSearchOpen(false);
+                    setSearchQuery('');
+                    setSuggestions([]);
+                  }} 
+                  className="text-gray-600"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+                <div className="flex-1">
+                  <div className="relative">
+                    <form onSubmit={(e) => {
+                      e.preventDefault();
+                      handleSearch(searchQuery);
+                    }}>
+                      <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={handleSearchChange}
+                        placeholder="Search item or product codes..."
+                        className="w-full pl-10 pr-4 py-2 border rounded-full text-sm focus:outline-none focus:ring-1 focus:ring-green-600"
+                        autoFocus
+                      />
+                      <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Search Content */}
+            <div className="flex-1 overflow-y-auto p-4">
+              {/* Recent Searches */}
+              {!searchQuery && searchHistory.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-sm font-medium text-gray-900 mb-3">Recent Searches</h3>
+                  <div className="space-y-3">
+                    {searchHistory.map((query, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleSearch(query)}
+                        className="flex items-center w-full text-left text-sm text-gray-600 hover:text-gray-900"
+                      >
+                        <Clock className="h-4 w-4 mr-3 text-gray-400" />
+                        <span>{query}</span>
+                        <ArrowRight className="h-4 w-4 ml-auto text-gray-400" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Search Suggestions */}
+              {searchQuery && (
+                <div>
+                  {suggestions.length > 0 ? (
+                    <div className="space-y-3">
+                      {suggestions.map((suggestion, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handleSearch(suggestion)}
+                          className="flex items-center w-full text-left text-sm text-gray-600 hover:text-gray-900"
+                        >
+                          <Search className="h-4 w-4 mr-3 text-gray-400" />
+                          <span>{suggestion}</span>
+                          <ArrowRight className="h-4 w-4 ml-auto text-gray-400" />
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Search className="h-12 w-12 mx-auto text-gray-300 mb-3" />
+                      <p className="text-gray-500">No suggestions found for "{searchQuery}"</p>
+                      <p className="text-sm text-gray-400 mt-1">Try searching for something else or browse categories</p>
+                      <button
+                        onClick={() => handleSearch()}
+                        className="mt-4 px-6 py-2 bg-green-600 text-white rounded-full text-sm hover:bg-green-700"
+                      >
+                        Search anyway
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Mobile Sidebar */}
       <div
@@ -264,7 +421,7 @@ export default function DualNavbarSell({ handleLogout }) {
 
             <div className="flex flex-col gap-3">
               <button
-                onClick={handleSearchRedirect}
+                onClick={handleSearch}
                 className="flex items-center gap-2 text-sm text-gray-600 hover:text-green-600"
                 aria-label="Go to Search Page"
               >
@@ -311,6 +468,96 @@ export default function DualNavbarSell({ handleLogout }) {
                   </Link>
                 )}
               </nav>
+            </div>
+            <div className="flex-1 max-w-xl mx-8 relative">
+              <div className="relative">
+                <form onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSearch(searchQuery);
+                }}>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    onFocus={() => setIsDesktopSearchOpen(true)}
+                    placeholder="Search item or product codes..."
+                    className="w-full pl-10 pr-4 py-2 border rounded-full text-sm focus:outline-none focus:ring-1 focus:ring-green-600"
+                  />
+                  <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                </form>
+              </div>
+
+              {/* Desktop Search Dropdown */}
+              {isDesktopSearchOpen && (
+                <>
+                  {/* Overlay to capture clicks outside */}
+                  <div 
+                    className="fixed inset-0 z-30"
+                    onClick={() => {
+                      setIsDesktopSearchOpen(false);
+                      setSearchQuery('');
+                      setSuggestions([]);
+                    }}
+                  />
+                  
+                  {/* Dropdown Panel */}
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-200 z-40 overflow-hidden animate-slideDown">
+                    <div className="max-h-[400px] overflow-y-auto">
+                      {/* Recent Searches */}
+                      {!searchQuery && searchHistory.length > 0 && (
+                        <div className="p-3">
+                          <h3 className="text-sm font-medium text-gray-900 mb-2">Recent Searches</h3>
+                          <div className="space-y-1">
+                            {searchHistory.map((query, index) => (
+                              <button
+                                key={index}
+                                onClick={() => handleSearch(query)}
+                                className="flex items-center w-full text-left text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 p-2 rounded-lg transition-colors duration-150"
+                              >
+                                <Clock className="h-4 w-4 mr-3 text-gray-400" />
+                                <span>{query}</span>
+                                <ArrowRight className="h-4 w-4 ml-auto text-gray-400" />
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Search Suggestions */}
+                      {searchQuery && (
+                        <div className="p-3">
+                          {suggestions.length > 0 ? (
+                            <div className="space-y-1">
+                              {suggestions.map((suggestion, index) => (
+                                <button
+                                  key={index}
+                                  onClick={() => handleSearch(suggestion)}
+                                  className="flex items-center w-full text-left text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 p-2 rounded-lg transition-colors duration-150"
+                                >
+                                  <Search className="h-4 w-4 mr-3 text-gray-400" />
+                                  <span>{suggestion}</span>
+                                  <ArrowRight className="h-4 w-4 ml-auto text-gray-400" />
+                                </button>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="text-center py-6">
+                              <Search className="h-8 w-8 mx-auto text-gray-300 mb-2" />
+                              <p className="text-gray-500 text-sm">No suggestions found for "{searchQuery}"</p>
+                              <button
+                                onClick={() => handleSearch()}
+                                className="mt-2 px-4 py-1.5 bg-green-600 text-white rounded-full text-sm hover:bg-green-700 transition-colors duration-150"
+                              >
+                                Search anyway
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
             <div className="flex items-center space-x-4">
               <Link href="/cart" className="text-gray-600 hover:text-gray-900 relative">
@@ -475,6 +722,24 @@ export default function DualNavbarSell({ handleLogout }) {
           </div>
         </div>
       )}
+
+      {/* Add animation keyframes */}
+      <style jsx global>{`
+        @keyframes slideDown {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .animate-slideDown {
+          animation: slideDown 0.2s ease-out forwards;
+        }
+      `}</style>
     </>
   );
 }

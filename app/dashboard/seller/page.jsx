@@ -301,9 +301,6 @@ export default function SellerDashboard() {
             <div className="w-12 h-12 border-4 border-green-600 border-t-transparent rounded-full animate-spin"></div>
             <div className="absolute inset-0 w-12 h-12 bg-green-100 rounded-full animate-pulse"></div>
           </div>
-          <p className="text-gray-600 text-lg font-medium animate-fadeIn">
-            welcome to your seller dashboard...
-          </p>
         </div>
       </div>
     );

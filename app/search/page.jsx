@@ -1,21 +1,20 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import axios from 'axios';
-import Link from 'next/link';
-import debounce from 'lodash/debounce';
 import DualNavSell from '../components/DualNavbarSell';
 import ProductCard from '../components/ProductCard';
 
 export default function Search() {
-  const [query, setQuery] = useState('');
+  const searchParams = useSearchParams();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const router = useRouter();
 
   const fetchProducts = async (searchQuery) => {
+    if (!searchQuery) return;
+    
     setLoading(true);
     setError(null);
     try {
@@ -37,11 +36,14 @@ export default function Search() {
         }
       );
 
-      if (!res.data || !res.data.products || !Array.isArray(res.data.products)) {
-        throw new Error('No products found or invalid response');
+      // Handle both response formats (array or {products: array})
+      const productsData = Array.isArray(res.data) ? res.data : res.data.products;
+      
+      if (!productsData || !Array.isArray(productsData)) {
+        throw new Error('Invalid response format');
       }
 
-      setProducts(res.data.products);
+      setProducts(productsData);
     } catch (err) {
       console.error('Error searching products:', err);
       setError('Failed to search products. Please try again.');
@@ -51,50 +53,44 @@ export default function Search() {
     }
   };
 
-  // Debounced search function to avoid excessive API calls
-  const debouncedSearch = debounce((searchQuery) => {
-    if (searchQuery.trim()) {
-      fetchProducts(searchQuery);
-    } else {
-      setProducts([]);
-    }
-  }, 500);
-
   useEffect(() => {
-    debouncedSearch(query);
-    // Cleanup debounce on component unmount
-    return () => debouncedSearch.cancel();
-  }, [query]);
+    const query = searchParams.get('q');
+    if (query) {
+      fetchProducts(query);
+    }
+  }, [searchParams]);
+
+  const query = searchParams.get('q');
 
   return (
     <div>
       <DualNavSell />
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-4">Search Products</h1>
-        <div className="mb-6 flex gap-2">
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by name, category, or description..."
-            className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600"
-          />
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-xl sm:text-2xl font-semibold text-gray-800">
+            {query ? `Search Results for "${query}"` : 'Search Products'}
+          </h1>
         </div>
 
-        {error && <div className="text-red-600 mb-4">{error}</div>}
+        {error && (
+          <div className="text-red-600 mb-6 text-center">{error}</div>
+        )}
 
         {loading && (
-          <div className="flex justify-center">
+          <div className="flex justify-center py-12">
             <div className="w-12 h-12 border-4 border-green-600 border-t-transparent rounded-full animate-spin"></div>
           </div>
         )}
 
         {!loading && products.length === 0 && !error && query && (
-          <div className="text-center text-gray-600 mb-4">No products found for "{query}".</div>
+          <div className="text-center py-12">
+            <div className="text-gray-600 text-lg mb-2">No products found for "{query}"</div>
+            <p className="text-sm text-gray-500">Try searching with different keywords or browse our categories</p>
+          </div>
         )}
 
         {!loading && products.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 items-start">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             {products.map((product) => (
               <ProductCard key={product._id} product={product} />
             ))}

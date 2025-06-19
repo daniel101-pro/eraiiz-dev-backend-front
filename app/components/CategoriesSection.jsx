@@ -12,14 +12,14 @@ export default function CategoriesSection() {
       name: "Plastic Made Products",
       count: "Loading...",
       href: "/plastic", // Updated
-      image: "/image11.png",
+      image: "/image1.png",
       id: "plastic",
     },
     {
       name: "Glass Made Products",
       count: "Loading...",
       href: "/glass", // Updated
-      image: "/image22.png",
+      image: "/image2.png",
       id: "glass",
     },
     {
@@ -33,7 +33,7 @@ export default function CategoriesSection() {
       name: "General Recycled Items",
       count: "Loading...",
       href: "/recycled", // Updated
-      image: "/image6.png",
+      image: "/image4.png",
       id: "recycled",
     },
   ]);
@@ -65,7 +65,7 @@ export default function CategoriesSection() {
   return (
     <section>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-semibold">Explore these categories</h2>
+        <h1 className="text-xl font-semiboldtext-xl sm:text-2xl font-semibold text-gray-800">Explore these categories</h1>
         <Link
           href="/categories"
           className="flex items-center gap-1 px-4 py-1.5 bg-[#F8FFF8] border border-[#CDEFCB] text-gray-700 rounded-xl text-sm font-medium hover:bg-[#ECF9EC] transition"
