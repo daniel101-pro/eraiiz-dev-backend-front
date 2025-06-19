@@ -3,10 +3,12 @@
 // Imports from Next.js and React
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useCurrency } from '../context/CurrencyContext';
 import { useCart } from '../context/CartContext';
 import Image from 'next/image';
+import axios from 'axios';
+import { debounce } from 'lodash';
 
 // Icons from lucide-react
 import { ShoppingCart, User, ChevronDown, Search, Filter, Menu, X, LogOut, Clock, ArrowRight } from 'lucide-react';
@@ -15,6 +17,10 @@ export default function DualNavbarSell({ handleLogout }) {
   const router = useRouter();
   const { selectedCurrency, setSelectedCurrency } = useCurrency();
   const { cartItems, clearCart } = useCart();
+
+  // State for navbar visibility
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
 
   // State for sidebar, filter modal, filter settings, and user role
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -75,28 +81,52 @@ export default function DualNavbarSell({ handleLogout }) {
     localStorage.setItem('searchHistory', JSON.stringify(updatedHistory));
   };
 
-  // Mock function to get suggestions - replace with actual API call
+  // Real-time product suggestions
   const fetchSuggestions = async (query) => {
-    // This should be replaced with an actual API call to your backend
-    // For now, we'll just mock some suggestions
     if (!query.trim()) {
       setSuggestions([]);
       return;
     }
 
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 300));
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      const token = localStorage.getItem('accessToken');
+      
+      if (!token) {
+        console.error('No access token found');
+        return;
+      }
 
-    // Mock suggestions based on query
-    const mockSuggestions = [
-      `${query} in plastic products`,
-      `${query} recycled items`,
-      `${query} eco-friendly`,
-      `${query} sustainable`,
-    ].filter(suggestion => suggestion.toLowerCase().includes(query.toLowerCase()));
+      const res = await axios.get(
+        `${apiUrl}/api/products/?search=${encodeURIComponent(query)}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          timeout: 30000,
+        }
+      );
 
-    setSuggestions(mockSuggestions);
+      const products = Array.isArray(res.data) ? res.data : res.data.products || [];
+      
+      // Only show products that match the search query
+      const matchingProducts = products
+        .filter(product => 
+          product.name.toLowerCase().includes(query.toLowerCase()) ||
+          product.category.toLowerCase().includes(query.toLowerCase())
+        )
+        .slice(0, 5); // Limit to 5 suggestions
+
+      setSuggestions(matchingProducts);
+    } catch (err) {
+      console.error('Error fetching suggestions:', err);
+      setSuggestions([]);
+    }
   };
+
+  // Debounce the fetchSuggestions function to avoid too many API calls
+  const debouncedFetchSuggestions = useCallback(
+    debounce((query) => fetchSuggestions(query), 300),
+    []
+  );
 
   // Handle currency change
   const handleCurrencyChange = (code) => {
@@ -168,7 +198,7 @@ export default function DualNavbarSell({ handleLogout }) {
   const handleSearchChange = (e) => {
     const query = e.target.value;
     setSearchQuery(query);
-    fetchSuggestions(query);
+    debouncedFetchSuggestions(query);
   };
 
   // Handle search submission
@@ -194,256 +224,44 @@ export default function DualNavbarSell({ handleLogout }) {
     </div>
   );
 
+  // Handle scroll events
+  const handleScroll = useCallback(() => {
+    const currentScrollY = window.scrollY;
+    
+    if (currentScrollY < 60) {
+      setIsVisible(true);
+    } else {
+      setIsVisible(currentScrollY < lastScrollY);
+    }
+    
+    setLastScrollY(currentScrollY);
+  }, [lastScrollY]);
+
+  // Add scroll event listener
+  useEffect(() => {
+    const controlNavbar = debounce(handleScroll, 100);
+
+    window.addEventListener('scroll', controlNavbar);
+
+    return () => {
+      window.removeEventListener('scroll', controlNavbar);
+    };
+  }, [handleScroll]);
+
   return (
     <>
-      {/* Mobile Navbar */}
-      <header className="md:hidden border-b">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button onClick={toggleSidebar} aria-label="Open Sidebar">
-              <Menu className="h-6 w-6 text-gray-600" />
-            </button>
-            <div className="flex items-center">
-              <button onClick={handleLogoClick} className="flex items-center focus:outline-none" aria-label="Go to dashboard">
-                <Image
-                  src="/logo.png"
-                  alt="Eraiiz Logo"
-                  width={60}
-                  height={20}
-                  className="h-5 w-auto"
-                />
-              </button>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={() => setIsMobileSearchOpen(true)} 
-              aria-label="Search" 
-              className="text-gray-600 hover:text-green-600"
-            >
-              <Search className="h-5 w-5" />
-            </button>
-            <Link href="/cart" className="text-gray-600 hover:text-green-600" aria-label="Cart">
-              <CartBadge />
-            </Link>
-            <Link href="/account" className="text-gray-600 hover:text-green-600" aria-label="Account">
-              <User className="h-5 w-5" />
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      {/* Mobile Search Modal */}
-      {isMobileSearchOpen && (
-        <div className="md:hidden fixed inset-0 z-50 bg-white">
-          <div className="flex flex-col h-full">
-            {/* Search Header */}
-            <div className="border-b p-4">
-              <div className="flex items-center gap-3">
-                <button 
-                  onClick={() => {
-                    setIsMobileSearchOpen(false);
-                    setSearchQuery('');
-                    setSuggestions([]);
-                  }} 
-                  className="text-gray-600"
-                >
-                  <X className="h-6 w-6" />
-                </button>
-                <div className="flex-1">
-                  <div className="relative">
-                    <form onSubmit={(e) => {
-                      e.preventDefault();
-                      handleSearch(searchQuery);
-                    }}>
-                      <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={handleSearchChange}
-                        placeholder="Search item or product codes..."
-                        className="w-full pl-10 pr-4 py-2 border rounded-full text-sm focus:outline-none focus:ring-1 focus:ring-green-600"
-                        autoFocus
-                      />
-                      <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                    </form>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Search Content */}
-            <div className="flex-1 overflow-y-auto p-4">
-              {/* Recent Searches */}
-              {!searchQuery && searchHistory.length > 0 && (
-                <div className="mb-6">
-                  <h3 className="text-sm font-medium text-gray-900 mb-3">Recent Searches</h3>
-                  <div className="space-y-3">
-                    {searchHistory.map((query, index) => (
-                      <button
-                        key={index}
-                        onClick={() => handleSearch(query)}
-                        className="flex items-center w-full text-left text-sm text-gray-600 hover:text-gray-900"
-                      >
-                        <Clock className="h-4 w-4 mr-3 text-gray-400" />
-                        <span>{query}</span>
-                        <ArrowRight className="h-4 w-4 ml-auto text-gray-400" />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Search Suggestions */}
-              {searchQuery && (
-                <div>
-                  {suggestions.length > 0 ? (
-                    <div className="space-y-3">
-                      {suggestions.map((suggestion, index) => (
-                        <button
-                          key={index}
-                          onClick={() => handleSearch(suggestion)}
-                          className="flex items-center w-full text-left text-sm text-gray-600 hover:text-gray-900"
-                        >
-                          <Search className="h-4 w-4 mr-3 text-gray-400" />
-                          <span>{suggestion}</span>
-                          <ArrowRight className="h-4 w-4 ml-auto text-gray-400" />
-                        </button>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <Search className="h-12 w-12 mx-auto text-gray-300 mb-3" />
-                      <p className="text-gray-500">No suggestions found for "{searchQuery}"</p>
-                      <p className="text-sm text-gray-400 mt-1">Try searching for something else or browse categories</p>
-                      <button
-                        onClick={() => handleSearch()}
-                        className="mt-4 px-6 py-2 bg-green-600 text-white rounded-full text-sm hover:bg-green-700"
-                      >
-                        Search anyway
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Mobile Sidebar */}
-      <div
-        className={`fixed inset-0 z-50 flex transition-opacity duration-300 ${
-          isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+      <div 
+        className={`fixed top-0 left-0 right-0 bg-white z-50 shadow transition-transform duration-300 ${
+          isVisible ? 'translate-y-0' : '-translate-y-full'
         }`}
       >
-        <div
-          className={`fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300 ${
-            isSidebarOpen ? 'opacity-100' : 'opacity-0'
-          }`}
-          onClick={toggleSidebar}
-          aria-hidden="true"
-        ></div>
-
-        <div
-          className={`fixed top-0 left-0 h-full w-64 bg-white shadow-lg transform transition-transform duration-300 ${
-            isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-          }`}
-        >
-          <div className="flex items-center justify-between p-4 border-b">
-            <div className="flex items-center">
-              <button onClick={handleLogoClick} className="flex items-center focus:outline-none" aria-label="Go to dashboard">
-                <Image
-                  src="/logo.png"
-                  alt="Eraiiz Logo"
-                  width={60}
-                  height={20}
-                  className="h-5 w-auto"
-                />
-              </button>
-            </div>
-            <button onClick={toggleSidebar} aria-label="Close Sidebar">
-              <X className="h-6 w-6 text-gray-600" />
-            </button>
-          </div>
-          <div className="p-4 flex flex-col gap-4">
-            <nav className="flex flex-col gap-3 text-sm text-gray-600">
-              <Link href="/about" className="hover:text-green-600" onClick={toggleSidebar}>
-                About Eraiiz
-              </Link>
-              <Link href="/help" className="hover:text-green-600" onClick={toggleSidebar}>
-                Help
-              </Link>
-              <Link href="/contact" className="hover:text-green-600" onClick={toggleSidebar}>
-                Contact Support
-              </Link>
-              {userRole === 'buyer' && (
-                <Link href="/supplier/migrate" className="hover:text-green-600" onClick={toggleSidebar}>
-                  Become a Supplier
-                </Link>
-              )}
-              <button
-                onClick={() => { onLogout(); toggleSidebar(); }}
-                className="flex items-center gap-2 text-sm text-gray-600 hover:text-green-600"
-                aria-label="Logout"
-              >
-                <LogOut className="h-4 w-4" /> Logout
-              </button>
-            </nav>
-
-            <hr className="my-2 border-gray-200" />
-
-            <nav className="flex flex-col gap-3 text-sm text-gray-600">
-              <Link href="/categories/plastic" className="hover:text-green-600" onClick={toggleSidebar}>
-                Plastic Made Products
-              </Link>
-              <Link href="/categories/glass" className="hover:text-green-600" onClick={toggleSidebar}>
-                Glass Made Products
-              </Link>
-              <Link href="/categories/rubber" className="hover:text-green-600" onClick={toggleSidebar}>
-                Rubber Made Products
-              </Link>
-              <Link href="/categories/wood" className="hover:text-green-600" onClick={toggleSidebar}>
-                Wood Made Products
-              </Link>
-              <Link href="/categories/palm-frond" className="hover:text-green-600" onClick={toggleSidebar}>
-                Palm Frond Made Products
-              </Link>
-              <Link href="/categories/recycled" className="hover:text-green-600" onClick={toggleSidebar}>
-                General Recycled Items
-              </Link>
-              <Link href="/categories/fruits" className="hover:text-green-600" onClick={toggleSidebar}>
-                Fruits Waste Products
-              </Link>
-              <Link href="/categories" className="hover:text-green-600" onClick={toggleSidebar}>
-                Others
-              </Link>
-            </nav>
-
-            <div className="flex flex-col gap-3">
-              <button
-                onClick={handleSearch}
-                className="flex items-center gap-2 text-sm text-gray-600 hover:text-green-600"
-                aria-label="Go to Search Page"
-              >
-                <Search className="h-4 w-4" /> Search
-              </button>
-              <button
-                onClick={toggleFilterModal}
-                className="flex items-center gap-2 text-sm text-gray-600 hover:text-green-600"
-                aria-label="Open Filter Modal"
-              >
-                <Filter className="h-4 w-4" /> Filters
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Desktop Dual Navbar */}
-      <div className="hidden md:block">
-        <header className="border-b">
+        {/* Mobile Navbar */}
+        <header className="md:hidden">
           <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-3">
+              <button onClick={toggleSidebar} aria-label="Open Sidebar">
+                <Menu className="h-6 w-6 text-gray-600" />
+              </button>
               <div className="flex items-center">
                 <button onClick={handleLogoClick} className="flex items-center focus:outline-none" aria-label="Go to dashboard">
                   <Image
@@ -455,170 +273,421 @@ export default function DualNavbarSell({ handleLogout }) {
                   />
                 </button>
               </div>
-              <nav className="hidden md:flex items-center space-x-6 text-sm text-gray-600">
-                <Link href="/about" className="hover:text-green-600">
-                  About Eraiiz
-                </Link>
-                <Link href="/contact" className="hover:text-green-600">
-                  Contact Support
-                </Link>
-                {userRole === 'buyer' && (
-                  <Link href="/supplier/migrate" className="hover:text-green-600">
-                    Become a Seller
-                  </Link>
-                )}
-              </nav>
             </div>
-            <div className="flex-1 max-w-xl mx-8 relative">
-              <div className="relative">
-                <form onSubmit={(e) => {
-                  e.preventDefault();
-                  handleSearch(searchQuery);
-                }}>
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={handleSearchChange}
-                    onFocus={() => setIsDesktopSearchOpen(true)}
-                    placeholder="Search item or product codes..."
-                    className="w-full pl-10 pr-4 py-2 border rounded-full text-sm focus:outline-none focus:ring-1 focus:ring-green-600"
-                  />
-                  <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                </form>
-              </div>
-
-              {/* Desktop Search Dropdown */}
-              {isDesktopSearchOpen && (
-                <>
-                  {/* Overlay to capture clicks outside */}
-                  <div 
-                    className="fixed inset-0 z-30"
-                    onClick={() => {
-                      setIsDesktopSearchOpen(false);
-                      setSearchQuery('');
-                      setSuggestions([]);
-                    }}
-                  />
-                  
-                  {/* Dropdown Panel */}
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-200 z-40 overflow-hidden animate-slideDown">
-                    <div className="max-h-[400px] overflow-y-auto">
-                      {/* Recent Searches */}
-                      {!searchQuery && searchHistory.length > 0 && (
-                        <div className="p-3">
-                          <h3 className="text-sm font-medium text-gray-900 mb-2">Recent Searches</h3>
-                          <div className="space-y-1">
-                            {searchHistory.map((query, index) => (
-                              <button
-                                key={index}
-                                onClick={() => handleSearch(query)}
-                                className="flex items-center w-full text-left text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 p-2 rounded-lg transition-colors duration-150"
-                              >
-                                <Clock className="h-4 w-4 mr-3 text-gray-400" />
-                                <span>{query}</span>
-                                <ArrowRight className="h-4 w-4 ml-auto text-gray-400" />
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Search Suggestions */}
-                      {searchQuery && (
-                        <div className="p-3">
-                          {suggestions.length > 0 ? (
-                            <div className="space-y-1">
-                              {suggestions.map((suggestion, index) => (
-                                <button
-                                  key={index}
-                                  onClick={() => handleSearch(suggestion)}
-                                  className="flex items-center w-full text-left text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 p-2 rounded-lg transition-colors duration-150"
-                                >
-                                  <Search className="h-4 w-4 mr-3 text-gray-400" />
-                                  <span>{suggestion}</span>
-                                  <ArrowRight className="h-4 w-4 ml-auto text-gray-400" />
-                                </button>
-                              ))}
-                            </div>
-                          ) : (
-                            <div className="text-center py-6">
-                              <Search className="h-8 w-8 mx-auto text-gray-300 mb-2" />
-                              <p className="text-gray-500 text-sm">No suggestions found for "{searchQuery}"</p>
-                              <button
-                                onClick={() => handleSearch()}
-                                className="mt-2 px-4 py-1.5 bg-green-600 text-white rounded-full text-sm hover:bg-green-700 transition-colors duration-150"
-                              >
-                                Search anyway
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link href="/cart" className="text-gray-600 hover:text-gray-900 relative">
-                <ShoppingCart className="h-6 w-6" />
-                {cartItems.length > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-white text-[#3F8E3F] border-2 border-[#3F8E3F] text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium shadow-sm">
-                    {cartItems.length}
-                  </span>
-                )}
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={() => setIsMobileSearchOpen(true)} 
+                aria-label="Search" 
+                className="text-gray-600 hover:text-green-600"
+              >
+                <Search className="h-5 w-5" />
+              </button>
+              <Link href="/cart" className="text-gray-600 hover:text-green-600" aria-label="Cart">
+                <CartBadge />
               </Link>
-              <Link href="/account" className="text-gray-600 hover:text-gray-900">
-                <User className="h-6 w-6" />
+              <Link href="/account" className="text-gray-600 hover:text-green-600" aria-label="Account">
+                <User className="h-5 w-5" />
               </Link>
             </div>
           </div>
         </header>
 
-        <nav className="border-b">
-          <div className="container mx-auto px-4 py-2 flex items-center justify-between">
-            <nav className="flex items-center space-x-6 text-sm text-gray-600">
-              <Link href="/categories/plastic" className="hover:text-green-600">
-                Plastic Made Products
-              </Link>
-              <Link href="/categories/glass" className="hover:text-green-600">
-                Glass Made Products
-              </Link>
-              <Link href="/categories/rubber" className="hover:text-green-600">
-                Rubber Made Products
-              </Link>
-              <Link href="/categories/wood" className="hover:text-green-600">
-                Wood Made Products
-              </Link>
-              <Link href="/categories/palm-frond" className="hover:text-green-600">
-                Palm Frond Made Products
-              </Link>
-              <Link href="/categories/recycled" className="hover:text-green-600">
-                General Recycled Items
-              </Link>
-              <Link href="/categories/fruits" className="hover:text-green-600">
-                Fruits Waste Products
-              </Link>
-              <Link href="/categories" className="hover:text-green-600">
-                Others
-              </Link>
-            </nav>
-            <div className="flex items-center gap-4">
-              <button
-                onClick={toggleFilterModal}
-                className="flex items-center gap-2 text-sm text-gray-600 hover:text-green-600"
-                aria-label="Open Filter Modal"
-              >
-                <Filter className="h-4 w-4" /> Filters
-              </button>
+        {/* Mobile Search Modal */}
+        {isMobileSearchOpen && (
+          <div className="md:hidden fixed inset-0 z-50 bg-white">
+            <div className="flex flex-col h-full">
+              {/* Search Header */}
+              <div className="border-b p-4">
+                <div className="flex items-center gap-3">
+                  <button 
+                    onClick={() => {
+                      setIsMobileSearchOpen(false);
+                      setSearchQuery('');
+                      setSuggestions([]);
+                    }} 
+                    className="text-gray-600"
+                  >
+                    <X className="h-6 w-6" />
+                  </button>
+                  <div className="flex-1">
+                    <div className="relative">
+                      <form onSubmit={(e) => {
+                        e.preventDefault();
+                        handleSearch(searchQuery);
+                      }}>
+                        <input
+                          type="text"
+                          value={searchQuery}
+                          onChange={handleSearchChange}
+                          placeholder="Search item or product codes..."
+                          className="w-full pl-10 pr-4 py-2 border rounded-full text-sm focus:outline-none focus:ring-1 focus:ring-green-600"
+                          autoFocus
+                        />
+                        <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Search Content */}
+              <div className="flex-1 overflow-y-auto p-4">
+                {/* Recent Searches */}
+                {!searchQuery && searchHistory.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-sm font-medium text-gray-900 mb-3">Recent Searches</h3>
+                    <div className="space-y-3">
+                      {searchHistory.map((query, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handleSearch(query)}
+                          className="flex items-center w-full text-left text-sm text-gray-600 hover:text-gray-900"
+                        >
+                          <Clock className="h-4 w-4 mr-3 text-gray-400" />
+                          <span>{query}</span>
+                          <ArrowRight className="h-4 w-4 ml-auto text-gray-400" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Search Suggestions - Mobile */}
+                {searchQuery && (
+                  <div>
+                    {suggestions.length > 0 ? (
+                      <div className="space-y-3">
+                        {suggestions.map((product) => (
+                          <button
+                            key={product._id}
+                            onClick={() => router.push(`/product/${product._id}`)}
+                            className="flex items-center w-full text-left text-sm text-gray-600 hover:text-gray-900 p-2"
+                          >
+                            <Search className="h-4 w-4 mr-3 text-gray-400" />
+                            <div>
+                              <div className="font-medium">{product.name}</div>
+                              <div className="text-xs text-gray-500">{product.category}</div>
+                            </div>
+                            <ArrowRight className="h-4 w-4 ml-auto text-gray-400" />
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <Search className="h-12 w-12 mx-auto text-gray-300 mb-3" />
+                        <p className="text-gray-500">No products found for "{searchQuery}"</p>
+                        <p className="text-sm text-gray-400 mt-1">Try searching with different keywords</p>
+                        <button
+                          onClick={() => handleSearch()}
+                          className="mt-4 px-6 py-2 bg-green-600 text-white rounded-full text-sm hover:bg-green-700"
+                        >
+                          Search anyway
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </nav>
+        )}
+
+        {/* Mobile Sidebar */}
+        <div
+          className={`fixed inset-0 z-[60] flex transition-opacity duration-300 ${
+            isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          }`}
+        >
+          <div
+            className={`fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300 ${
+              isSidebarOpen ? 'opacity-100' : 'opacity-0'
+            }`}
+            onClick={toggleSidebar}
+            aria-hidden="true"
+          ></div>
+
+          <div
+            className={`fixed top-0 left-0 h-full w-64 bg-white shadow-lg transform transition-transform duration-300 ${
+              isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+            }`}
+          >
+            <div className="flex items-center justify-between p-4 border-b">
+              <div className="flex items-center">
+                <button onClick={handleLogoClick} className="flex items-center focus:outline-none" aria-label="Go to dashboard">
+                  <Image
+                    src="/logo.png"
+                    alt="Eraiiz Logo"
+                    width={60}
+                    height={20}
+                    className="h-5 w-auto"
+                  />
+                </button>
+              </div>
+              <button onClick={toggleSidebar} aria-label="Close Sidebar">
+                <X className="h-6 w-6 text-gray-600" />
+              </button>
+            </div>
+            <div className="p-4 flex flex-col gap-4">
+              <nav className="flex flex-col gap-3 text-sm text-gray-600">
+                <Link href="/about" className="hover:text-green-600" onClick={toggleSidebar}>
+                  About Eraiiz
+                </Link>
+                <Link href="/help" className="hover:text-green-600" onClick={toggleSidebar}>
+                  Help
+                </Link>
+                <Link href="/contact" className="hover:text-green-600" onClick={toggleSidebar}>
+                  Contact Support
+                </Link>
+                {userRole === 'buyer' && (
+                  <Link href="/supplier/migrate" className="hover:text-green-600" onClick={toggleSidebar}>
+                    Become a Supplier
+                  </Link>
+                )}
+                <button
+                  onClick={() => { onLogout(); toggleSidebar(); }}
+                  className="flex items-center gap-2 text-sm text-gray-600 hover:text-green-600"
+                  aria-label="Logout"
+                >
+                  <LogOut className="h-4 w-4" /> Logout
+                </button>
+              </nav>
+
+              <hr className="my-2 border-gray-200" />
+
+              <nav className="flex flex-col gap-3 text-sm text-gray-600">
+                <Link href="/categories/plastic" className="hover:text-green-600" onClick={toggleSidebar}>
+                  Plastic Made Products
+                </Link>
+                <Link href="/categories/glass" className="hover:text-green-600" onClick={toggleSidebar}>
+                  Glass Made Products
+                </Link>
+                <Link href="/categories/rubber" className="hover:text-green-600" onClick={toggleSidebar}>
+                  Rubber Made Products
+                </Link>
+                <Link href="/categories/wood" className="hover:text-green-600" onClick={toggleSidebar}>
+                  Wood Made Products
+                </Link>
+                <Link href="/categories/palm-frond" className="hover:text-green-600" onClick={toggleSidebar}>
+                  Palm Frond Made Products
+                </Link>
+                <Link href="/categories/recycled" className="hover:text-green-600" onClick={toggleSidebar}>
+                  General Recycled Items
+                </Link>
+                <Link href="/categories/fruits" className="hover:text-green-600" onClick={toggleSidebar}>
+                  Fruits Waste Products
+                </Link>
+                <Link href="/categories" className="hover:text-green-600" onClick={toggleSidebar}>
+                  Others
+                </Link>
+              </nav>
+
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={handleSearch}
+                  className="flex items-center gap-2 text-sm text-gray-600 hover:text-green-600"
+                  aria-label="Go to Search Page"
+                >
+                  <Search className="h-4 w-4" /> Search
+                </button>
+                <button
+                  onClick={toggleFilterModal}
+                  className="flex items-center gap-2 text-sm text-gray-600 hover:text-green-600"
+                  aria-label="Open Filter Modal"
+                >
+                  <Filter className="h-4 w-4" /> Filters
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop Dual Navbar */}
+        <div className="hidden md:block">
+          <header>
+            <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-6">
+                <div className="flex items-center">
+                  <button onClick={handleLogoClick} className="flex items-center focus:outline-none" aria-label="Go to dashboard">
+                    <Image
+                      src="/logo.png"
+                      alt="Eraiiz Logo"
+                      width={60}
+                      height={20}
+                      className="h-5 w-auto"
+                    />
+                  </button>
+                </div>
+                <nav className="hidden md:flex items-center space-x-6 text-sm text-gray-600">
+                  <Link href="/about" className="hover:text-green-600">
+                    About Eraiiz
+                  </Link>
+                  <Link href="/contact" className="hover:text-green-600">
+                    Contact Support
+                  </Link>
+                  {userRole === 'buyer' && (
+                    <Link href="/supplier/migrate" className="hover:text-green-600">
+                      Become a Seller
+                    </Link>
+                  )}
+                </nav>
+              </div>
+              <div className="flex-1 max-w-xl mx-8 relative">
+                <div className="relative">
+                  <form onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSearch(searchQuery);
+                  }}>
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={handleSearchChange}
+                      onFocus={() => setIsDesktopSearchOpen(true)}
+                      placeholder="Search item or product codes..."
+                      className="w-full pl-10 pr-4 py-2 border rounded-full text-sm focus:outline-none focus:ring-1 focus:ring-green-600"
+                    />
+                    <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                  </form>
+                </div>
+
+                {/* Desktop Search Dropdown */}
+                {isDesktopSearchOpen && (
+                  <>
+                    {/* Overlay to capture clicks outside */}
+                    <div 
+                      className="fixed inset-0 z-30"
+                      onClick={() => {
+                        setIsDesktopSearchOpen(false);
+                        setSearchQuery('');
+                        setSuggestions([]);
+                      }}
+                    />
+                    
+                    {/* Dropdown Panel */}
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-200 z-40 overflow-hidden animate-slideDown">
+                      <div className="max-h-[400px] overflow-y-auto">
+                        {/* Recent Searches */}
+                        {!searchQuery && searchHistory.length > 0 && (
+                          <div className="p-3">
+                            <h3 className="text-sm font-medium text-gray-900 mb-2">Recent Searches</h3>
+                            <div className="space-y-1">
+                              {searchHistory.map((query, index) => (
+                                <button
+                                  key={index}
+                                  onClick={() => handleSearch(query)}
+                                  className="flex items-center w-full text-left text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 p-2 rounded-lg transition-colors duration-150"
+                                >
+                                  <Clock className="h-4 w-4 mr-3 text-gray-400" />
+                                  <span>{query}</span>
+                                  <ArrowRight className="h-4 w-4 ml-auto text-gray-400" />
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Desktop Search Suggestions */}
+                        {searchQuery && (
+                          <div className="p-3">
+                            {suggestions.length > 0 ? (
+                              <div className="space-y-1">
+                                {suggestions.map((product) => (
+                                  <button
+                                    key={product._id}
+                                    onClick={() => router.push(`/product/${product._id}`)}
+                                    className="flex items-center w-full text-left text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 p-2 rounded-lg transition-colors duration-150"
+                                  >
+                                    <Search className="h-4 w-4 mr-3 text-gray-400" />
+                                    <div>
+                                      <div className="font-medium">{product.name}</div>
+                                      <div className="text-xs text-gray-500">{product.category}</div>
+                                    </div>
+                                    <ArrowRight className="h-4 w-4 ml-auto text-gray-400" />
+                                  </button>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="text-center py-6">
+                                <Search className="h-8 w-8 mx-auto text-gray-300 mb-2" />
+                                <p className="text-gray-500 text-sm">No products found for "{searchQuery}"</p>
+                                <button
+                                  onClick={() => handleSearch()}
+                                  className="mt-2 px-4 py-1.5 bg-green-600 text-white rounded-full text-sm hover:bg-green-700 transition-colors duration-150"
+                                >
+                                  Search anyway
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+              <div className="flex items-center space-x-4">
+                <Link href="/cart" className="text-gray-600 hover:text-gray-900 relative">
+                  <ShoppingCart className="h-6 w-6" />
+                  {cartItems.length > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-white text-[#3F8E3F] border-2 border-[#3F8E3F] text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium shadow-sm">
+                      {cartItems.length}
+                    </span>
+                  )}
+                </Link>
+                <Link href="/account" className="text-gray-600 hover:text-gray-900">
+                  <User className="h-6 w-6" />
+                </Link>
+              </div>
+            </div>
+          </header>
+
+          <nav className="bg-white">
+            <div className="container mx-auto px-4 py-2 flex items-center justify-between">
+              <nav className="flex items-center space-x-6 text-sm text-gray-600">
+                <Link href="/categories/plastic" className="hover:text-green-600">
+                  Plastic Made Products
+                </Link>
+                <Link href="/categories/glass" className="hover:text-green-600">
+                  Glass Made Products
+                </Link>
+                <Link href="/categories/rubber" className="hover:text-green-600">
+                  Rubber Made Products
+                </Link>
+                <Link href="/categories/wood" className="hover:text-green-600">
+                  Wood Made Products
+                </Link>
+                <Link href="/categories/palm-frond" className="hover:text-green-600">
+                  Palm Frond Made Products
+                </Link>
+                <Link href="/categories/recycled" className="hover:text-green-600">
+                  General Recycled Items
+                </Link>
+                <Link href="/categories/fruits" className="hover:text-green-600">
+                  Fruits Waste Products
+                </Link>
+                <Link href="/categories" className="hover:text-green-600">
+                  Others
+                </Link>
+              </nav>
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={toggleFilterModal}
+                  className="flex items-center gap-2 text-sm text-gray-600 hover:text-green-600"
+                  aria-label="Open Filter Modal"
+                >
+                  <Filter className="h-4 w-4" /> Filters
+                </button>
+              </div>
+            </div>
+          </nav>
+        </div>
       </div>
+
+      {/* Add minimal padding for navbar */}
+      <div className="h-[50px] md:h-[85px]"></div>
 
       {/* Filter Modal */}
       {isFilterModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-gray-800">Filter Products</h2>

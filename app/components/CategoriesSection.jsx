@@ -65,7 +65,7 @@ export default function CategoriesSection() {
   return (
     <section>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-semiboldtext-xl sm:text-2xl font-semibold text-gray-800">Explore these categories</h1>
+        <h1 className="text-sm font-semiboldtext-xl sm:text-2xl font-semibold text-gray-800">Explore these categories</h1>
         <Link
           href="/categories"
           className="flex items-center gap-1 px-4 py-1.5 bg-[#F8FFF8] border border-[#CDEFCB] text-gray-700 rounded-xl text-sm font-medium hover:bg-[#ECF9EC] transition"
