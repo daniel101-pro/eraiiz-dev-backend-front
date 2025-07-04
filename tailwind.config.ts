@@ -58,6 +58,7 @@ export default {
   		},
 		screens: {
         'custom-md': '1000px', // Custom breakpoint at 1000px
+        '2xl': '1367px', // Show full text above 1366px
       }
   	}
   },

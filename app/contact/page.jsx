@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from 'react';
 import DualNavbarSell from '../components/DualNavbarSell';
 import { MessageCircle, Mail, Phone, MapPin, Clock, Send, ArrowRight } from 'lucide-react';
 import axios from 'axios';
-import { toast } from 'react-hot-toast';
 
 export default function ContactSupport() {
   const [formData, setFormData] = useState({
@@ -52,28 +51,12 @@ export default function ContactSupport() {
     setSubmitStatus(null);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      if (!apiUrl) {
-        throw new Error('API URL not configured');
-      }
-
-      const response = await axios.post(`${apiUrl}/api/contact`, formData);
-      
-      if (response.status === 200) {
-        setSubmitStatus('success');
-        setFormData({ name: '', email: '', subject: '', message: '' });
-        
-        // Show success message
-        toast.success('Message sent successfully! We will get back to you soon.');
-      } else {
-        throw new Error('Failed to send message');
-      }
+      // Replace with your actual API endpoint
+      await axios.post('/api/contact', formData);
+      setSubmitStatus('success');
+      setFormData({ name: '', email: '', subject: '', message: '' });
     } catch (error) {
-      console.error('Contact form error:', error);
       setSubmitStatus('error');
-      
-      // Show error message
-      toast.error(error.response?.data?.message || 'Failed to send message. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

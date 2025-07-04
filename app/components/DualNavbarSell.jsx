@@ -429,55 +429,69 @@ export default function DualNavbarSell({ handleLogout }) {
             </div>
             <div className="p-4 flex flex-col gap-4">
               <nav className="flex flex-col gap-3 text-sm text-gray-600">
-                <Link href="/about" className="hover:text-green-600" onClick={toggleSidebar}>
-                  About Eraiiz
+                <Link href="/about" className="nav-link hover:text-green-600 relative group" onClick={toggleSidebar}>
+                  <span className="group-hover:animate-float">About Eraiiz</span>
+                  <span className="nav-link-effect"></span>
                 </Link>
-                <Link href="/help" className="hover:text-green-600" onClick={toggleSidebar}>
-                  Help
+                <Link href="/help" className="nav-link hover:text-green-600 relative group" onClick={toggleSidebar}>
+                  <span className="group-hover:animate-float">Help</span>
+                  <span className="nav-link-effect"></span>
                 </Link>
-                <Link href="/contact" className="hover:text-green-600" onClick={toggleSidebar}>
-                  Contact Support
+                <Link href="/contact" className="nav-link hover:text-green-600 relative group" onClick={toggleSidebar}>
+                  <span className="group-hover:animate-float">Contact Support</span>
+                  <span className="nav-link-effect"></span>
                 </Link>
                 {userRole === 'buyer' && (
-                  <Link href="/supplier/migrate" className="hover:text-green-600" onClick={toggleSidebar}>
-                    Become a Supplier
+                  <Link href="/supplier/migrate" className="nav-link hover:text-green-600 relative group" onClick={toggleSidebar}>
+                    <span className="group-hover:animate-float">Become a Supplier</span>
+                    <span className="nav-link-effect"></span>
                   </Link>
                 )}
                 <button
                   onClick={() => { onLogout(); toggleSidebar(); }}
-                  className="flex items-center gap-2 text-sm text-gray-600 hover:text-green-600"
+                  className="nav-link flex items-center gap-2 text-sm text-gray-600 hover:text-green-600 relative group"
                   aria-label="Logout"
                 >
-                  <LogOut className="h-4 w-4" /> Logout
+                  <LogOut className="h-4 w-4 group-hover:animate-spin-slow" />
+                  <span className="group-hover:animate-float">Logout</span>
+                  <span className="nav-link-effect"></span>
                 </button>
               </nav>
 
               <hr className="my-2 border-gray-200" />
 
               <nav className="flex flex-col gap-3 text-sm text-gray-600">
-                <Link href="/categories/plastic" className="hover:text-green-600" onClick={toggleSidebar}>
-                  Plastic Made Products
+                <Link href="/categories/plastic" className="nav-link hover:text-green-600 relative group" onClick={toggleSidebar}>
+                  <span className="group-hover:animate-float">Plastic Made Products</span>
+                  <span className="nav-link-effect"></span>
                 </Link>
-                <Link href="/categories/glass" className="hover:text-green-600" onClick={toggleSidebar}>
-                  Glass Made Products
+                <Link href="/categories/glass" className="nav-link hover:text-green-600 relative group" onClick={toggleSidebar}>
+                  <span className="group-hover:animate-float">Glass Made Products</span>
+                  <span className="nav-link-effect"></span>
                 </Link>
-                <Link href="/categories/rubber" className="hover:text-green-600" onClick={toggleSidebar}>
-                  Rubber Made Products
+                <Link href="/categories/rubber" className="nav-link hover:text-green-600 relative group" onClick={toggleSidebar}>
+                  <span className="group-hover:animate-float">Rubber Made Products</span>
+                  <span className="nav-link-effect"></span>
                 </Link>
-                <Link href="/categories/wood" className="hover:text-green-600" onClick={toggleSidebar}>
-                  Wood Made Products
+                <Link href="/categories/wood" className="nav-link hover:text-green-600 relative group" onClick={toggleSidebar}>
+                  <span className="group-hover:animate-float">Wood Made Products</span>
+                  <span className="nav-link-effect"></span>
                 </Link>
-                <Link href="/categories/palm-frond" className="hover:text-green-600" onClick={toggleSidebar}>
-                  Palm Frond Made Products
+                <Link href="/categories/palm-frond" className="nav-link hover:text-green-600 relative group" onClick={toggleSidebar}>
+                  <span className="group-hover:animate-float">Palm Frond Made Products</span>
+                  <span className="nav-link-effect"></span>
                 </Link>
-                <Link href="/categories/recycled" className="hover:text-green-600" onClick={toggleSidebar}>
-                  General Recycled Items
+                <Link href="/categories/recycled" className="nav-link hover:text-green-600 relative group" onClick={toggleSidebar}>
+                  <span className="group-hover:animate-float">General Recycled Items</span>
+                  <span className="nav-link-effect"></span>
                 </Link>
-                <Link href="/categories/fruits" className="hover:text-green-600" onClick={toggleSidebar}>
-                  Fruits Waste Products
+                <Link href="/categories/fruits" className="nav-link hover:text-green-600 relative group" onClick={toggleSidebar}>
+                  <span className="group-hover:animate-float">Fruits Waste Products</span>
+                  <span className="nav-link-effect"></span>
                 </Link>
-                <Link href="/categories" className="hover:text-green-600" onClick={toggleSidebar}>
-                  Others
+                <Link href="/categories" className="nav-link hover:text-green-600 relative group" onClick={toggleSidebar}>
+                  <span className="group-hover:animate-float">Others</span>
+                  <span className="nav-link-effect"></span>
                 </Link>
               </nav>
 
@@ -507,32 +521,35 @@ export default function DualNavbarSell({ handleLogout }) {
             <div className="container mx-auto px-4 py-3 flex items-center justify-between">
               <div className="flex items-center gap-6">
                 <div className="flex items-center">
-                  <button onClick={handleLogoClick} className="flex items-center focus:outline-none" aria-label="Go to dashboard">
+                  <button onClick={handleLogoClick} className="flex items-center focus:outline-none group" aria-label="Go to dashboard">
                     <Image
                       src="/logo.png"
                       alt="Eraiiz Logo"
                       width={60}
                       height={20}
-                      className="h-5 w-auto"
+                      className="h-5 w-auto transform transition-transform group-hover:scale-110"
                     />
                   </button>
                 </div>
                 <nav className="hidden md:flex items-center space-x-6 text-sm text-gray-600">
-                  <Link href="/about" className="hover:text-green-600">
-                    About Eraiiz
+                  <Link href="/about" className="nav-link hover:text-green-600 relative group">
+                    <span className="group-hover:animate-float">About Eraiiz</span>
+                    <span className="nav-link-effect"></span>
                   </Link>
-                  <Link href="/contact" className="hover:text-green-600">
-                    Contact Support
+                  <Link href="/contact" className="nav-link hover:text-green-600 relative group">
+                    <span className="group-hover:animate-float">Contact Support</span>
+                    <span className="nav-link-effect"></span>
                   </Link>
                   {userRole === 'buyer' && (
-                    <Link href="/supplier/migrate" className="hover:text-green-600">
-                      Become a Seller
+                    <Link href="/supplier/migrate" className="nav-link hover:text-green-600 relative group">
+                      <span className="group-hover:animate-float">Become a Seller</span>
+                      <span className="nav-link-effect"></span>
                     </Link>
                   )}
                 </nav>
               </div>
               <div className="flex-1 max-w-xl mx-8 relative">
-                <div className="relative">
+                <div className="relative group">
                   <form onSubmit={(e) => {
                     e.preventDefault();
                     handleSearch(searchQuery);
@@ -543,9 +560,9 @@ export default function DualNavbarSell({ handleLogout }) {
                       onChange={handleSearchChange}
                       onFocus={() => setIsDesktopSearchOpen(true)}
                       placeholder="Search item or product codes..."
-                      className="w-full pl-10 pr-4 py-2 border rounded-full text-sm focus:outline-none focus:ring-1 focus:ring-green-600"
+                      className="w-full pl-10 pr-4 py-2 border rounded-full text-sm focus:outline-none focus:ring-1 focus:ring-green-600 transition-all duration-300 hover:shadow-md focus:shadow-lg"
                     />
-                    <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                    <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400 group-hover:text-green-600 transition-colors duration-300" />
                   </form>
                 </div>
 
@@ -625,56 +642,87 @@ export default function DualNavbarSell({ handleLogout }) {
                 )}
               </div>
               <div className="flex items-center space-x-4">
-                <Link href="/cart" className="text-gray-600 hover:text-gray-900 relative">
-                  <ShoppingCart className="h-6 w-6" />
-                  {cartItems.length > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-white text-[#3F8E3F] border-2 border-[#3F8E3F] text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium shadow-sm">
-                      {cartItems.length}
-                    </span>
-                  )}
+                <Link href="/cart" className="text-gray-600 hover:text-green-600 relative group transform transition-transform hover:-translate-y-1" aria-label="Cart">
+                  <div className="relative">
+                    <ShoppingCart className="h-6 w-6 group-hover:animate-float" />
+                    {cartItems.length > 0 && (
+                      <span className="absolute -top-2 -right-2 bg-white text-[#3F8E3F] border-2 border-[#3F8E3F] text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium shadow-sm group-hover:animate-bounce">
+                        {cartItems.length}
+                      </span>
+                    )}
+                  </div>
                 </Link>
-                <Link href="/account" className="text-gray-600 hover:text-gray-900">
-                  <User className="h-6 w-6" />
+                <Link href="/account" className="text-gray-600 hover:text-green-600 relative group transform transition-transform hover:-translate-y-1" aria-label="Account">
+                  <User className="h-6 w-6 group-hover:animate-float" />
                 </Link>
               </div>
             </div>
           </header>
 
+          {/* Gradient Divider */}
+          <div className="h-px bg-gradient-to-r from-transparent via-green-600/30 to-transparent"></div>
+
           <nav className="bg-white">
             <div className="container mx-auto px-4 py-2 flex items-center justify-between">
-              <nav className="flex items-center space-x-6 text-sm text-gray-600">
-                <Link href="/categories/plastic" className="hover:text-green-600">
-                  Plastic Made Products
+              <nav className="flex items-center space-x-6 xl:space-x-6 lg:space-x-4 md:space-x-2 text-sm text-gray-600 overflow-x-auto no-scrollbar">
+                <Link href="/categories/plastic" className="nav-link hover:text-green-600 whitespace-nowrap relative group">
+                  <span className="hidden 2xl:inline group-hover:animate-float">Plastic Made Products</span>
+                  <span className="hidden xl:inline 2xl:hidden group-hover:animate-float">Plastic</span>
+                  <span className="xl:hidden md:inline group-hover:animate-float">Plastic</span>
+                  <span className="nav-link-effect"></span>
                 </Link>
-                <Link href="/categories/glass" className="hover:text-green-600">
-                  Glass Made Products
+                <Link href="/categories/glass" className="nav-link hover:text-green-600 whitespace-nowrap relative group">
+                  <span className="hidden 2xl:inline group-hover:animate-float">Glass Made Products</span>
+                  <span className="hidden xl:inline 2xl:hidden group-hover:animate-float">Glass</span>
+                  <span className="xl:hidden md:inline group-hover:animate-float">Glass</span>
+                  <span className="nav-link-effect"></span>
                 </Link>
-                <Link href="/categories/rubber" className="hover:text-green-600">
-                  Rubber Made Products
+                <Link href="/categories/rubber" className="nav-link hover:text-green-600 whitespace-nowrap relative group">
+                  <span className="hidden 2xl:inline group-hover:animate-float">Rubber Made Products</span>
+                  <span className="hidden xl:inline 2xl:hidden group-hover:animate-float">Rubber</span>
+                  <span className="xl:hidden md:inline group-hover:animate-float">Rubber</span>
+                  <span className="nav-link-effect"></span>
                 </Link>
-                <Link href="/categories/wood" className="hover:text-green-600">
-                  Wood Made Products
+                <Link href="/categories/wood" className="nav-link hover:text-green-600 whitespace-nowrap relative group">
+                  <span className="hidden 2xl:inline group-hover:animate-float">Wood Made Products</span>
+                  <span className="hidden xl:inline 2xl:hidden group-hover:animate-float">Wood</span>
+                  <span className="xl:hidden md:inline group-hover:animate-float">Wood</span>
+                  <span className="nav-link-effect"></span>
                 </Link>
-                <Link href="/categories/palm-frond" className="hover:text-green-600">
-                  Palm Frond Made Products
+                <Link href="/categories/palm-frond" className="nav-link hover:text-green-600 whitespace-nowrap relative group">
+                  <span className="hidden 2xl:inline group-hover:animate-float">Palm Frond Made Products</span>
+                  <span className="hidden xl:inline 2xl:hidden group-hover:animate-float">Palm</span>
+                  <span className="xl:hidden md:inline group-hover:animate-float">Palm</span>
+                  <span className="nav-link-effect"></span>
                 </Link>
-                <Link href="/categories/recycled" className="hover:text-green-600">
-                  General Recycled Items
+                <Link href="/categories/recycled" className="nav-link hover:text-green-600 whitespace-nowrap relative group">
+                  <span className="hidden 2xl:inline group-hover:animate-float">General Recycled Items</span>
+                  <span className="hidden xl:inline 2xl:hidden group-hover:animate-float">Recycled</span>
+                  <span className="xl:hidden md:inline group-hover:animate-float">Recycled</span>
+                  <span className="nav-link-effect"></span>
                 </Link>
-                <Link href="/categories/fruits" className="hover:text-green-600">
-                  Fruits Waste Products
+                <Link href="/categories/fruits" className="nav-link hover:text-green-600 whitespace-nowrap relative group">
+                  <span className="hidden 2xl:inline group-hover:animate-float">Fruits Waste Products</span>
+                  <span className="hidden xl:inline 2xl:hidden group-hover:animate-float">Fruits</span>
+                  <span className="xl:hidden md:inline group-hover:animate-float">Fruits</span>
+                  <span className="nav-link-effect"></span>
                 </Link>
-                <Link href="/categories" className="hover:text-green-600">
-                  Others
+                <Link href="/categories" className="nav-link hover:text-green-600 whitespace-nowrap relative group">
+                  <span className="hidden 2xl:inline group-hover:animate-float">Others</span>
+                  <span className="hidden xl:inline 2xl:hidden group-hover:animate-float">Others</span>
+                  <span className="xl:hidden md:inline group-hover:animate-float">Others</span>
+                  <span className="nav-link-effect"></span>
                 </Link>
               </nav>
               <div className="flex items-center gap-4">
                 <button
                   onClick={toggleFilterModal}
-                  className="flex items-center gap-2 text-sm text-gray-600 hover:text-green-600"
+                  className="filter-button flex items-center gap-2 text-sm text-gray-600 hover:text-green-600 whitespace-nowrap relative group"
                   aria-label="Open Filter Modal"
                 >
-                  <Filter className="h-4 w-4" /> Filters
+                  <Filter className="h-4 w-4 group-hover:animate-spin-slow" /> 
+                  <span className="group-hover:animate-float">Filters</span>
+                  <span className="nav-link-effect"></span>
                 </button>
               </div>
             </div>
@@ -805,8 +853,124 @@ export default function DualNavbarSell({ handleLogout }) {
           }
         }
 
+        @keyframes float {
+          0%, 100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(-4px);
+          }
+        }
+
+        @keyframes spin-slow {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(180deg);
+          }
+        }
+
+        .animate-float {
+          animation: float 1s ease-in-out infinite;
+        }
+
+        .animate-spin-slow {
+          animation: spin-slow 0.6s ease-in-out;
+        }
+
         .animate-slideDown {
           animation: slideDown 0.2s ease-out forwards;
+        }
+
+        /* Hide scrollbar but keep functionality */
+        .no-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+
+        /* Enhanced hover effects for all nav items */
+        .nav-link, .filter-button {
+          padding: 4px 0;
+          transition: all 0.3s ease;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .nav-link-effect {
+          position: absolute;
+          bottom: -2px;
+          left: 0;
+          width: 100%;
+          height: 2px;
+          background: linear-gradient(90deg, #3F8E3F, #87cf87);
+          transform: scaleX(0);
+          transform-origin: right;
+          transition: transform 0.3s ease;
+        }
+
+        .nav-link:hover .nav-link-effect,
+        .filter-button:hover .nav-link-effect {
+          transform: scaleX(1);
+          transform-origin: left;
+        }
+
+        .nav-link:hover,
+        .filter-button:hover {
+          text-shadow: 0 0 8px rgba(63, 142, 63, 0.3);
+          transform: translateY(-1px);
+        }
+
+        /* Filter button specific styles */
+        .filter-button {
+          padding: 6px 12px;
+          border-radius: 15px;
+          transition: all 0.3s ease;
+        }
+
+        .filter-button:hover {
+          background: linear-gradient(135deg, rgba(63, 142, 63, 0.1), rgba(135, 207, 135, 0.1));
+          box-shadow: 0 4px 12px rgba(63, 142, 63, 0.15);
+          transform: translateY(-1px);
+        }
+
+        /* Search input animation */
+        input[type="text"] {
+          transition: all 0.3s ease;
+        }
+
+        input[type="text"]:hover {
+          border-color: #3F8E3F;
+        }
+
+        input[type="text"]:focus {
+          transform: translateY(-1px);
+        }
+
+        /* Cart badge animation */
+        @keyframes bounce {
+          0%, 100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(-3px);
+          }
+        }
+
+        .animate-bounce {
+          animation: bounce 0.6s ease-in-out infinite;
+        }
+
+        /* Logo hover effect */
+        .logo-hover {
+          transition: transform 0.3s ease;
+        }
+
+        .logo-hover:hover {
+          transform: scale(1.1);
         }
       `}</style>
     </>

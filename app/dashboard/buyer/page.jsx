@@ -8,11 +8,11 @@ import { ShoppingCart, User, ChevronDown, Search, Filter, Menu } from 'lucide-re
 import CategoriesSection from '../../components/CategoriesSection';
 import DualNavbarSell from '../../components/DualNavbarSell';
 import ProductCard from '../../components/ProductCard';
+import ProductCarousel from '../../components/ProductCarousel';
 
 export default function BuyerDashboard() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [productsForYou, setProductsForYou] = useState([]);
   const [imageError, setImageError] = useState(null); // For debugging image issues
   const router = useRouter();
@@ -40,14 +40,6 @@ export default function BuyerDashboard() {
       link: '/category/fruits-waste',
     },
   ];
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % carouselItems.length);
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [carouselItems.length]);
 
   useEffect(() => {
     try {
@@ -108,61 +100,7 @@ export default function BuyerDashboard() {
       <main className="flex-1">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-12">
-            <div className="relative overflow-hidden rounded-lg">
-              <div
-                className="flex transition-transform duration-500 ease-in-out mb-4"
-                style={{ transform: `translateX(-${currentIndex * (100 / (window.innerWidth >= 768 ? 2 : 1))}%)` }}
-              >
-                {carouselItems.map((item, index) => (
-                  <div
-                    key={index}
-                    className="flex-shrink-0 w-full md:w-1/2 flex flex-col md:flex-row md:items-center p-2 md:mr-4"
-                  >
-                    <div className="relative w-full h-80 rounded-l-lg overflow-hidden md:block" style={{ position: 'relative' }}>
-                      <Image
-                        src={item.image}
-                        alt={item.alt}
-                        layout="fill"
-                        objectFit="cover"
-                        className="rounded-l-lg"
-                        draggable={false}
-                        onError={() => setImageError(`Failed to load image: ${item.image}`)}
-                      />
-                      <Link href={item.link} className="md:hidden block w-full h-full">
-                        <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg"></div>
-                        <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-black to-transparent text-white rounded-b-lg">
-                          <h2 className="text-xl font-bold">{item.title}</h2>
-                          <p className="text-sm">{item.subtitle}</p>
-                        </div>
-                      </Link>
-                    </div>
-                    <div className="hidden md:flex flex-col justify-center md:mt-0 md:flex-[0_0_40%] md:pl-4 h-80 border border-gray-200 md:border-l md:border-r md:rounded-r-lg md:flex-row md:items-center">
-                      <div className="md:flex-1">
-                        <h2 className="text-2xl font-medium text-black mb-4">{item.title}</h2>
-                        <p className="text-sm -mt-1 text-gray-500 mb-4 md:mb-0">{item.subtitle}</p>
-                        <Link href={item.link}>
-                          <button
-                            className="bg-green-600 mt-32 text-white px-6 py-2 rounded-md hover:bg-green-700 transition w-fit"
-                          >
-                            Learn More
-                          </button>
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="flex justify-center gap-2">
-                {carouselItems.map((_, index) => (
-                  <button
-                    key={index}
-                    className={`w-3 h-3 rounded-full ${currentIndex === index ? 'bg-green-600' : 'bg-gray-200'}`}
-                    onClick={() => setCurrentIndex(index)}
-                  />
-                ))}
-              </div>
-              {imageError && <p className="text-red-600 text-center mt-4">{imageError}</p>}
-            </div>
+            <ProductCarousel items={carouselItems} />
           </div>
 
           <div className="mb-12">

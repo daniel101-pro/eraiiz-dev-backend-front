@@ -7,6 +7,43 @@ import { useCart } from '../context/CartContext';
 import { useState, useEffect } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 
+// Toast counter for tracking multiple additions
+let toastCount = 0;
+let currentToastId = null;
+
+const showAddToCartToast = () => {
+  // If there's an existing toast, dismiss it
+  if (currentToastId) {
+    toast.dismiss(currentToastId);
+  }
+
+  // Increment counter
+  toastCount++;
+
+  // Show new toast with counter
+  currentToastId = toast.success(
+    toastCount > 1 ? `Added ${toastCount} items to cart! 🛍️` : 'Added to cart! 🛍️',
+    {
+      duration: 2000,
+      position: 'top-center',
+      style: {
+        background: '#3F8E3F',
+        color: '#fff',
+        padding: '16px',
+        borderRadius: '12px',
+      },
+    }
+  );
+
+  // Reset counter after toast expires
+  setTimeout(() => {
+    if (currentToastId) {
+      toastCount = 0;
+      currentToastId = null;
+    }
+  }, 2000);
+};
+
 export default function ProductCard({ product }) {
   const { convertPrice, formatPrice } = useCurrency();
   const { addToCart, removeFromCart, updateQuantity, cartItems } = useCart();
@@ -30,16 +67,7 @@ export default function ProductCard({ product }) {
       images: product.images
     };
     addToCart(cartItem);
-    toast.success('Added to cart! 🛍️', {
-      duration: 2000,
-      position: 'top-center',
-      style: {
-        background: '#3F8E3F',
-        color: '#fff',
-        padding: '16px',
-        borderRadius: '12px',
-      },
-    });
+    showAddToCartToast();
   };
 
   const handleIncrement = (e) => {
@@ -54,16 +82,7 @@ export default function ProductCard({ product }) {
       images: product.images
     };
     addToCart(cartItem);
-    toast.success('Added to cart! 🛍️', {
-      duration: 2000,
-      position: 'top-center',
-      style: {
-        background: '#3F8E3F',
-        color: '#fff',
-        padding: '16px',
-        borderRadius: '12px',
-      },
-    });
+    showAddToCartToast();
   };
 
   const handleDecrement = (e) => {
@@ -73,6 +92,9 @@ export default function ProductCard({ product }) {
       const newQuantity = quantity - 1;
       if (newQuantity === 0) {
         removeFromCart(product._id, 'S');
+        // Reset toast counter when removing items
+        toastCount = 0;
+        currentToastId = null;
         toast('Removed from cart', {
           duration: 2000,
           position: 'top-center',

@@ -2,54 +2,19 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
-import Image from 'next/image';
 import Link from 'next/link';
-import { ShoppingCart, User, ChevronDown, Search, Filter, Menu, Heart } from 'lucide-react';
 import { toast, Toaster } from 'react-hot-toast';
 import CategoriesSection from '../../components/CategoriesSection';
 import DualNavbarSell from '../../components/DualNavbarSell';
 import ProductCard from '../../components/ProductCard';
+import HeroCarousel from '../../components/HeroCarousel';
 
 export default function SellerDashboard() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [productsForYou, setProductsForYou] = useState([]);
   const [favoritedProducts, setFavoritedProducts] = useState(new Map());
-  const [imageError, setImageError] = useState(null);
   const router = useRouter();
-
-  const carouselItems = [
-    {
-      image: '/plastic-products.png',
-      alt: 'Plastic Made Products',
-      title: 'Plastic Made Chairs',
-      subtitle: 'Discover a range of innovative and sustainable products crafted from recycled plastics.',
-      link: '/category/plastic',
-    },
-    {
-      image: '/glass-products.png',
-      alt: 'Glass Made Products',
-      title: 'Glass Made Chairs',
-      subtitle: 'Explore the beauty of sustainability with our Glass Made Products, combining elegance with eco-consciousness.',
-      link: '/category/glass',
-    },
-    {
-      image: '/recycled-products.png',
-      alt: 'Fruits Waste Products',
-      title: 'Fruits Waste Chairs',
-      subtitle: 'Discover innovation in every piece with our Recycled Products — turning waste into purposeful beauty.',
-      link: '/category/fruits-waste',
-    },
-  ];
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % carouselItems.length);
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [carouselItems.length]);
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -196,103 +161,6 @@ export default function SellerDashboard() {
     }
   };
 
-  const handleAddToFavorites = async (productId) => {
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const token = localStorage.getItem('accessToken');
-      
-      if (!token) {
-        toast.error('Please log in to add favorites', {
-          id: 'login-required',
-          duration: 3000,
-          position: 'top-center',
-        });
-        router.push('/login');
-        return;
-      }
-
-      // Optimistically update UI
-      const isFavorited = favoritedProducts.has(productId);
-      const favoriteId = favoritedProducts.get(productId);
-
-      setFavoritedProducts((prev) => {
-        const updated = new Map(prev);
-        if (isFavorited) {
-          updated.delete(productId);
-        } else {
-          // Use a temporary ID until we get the real one from the server
-          updated.set(productId, 'pending');
-        }
-        return updated;
-      });
-
-      try {
-        if (isFavorited && favoriteId) {
-          await axios.delete(`${apiUrl}/api/favorites/${favoriteId}`, {
-            headers: { Authorization: `Bearer ${token}` },
-            timeout: 30000,
-            withCredentials: true,
-          });
-        } else {
-          const res = await axios.post(`${apiUrl}/api/favorites/${productId}`, {}, {
-            headers: { Authorization: `Bearer ${token}` },
-            timeout: 30000,
-            withCredentials: true,
-          });
-          
-          // Update with real ID from server
-          setFavoritedProducts((prev) => {
-            const updated = new Map(prev);
-            updated.set(productId, res.data._id);
-            return updated;
-          });
-        }
-
-        toast.success(isFavorited ? 'Removed from favorites!' : 'Added to favorites!', {
-          id: 'favorite-success',
-          duration: 3000,
-          position: 'top-center',
-        });
-      } catch (error) {
-        // Revert optimistic update on error
-        setFavoritedProducts((prev) => {
-          const updated = new Map(prev);
-          if (isFavorited) {
-            updated.set(productId, favoriteId);
-          } else {
-            updated.delete(productId);
-          }
-          return updated;
-        });
-
-        // Handle specific error cases
-        if (error.response?.status === 401) {
-          toast.error('Session expired. Please log in again', {
-            id: 'session-expired',
-            duration: 3000,
-            position: 'top-center',
-          });
-          router.push('/login');
-          return;
-        }
-
-        toast.error('Failed to update favorites. Please try again.', {
-          id: 'favorite-error',
-          duration: 3000,
-          position: 'top-center',
-        });
-      }
-    } catch (error) {
-      // Handle any unexpected errors
-      console.error('Unexpected error in handleAddToFavorites:', error);
-      toast.error('An unexpected error occurred. Please try again.', {
-        id: 'unexpected-error',
-        duration: 3000,
-        position: 'top-center',
-      });
-    }
-  };
-
   if (loading || !user) {
     return (
       <div className="flex justify-center items-center h-screen bg-gray-50">
@@ -327,61 +195,7 @@ export default function SellerDashboard() {
       />
       <main className="flex-1">
         <div className="container mx-auto px-4 py-8">
-          <div className="mb-12">
-            <div
-              className="flex transition-transform duration-500 ease-in-out mb-4"
-              style={{ transform: `translateX(-${currentIndex * (100 / (window.innerWidth >= 768 ? 2 : 1))}%)` }}
-            >
-              {carouselItems.map((item, index) => (
-                <div
-                  key={index}
-                  className="flex-shrink-0 w-full md:w-1/2 flex flex-col md:flex-row md:items-center p-2 md:mr-4"
-                >
-                  <div className="relative w-full h-80 rounded-l-lg overflow-hidden md:block" style={{ position: 'relative' }}>
-                    <Image
-                      src={item.image}
-                      alt={item.alt}
-                      layout="fill"
-                      objectFit="cover"
-                      className="rounded-l-lg"
-                      draggable={false}
-                      onError={() => setImageError(`Failed to load image: ${item.image}`)}
-                    />
-                    <Link href={item.link} className="md:hidden block w-full h-full">
-                      <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg"></div>
-                      <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-black to-transparent text-white rounded-b-lg">
-                        <h2 className="text-xl font-bold">{item.title}</h2>
-                        <p className="text-sm">{item.subtitle}</p>
-                      </div>
-                    </Link>
-                  </div>
-                  <div className="hidden md:flex flex-col justify-center md:mt-0 md:flex-[0_0_40%] md:pl-4 h-80 border border-gray-200 md:border-l md:border-r md:rounded-r-lg md:flex-row md:items-center">
-                    <div className="md:flex-1">
-                      <h2 className="text-2xl font-medium text-black mb-4">{item.title}</h2>
-                      <p className="text-sm -mt-1 text-gray-500 mb-4 md:mb-0">{item.subtitle}</p>
-                      <Link href={item.link}>
-                        <button
-                          className="bg-green-600 mt-32 text-white px-6 py-2 rounded-md hover:bg-green-700 transition w-fit"
-                        >
-                          Learn More
-                        </button>
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-center gap-2">
-              {carouselItems.map((_, index) => (
-                <button
-                  key={index}
-                  className={`w-3 h-3 rounded-full ${currentIndex === index ? 'bg-green-600' : 'bg-gray-200'}`}
-                  onClick={() => setCurrentIndex(index)}
-                />
-              ))}
-            </div>
-            {imageError && <p className="text-red-600 text-center mt-4">{imageError}</p>}
-          </div>
+          <HeroCarousel />
 
           <div className="flex justify-center mb-12">
             <Link href="/dashboard/seller/upload">
