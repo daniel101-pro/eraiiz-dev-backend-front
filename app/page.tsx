@@ -179,21 +179,14 @@ const Page = () => {
             ref={textRef}
             className="text-black text-4xl sm:text-4xl md:text-5xl lg:text-6xl font-medium mt-10 sm:mt-4 md:mt-6 leading-snug md:leading-relaxed text-center"
           ></h1>
-          <div className="mt-4 flex justify-center w-full">
-            <div className="max-w-2xl w-full flex flex-col items-center">
+          <div className="mt-4 flex justify-center w-full px-4 sm:px-6">
+            <div className="max-w-2xl w-full flex justify-center">
               <BlurText
-                text="Shop sustainably with Eraiiz and discover how waste can be transformed to wealth"
+                text="Shop sustainably with Eraiiz and discover how waste can be transformed to wealth while keeping the planet safe."
                 delay={150}
                 animateBy="words"
                 direction="top"
-                className="text-gray-500 text-center font-light"
-              />
-              <BlurText
-                text="while keeping the planet safe."
-                delay={300}
-                animateBy="words"
-                direction="top"
-                className="text-gray-500 text-center font-light mt-2"
+                className="text-gray-500 font-light text-center w-full"
               />
             </div>
           </div>

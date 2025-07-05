@@ -99,7 +99,7 @@ const BlurText: React.FC<BlurTextProps> = ({
   );
 
   return (
-    <p ref={ref} className={`blur-text ${className} flex flex-wrap`}>
+    <p ref={ref} className={`blur-text ${className} flex flex-wrap justify-center text-center`}>
       {elements.map((segment, index) => {
         const animateKeyframes = buildKeyframes(fromSnapshot, toSnapshots);
 
@@ -122,6 +122,7 @@ const BlurText: React.FC<BlurTextProps> = ({
             style={{
               display: "inline-block",
               willChange: "transform, filter, opacity",
+              textAlign: "center"
             }}
           >
             {segment === " " ? "\u00A0" : segment}
