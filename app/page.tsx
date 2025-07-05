@@ -287,20 +287,78 @@ const Page = () => {
               pauseBetweenAnimations={0.8}
             />
           </div>
-          <div className="h-[800px] w-full max-w-[1400px] mx-auto px-8 sm:px-12 lg:px-16 mb-20">
-            <Masonry
-              items={items}
-              ease="power3.out"
-              duration={0.6}
-              stagger={0.05}
-              animateFrom="bottom"
-              scaleOnHover={true}
-              hoverScale={0.95}
-              blurToFocus={true}
-              colorShiftOnHover={false}
-            />
+          <div className="relative w-full max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-16 mb-20">
+            <div className="h-[600px] md:h-[800px] overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+              <div className="min-h-full pb-8">
+                <Masonry
+                  items={items}
+                  ease="power3.out"
+                  duration={0.6}
+                  stagger={0.05}
+                  animateFrom="bottom"
+                  scaleOnHover={true}
+                  hoverScale={0.95}
+                  blurToFocus={true}
+                  colorShiftOnHover={false}
+                />
+              </div>
+            </div>
           </div>
-          <BlogCarousel />
+
+          {/* Blog Section */}
+          <div className="w-full max-w-[1400px] mx-auto px-8 sm:px-12 lg:px-16 mb-20">
+            <div className="flex flex-col gap-8">
+              <div className="flex flex-col gap-2">
+                <h2 className="text-4xl font-medium">Blog Posts</h2>
+                <p className="text-gray-600">
+                  Inspire Change: Explore Insights on Recycling, Sustainability, and Carbon Reduction.
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="relative aspect-[4/3] overflow-hidden rounded-lg">
+                  <Image
+                    src="/recycled-products.png"
+                    alt="Blog post"
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <div className="flex flex-col justify-between bg-white rounded-lg p-8 shadow-sm">
+                  <div>
+                    <h3 className="text-2xl font-medium mb-4">
+                      Recycling Revolution: Turning Waste into Resources
+                    </h3>
+                    <p className="text-gray-600">
+                      Recycling is more than just a trend– in this blog, we delve into the innovative ways industries and individuals are transforming waste into valuable materials.
+                    </p>
+                  </div>
+                  <button className="bg-[#00B300] text-white px-6 py-3 rounded-lg w-fit mt-6 hover:bg-[#008C00] transition-colors">
+                    Read more
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center mt-4">
+                <button className="p-3 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M15 18l-6-6 6-6" />
+                  </svg>
+                </button>
+                <div className="flex gap-2">
+                  <div className="w-8 h-2 bg-[#008C00] rounded-full" />
+                  <div className="w-2 h-2 bg-gray-200 rounded-full" />
+                  <div className="w-2 h-2 bg-gray-200 rounded-full" />
+                </div>
+                <button className="p-3 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 18l6-6-6-6" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
           <FaqSection />
           <CallToAction />
           <Footer />

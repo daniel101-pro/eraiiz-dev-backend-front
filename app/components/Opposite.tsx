@@ -17,11 +17,11 @@ const Opposite = () => {
       if (largeImageRef.current) {
         gsap.fromTo(
           largeImageRef.current,
-          { opacity: 0, scale: 0.8 },
+          { opacity: 0, scale: 0.95 },
           {
             opacity: 1,
             scale: 1,
-            duration: 1.5,
+            duration: 1,
             scrollTrigger: {
               trigger: largeImageRef.current,
               start: "top 80%",
@@ -33,15 +33,16 @@ const Opposite = () => {
       }
 
       // Small Images Animation (draggable and hover effects removed)
-      smallImageRefs.current.forEach((img) => {
+      smallImageRefs.current.forEach((img, index) => {
         if (img) {
           gsap.fromTo(
             img,
-            { x: -100, opacity: 0 },
+            { opacity: 0, y: 50 },
             {
-              x: 0,
               opacity: 1,
-              duration: 1.5,
+              y: 0,
+              duration: 1,
+              delay: index * 0.2,
               scrollTrigger: {
                 trigger: img,
                 start: "top 90%",
@@ -58,57 +59,75 @@ const Opposite = () => {
   }, []);
 
   return (
-    <div ref={sectionRef} className="w-full flex flex-col items-center mt-10 mb-20">
-      <h1 className="text-3xl font-medium text-center mb-8 bg-[#FCFDFE] text-black w-full border-[#EAEBEC] border-2 p-4 rounded-lg">
-        Plastic Made Products (PMP)
-      </h1>
-      <div className="w-full flex justify-center">
-        <div className="flex flex-col md:grid md:grid-cols-2 gap-6 w-full px-5 md:w-[1200px]">
-          <div className="w-full h-[600px] flex justify-center">
+    <div ref={sectionRef} className="w-full max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-16 my-10 sm:my-20">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        {/* Left side - Large Image */}
+        <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-gray-100 group">
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <img
+            ref={largeImageRef}
+            src="/largeimage.png"
+            alt="Featured Product"
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+          />
+          <div className="absolute bottom-0 left-0 right-0 p-6 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+            <p className="text-white text-sm font-medium">Discover our sustainable collection</p>
+          </div>
+        </div>
+
+        {/* Right side - Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mt-4 lg:mt-0">
+          {/* First Image */}
+          <div className="group relative aspect-[4/3] rounded-2xl overflow-hidden bg-gray-800 order-1 lg:order-1">
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             <img
-              ref={largeImageRef}
-              src="/largeimage.png"
-              alt="Plastic Shoe 1"
-              className="w-full h-full object-cover rounded-2xl"
+              ref={(el) => {
+                smallImageRefs.current[0] = el;
+              }}
+              src="/side1.png"
+              alt="Product View"
+              className="w-full h-full object-cover grayscale transition-all duration-500 group-hover:grayscale-0 group-hover:scale-105"
             />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
-            {["/side1.png", "/slide2.png"].map((src, index) => (
-              <div key={index} className="h-[290px] flex justify-center">
-                <img
-                  ref={(el) => {
-                    smallImageRefs.current[index] = el;
-                  }}
-                  src={src}
-                  alt={`Plastic Shoe ${index + 2}`}
-                  className="w-full h-full object-cover rounded-2xl"
-                />
-              </div>
-            ))}
-            <div className="bg-black text-white p-6 rounded-2xl flex flex-col justify-between h-[290px]">
-              <div>
-                <h2 className="font-bold text-xl mb-2">Plastics</h2>
-                <p className="text-sm">
-                  Discover a range of innovative and sustainable products crafted
-                  from recycled plastics.
-                </p>
-              </div>
-              <button className="mt-4 bg-white text-black px-4 py-2 rounded-lg font-semibold">
-                Start shopping
-              </button>
+
+          {/* First Text Card (Black) */}
+          <div className="group bg-black rounded-2xl p-6 sm:p-8 flex flex-col justify-between overflow-hidden relative order-2 lg:order-2">
+            <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="relative z-10">
+              <h3 className="text-white text-xl sm:text-2xl font-medium mb-3 sm:mb-4 group-hover:text-[#00B300] transition-colors">Plastics</h3>
+              <p className="text-gray-300 text-sm leading-relaxed">
+                Discover a range of innovative and sustainable products crafted from recycled plastics.
+              </p>
             </div>
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col justify-between h-[290px]">
-              <div>
-                <h2 className="font-bold text-black text-xl mb-2">Plastics</h2>
-                <p className="text-gray-500 text-sm">
-                  From durable home essentials to stylish accessories, each piece
-                  showcases sustainability.
-                </p>
-              </div>
-              <button className="mt-4 bg-[#008C00] text-white px-4 py-2 rounded-lg font-semibold">
-                Start shopping
-              </button>
+            <button className="relative z-10 bg-white text-black rounded-full py-2 sm:py-2.5 px-5 sm:px-6 text-sm font-medium transition-all duration-300 hover:bg-[#00B300] hover:text-white hover:shadow-lg hover:shadow-[#00B300]/20 transform hover:-translate-y-0.5 active:translate-y-0 w-fit mt-4">
+              Start shopping
+            </button>
+          </div>
+
+          {/* Second Image */}
+          <div className="group relative aspect-[4/3] rounded-2xl overflow-hidden order-3 lg:order-4">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-200 to-purple-200 opacity-75 group-hover:opacity-90 transition-opacity duration-300" />
+            <img
+              ref={(el) => {
+                smallImageRefs.current[1] = el;
+              }}
+              src="/slide2.png"
+              alt="Product Showcase"
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            />
+          </div>
+
+          {/* Second Text Card (White) */}
+          <div className="group bg-white rounded-2xl p-6 sm:p-8 flex flex-col justify-between border border-gray-100 hover:border-[#00B300] transition-all duration-300 hover:shadow-xl order-4 lg:order-3">
+            <div>
+              <h3 className="text-black text-xl sm:text-2xl font-medium mb-3 sm:mb-4 group-hover:text-[#00B300] transition-colors">Plastics</h3>
+              <p className="text-gray-600 text-sm leading-relaxed">
+                From durable home essentials to stylish accessories, each piece is designed to showcase the power of sustainability without compromising on quality.
+              </p>
             </div>
+            <button className="bg-[#008C00] text-white rounded-full py-2 sm:py-2.5 px-5 sm:px-6 text-sm font-medium transition-all duration-300 hover:bg-[#00B300] hover:shadow-lg hover:shadow-[#00B300]/20 transform hover:-translate-y-0.5 active:translate-y-0 w-fit mt-4">
+              Start shopping
+            </button>
           </div>
         </div>
       </div>

@@ -59,8 +59,16 @@ export default {
 		screens: {
         'custom-md': '1000px', // Custom breakpoint at 1000px
         '2xl': '1367px', // Show full text above 1366px
-      }
+      },
+      backgroundImage: {
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+        'gradient-conic':
+          'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+      },
   	}
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwindcss-animate"),
+    require('tailwind-scrollbar')({ nocompatible: true }),
+  ],
 } satisfies Config;
