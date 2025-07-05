@@ -3,14 +3,16 @@ import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import GridComponent from "./components/GridComponent";
-import PlasticMadeProducts from "./components/PlasticMadeProducts";
 import Opposite from "./components/Opposite";
-import Opposite2 from "./components/Opposite2";
 import Footer from "./components/Footer";
 import CallToAction from "./components/CallToAction";
 import FaqSection from "./faqs/page";
 import BlogCarousel from "./components/BlogCarousel";
 import Navbar from "./components/Navbar";
+import Masonry from './components/Masonry/Masonry';
+import TrueFocus from "./TextAnimations/TrueFocus/TrueFocus";
+import SplashCursor from "./Animations/SplashCursor/SplashCursor";
+import BlurText from "./TextAnimations/BlurText/BlurText";
 
 const Page = () => {
   const textRef = useRef<HTMLHeadingElement>(null);
@@ -76,11 +78,88 @@ const Page = () => {
     typeWriterAnimation();
   }, []);
 
+  const items = [
+    {
+      id: "1",
+      img: "https://picsum.photos/id/1015/600/900?grayscale",
+      url: "https://example.com/one",
+      height: 400,
+    },
+    {
+      id: "2",
+      img: "https://picsum.photos/id/1011/600/750?grayscale",
+      url: "https://example.com/two",
+      height: 250,
+    },
+    {
+      id: "3",
+      img: "https://picsum.photos/id/1020/600/800?grayscale",
+      url: "https://example.com/three",
+      height: 600,
+    },
+    {
+      id: "4",
+      img: "https://picsum.photos/id/1025/600/800?grayscale",
+      url: "https://example.com/four",
+      height: 300,
+    },
+    {
+      id: "5",
+      img: "https://picsum.photos/id/1035/600/800?grayscale",
+      url: "https://example.com/five",
+      height: 500,
+    },
+    {
+      id: "6",
+      img: "https://picsum.photos/id/1040/600/800?grayscale",
+      url: "https://example.com/six",
+      height: 450,
+    },
+    {
+      id: "7",
+      img: "https://picsum.photos/id/1045/600/800?grayscale",
+      url: "https://example.com/seven",
+      height: 350,
+    },
+    {
+      id: "8",
+      img: "https://picsum.photos/id/1050/600/800?grayscale",
+      url: "https://example.com/eight",
+      height: 550,
+    },
+    {
+      id: "9",
+      img: "https://picsum.photos/id/1055/600/800?grayscale",
+      url: "https://example.com/nine",
+      height: 400,
+    },
+    {
+      id: "10",
+      img: "https://picsum.photos/id/1060/600/800?grayscale",
+      url: "https://example.com/ten",
+      height: 480,
+    },
+    {
+      id: "11",
+      img: "https://picsum.photos/id/1065/600/800?grayscale",
+      url: "https://example.com/eleven",
+      height: 520,
+    },
+    {
+      id: "12",
+      img: "https://picsum.photos/id/1070/600/800?grayscale",
+      url: "https://example.com/twelve",
+      height: 420,
+    }
+  ];
+
   return (
     <>
-    <div className="relative z-10">
-          <Navbar />
-        </div>
+
+      <div className="relative z-20">
+        <Navbar />
+      </div>
+
       <div
         className="h-screen bg-no-repeat bg-top bg-contain"
         style={{ backgroundImage: `url('${backgroundImage}')` }}
@@ -100,13 +179,24 @@ const Page = () => {
             ref={textRef}
             className="text-black text-4xl sm:text-4xl md:text-5xl lg:text-6xl font-medium mt-10 sm:mt-4 md:mt-6 leading-snug md:leading-relaxed text-center"
           ></h1>
-
-          <p className="text-gray-500 text-center font-light mt-2 sm:mt-4 mb-10">
-            Shop sustainably with Eraiiz and discover how waste can be
-            transformed to wealth <br className="hidden sm:block" />
-            while keeping the planet safe.
-          </p>
-
+          <div className="mt-4 flex justify-center w-full">
+            <div className="max-w-2xl w-full flex flex-col items-center">
+              <BlurText
+                text="Shop sustainably with Eraiiz and discover how waste can be transformed to wealth"
+                delay={150}
+                animateBy="words"
+                direction="top"
+                className="text-gray-500 text-center font-light"
+              />
+              <BlurText
+                text="while keeping the planet safe."
+                delay={300}
+                animateBy="words"
+                direction="top"
+                className="text-gray-500 text-center font-light mt-2"
+              />
+            </div>
+          </div>
           <div className="flex flex-col sm:flex-row gap-4 justify-center mt-4 sm:mt-6 sm:space-x-4 px-6">
             <Link href="/signup">
               <button className="bg-[#008C00] text-white py-3 px-8 rounded-lg w-full sm:w-auto transition-transform duration-300 hover:scale-105">
@@ -186,8 +276,30 @@ const Page = () => {
             </div>
           </div>
           <Opposite />
-          <PlasticMadeProducts />
-          <Opposite2 />
+          <div className="w-full max-w-[1400px] mx-auto px-8 sm:px-12 lg:px-16 mb-20">
+            <TrueFocus
+              sentence="Save Earth"
+              manualMode={false}
+              blurAmount={5}
+              borderColor="#008C00"
+              glowColor="rgba(0, 140, 0, 0.6)"
+              animationDuration={1.5}
+              pauseBetweenAnimations={0.8}
+            />
+          </div>
+          <div className="h-[800px] w-full max-w-[1400px] mx-auto px-8 sm:px-12 lg:px-16 mb-20">
+            <Masonry
+              items={items}
+              ease="power3.out"
+              duration={0.6}
+              stagger={0.05}
+              animateFrom="bottom"
+              scaleOnHover={true}
+              hoverScale={0.95}
+              blurToFocus={true}
+              colorShiftOnHover={false}
+            />
+          </div>
           <BlogCarousel />
           <FaqSection />
           <CallToAction />
