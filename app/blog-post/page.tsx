@@ -54,10 +54,11 @@ const BlogPost = () => {
         </p>
 
         <div className="flex justify-center mt-8">
-          <Link href="/shop" legacyBehavior>
-            <a className="bg-green-600 text-white py-3 px-6 rounded-md hover:bg-green-800 transition">
-              Explore Sustainable Products
-            </a>
+          <Link 
+            href="/shop" 
+            className="bg-green-600 text-white py-3 px-6 rounded-md hover:bg-green-800 transition"
+          >
+            Explore Sustainable Products
           </Link>
         </div>
       </div>

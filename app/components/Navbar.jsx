@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { FiMenu, FiX } from "react-icons/fi";
+import SplashCursor from "../Animations/SplashCursor/SplashCursor";
 
 const navLinks = [
   { label: "About Eraiiz", href: "/about" },
@@ -18,6 +19,18 @@ const Navbar = () => {
   return (
     <>
       {/* Navbar */}
+      <SplashCursor
+        BACK_COLOR={{ r: 0, g: 0, b: 0 }}
+        SPLAT_RADIUS={0.08}
+        SPLAT_FORCE={2000}
+        CURL={5}
+        COLOR_UPDATE_SPEED={1.5}
+        DENSITY_DISSIPATION={2.8}
+        VELOCITY_DISSIPATION={2.5}
+        PRESSURE={0.2}
+        TRANSPARENT={true}
+        SHADING={false}
+      />
       <div className="fixed top-0 left-0 w-full bg-white shadow-md py-4 px-6 z-50">
         <nav className="flex justify-between items-center">
           {/* Logo */}
@@ -62,56 +75,40 @@ const Navbar = () => {
             Sign Up Now
           </Link>
 
-          {/* Mobile Menu Icon */}
-          <div className="md:hidden flex items-center">
-            <button onClick={toggleMenu} aria-label="Toggle mobile menu">
-              <FiMenu size={30} className="text-black" />
-            </button>
-          </div>
-        </nav>
-      </div>
-
-      {/* Mobile Menu Overlay */}
-      {isOpen && (
-        <div className="fixed top-0 left-0 w-full h-full bg-white flex flex-col justify-center items-center z-50 transition-all duration-300">
-          {/* Close Button */}
+          {/* Mobile Menu Button */}
           <button
+            className="md:hidden text-black"
             onClick={toggleMenu}
-            className="absolute top-6 right-6"
-            aria-label="Close mobile menu"
+            aria-label={isOpen ? "Close Menu" : "Open Menu"}
           >
-            <FiX size={35} className="text-black" />
+            {isOpen ? <FiX size={24} /> : <FiMenu size={24} />}
           </button>
+        </nav>
 
-          {/* Mobile Navigation Links */}
-          <div className="flex flex-col items-center gap-6 text-xl font-bold text-black">
-            {navLinks.map((item, index) => (
-              <Link key={index} href={item.href} onClick={() => setIsOpen(false)}>
-                <span className="relative group cursor-pointer hover:text-green-600 transition-colors">
-                  {item.label}
-                  <span className="block h-[2px] w-0 bg-green-600 group-hover:w-full transition-all duration-300"></span>
-                </span>
-              </Link>
-            ))}
+        {/* Mobile Navigation */}
+        {isOpen && (
+          <div className="md:hidden mt-4 pb-4">
+            <div className="flex flex-col gap-4">
+              {navLinks.map((item, index) => (
+                <Link key={index} href={item.href}>
+                  <span className="block text-black hover:text-green-600 font-bold">
+                    {item.label}
+                  </span>
+                </Link>
+              ))}
 
-            {/* Email */}
-            <a
-              href="mailto:eraiizinfo@gmail.com"
-              className="relative group text-green-600 transition-colors hover:text-black"
-            >
-              eraiizinfo@gmail.com
-              <span className="block h-[2px] w-0 bg-black group-hover:w-full transition-all duration-300"></span>
-            </a>
+              {/* Email */}
+              <a
+                href="mailto:eraiizinfo@gmail.com"
+                className="relative group text-green-600 transition-colors hover:text-black"
+              >
+                eraiizinfo@gmail.com
+                <span className="block h-[2px] w-0 bg-black group-hover:w-full transition-all duration-300"></span>
+              </a>
+            </div>
           </div>
-
-          {/* Logo at Bottom */}
-          <div className="absolute bottom-10">
-            <Link href="/">
-              <Image src="/logo.png" width={80} height={70} alt="Eraiiz Logo" />
-            </Link>
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </>
   );
 };

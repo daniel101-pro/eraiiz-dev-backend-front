@@ -1,8 +1,6 @@
 'use client';
-import DualNavbar from '../components/DualNavbar';
+import Navbar from '../components/Navbar';
 import Footer from "../components/Footer";
-
-
 import { useEffect } from 'react';
 
 export default function AboutPage() {
@@ -11,10 +9,9 @@ export default function AboutPage() {
     }, []);
 
     return (
-
         <>
             <div className="relative z-10">
-                <DualNavbar />
+                <Navbar />
             </div>
             <a
                 href="/"
@@ -24,9 +21,7 @@ export default function AboutPage() {
             </a>
 
             <div className="min-h-screen bg-white flex flex-col items-center mt-9">
-                {/* Main Content */}
                 <div className="max-w-4xl mx-auto p-6 flex flex-col items-center">
-                    {/* Header */}
                     <h1 className="text-[30px] font-medium text-gray-800 mb-6 leading-tight">
                         Redefining climate change to include right shopping choices
                     </h1>
@@ -36,7 +31,6 @@ export default function AboutPage() {
                         Eraiiz goes beyond just connecting businesses with global customers. We are committed to forging an environment that is free from waste.
                     </p>
 
-                    {/* Mission and Vision Cards */}
                     <div className="w-full flex flex-col md:flex-row justify-between mb-12 gap-6">
                         <div className="w-full md:w-1/2 p-8 bg-gray-50 rounded-xl">
                             <h3 className="text-base font-medium text-gray-800 mb-3">Our Mission:</h3>
@@ -55,29 +49,28 @@ export default function AboutPage() {
                         </div>
                     </div>
 
-                    {/* Values Section */}
                     <div className="w-full">
                         <h2 className="text-[28px] text-gray-800 mb-6">Our Values:</h2>
                         <ul className="list-disc list-inside text-gray-600 space-y-3">
                             <li>
                                 <span className="text-gray-800">Quality:</span>
-                                <span className=" text-sm"> We are committed to excellence in everything we do.</span>
+                                <span className="text-sm"> We are committed to excellence in everything we do.</span>
                             </li>
                             <li>
-                                <span className=" text-gray-800">Innovation:</span>
-                                <span className=" text-sm"> We embrace new ideas and strive to continuously improve our ways of serving the public.</span>
+                                <span className="text-gray-800">Innovation:</span>
+                                <span className="text-sm"> We embrace new ideas and strive to continuously improve our ways of serving the public.</span>
                             </li>
                             <li>
                                 <span className="text-gray-800">Greenery:</span>
-                                <span className=" text-sm"> We are a sustainable e-commerce platform hinged on green and environmental sustainability.</span>
+                                <span className="text-sm"> We are a sustainable e-commerce platform hinged on green and environmental sustainability.</span>
                             </li>
                             <li>
                                 <span className="text-gray-800">Transparency:</span>
-                                <span className=" text-sm"> We believe in open communications against greenwashing.</span>
+                                <span className="text-sm"> We believe in open communications against greenwashing.</span>
                             </li>
                             <li>
-                                <span className=" text-gray-800">Community:</span>
-                                <span className=" text-sm"> Through our #Eraiizforgood program, we aim to create a supportive environment, especially for those affected by the effect of climate change disasters.</span>
+                                <span className="text-gray-800">Community:</span>
+                                <span className="text-sm"> Through our #Eraiizforgood program, we aim to create a supportive environment, especially for those affected by the effect of climate change disasters.</span>
                             </li>
                         </ul>
                     </div>

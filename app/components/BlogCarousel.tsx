@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -76,11 +77,12 @@ const BlogPostsCarousel = () => {
             innovative ways industries and individuals are transforming waste
             into valuable materials.
           </p>
-          <Link href="/blog-post">
-            <button className="mt-4 bg-green-500 text-white px-6 py-2 rounded-xl transition-all hover:bg-green-600">
-              Read more
-            </button>
-          </Link>{" "}
+          <Link 
+            href="/blog-post"
+            className="inline-block mt-4 bg-green-500 text-white px-6 py-2 rounded-xl transition-all hover:bg-green-600 active:transform active:scale-95"
+          >
+            Read more
+          </Link>
         </Card>
       </div>
     </div>

@@ -429,7 +429,7 @@ export default function DualNavbarSell({ handleLogout }) {
             </div>
             <div className="p-4 flex flex-col gap-4">
               <nav className="flex flex-col gap-3 text-sm text-gray-600">
-                <Link href="/about" className="nav-link hover:text-green-600 relative group" onClick={toggleSidebar}>
+                <Link href="/seller-about" className="nav-link hover:text-green-600 relative group" onClick={toggleSidebar}>
                   <span className="group-hover:animate-float">About Eraiiz</span>
                   <span className="nav-link-effect"></span>
                 </Link>
@@ -532,7 +532,7 @@ export default function DualNavbarSell({ handleLogout }) {
                   </button>
                 </div>
                 <nav className="hidden md:flex items-center space-x-6 text-sm text-gray-600">
-                  <Link href="/about" className="nav-link hover:text-green-600 relative group">
+                  <Link href="/seller-about" className="nav-link hover:text-green-600 relative group">
                     <span className="group-hover:animate-float">About Eraiiz</span>
                     <span className="nav-link-effect"></span>
                   </Link>
