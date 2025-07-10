@@ -8,6 +8,7 @@ import DualNavbarSell from '../components/DualNavbarSell';
 import { useCart } from '../context/CartContext';
 import toast, { Toaster } from 'react-hot-toast';
 import { CartItem } from './types';
+import CarbonFootprintDisplay from '../components/CarbonFootprintDisplay';
 
 const BackButton = () => {
     return (
@@ -65,7 +66,34 @@ const ProgressBar = () => {
 
 export default function CartClient() {
     const router = useRouter();
-    const { cartItems = [], removeFromCart, updateQuantity, getCartTotal, clearCart } = useCart() || {};
+    const { cartItems = [], enrichedCartItems = [], isEnriching = false, removeFromCart, updateQuantity, getCartTotal, clearCart } = useCart() || {};
+    
+    // Use enriched cart items if available, otherwise fall back to basic cart items
+    const displayCartItems = enrichedCartItems.length > 0 ? enrichedCartItems : cartItems;
+    
+    // Debug logging
+    console.log('CartClient - basic cartItems:', cartItems);
+    console.log('CartClient - enrichedCartItems:', enrichedCartItems);
+    console.log('CartClient - isEnriching:', isEnriching);
+    console.log('CartClient - displayCartItems:', displayCartItems);
+    console.log('CartClient - displayCartItems count:', displayCartItems.length);
+    if (displayCartItems.length > 0) {
+        console.log('CartClient - first item carbonFootprint:', displayCartItems[0].carbonFootprint);
+        console.log('CartClient - first item sustainability:', displayCartItems[0].sustainability);
+    }
+
+    // Calculate total carbon footprint for all items in cart
+    const getTotalCarbonFootprint = () => {
+        return displayCartItems.reduce((total, item) => {
+            if (item.carbonFootprint && item.carbonFootprint.total) {
+                return total + (parseFloat(item.carbonFootprint.total) * (item.quantity || 1));
+            }
+            return total;
+        }, 0);
+    };
+
+    const totalCarbonFootprint = getTotalCarbonFootprint();
+    const hasCarbonFootprintData = displayCartItems.some(item => item.carbonFootprint);
 
     const handleLogout = () => {
         clearCart?.();
@@ -110,7 +138,7 @@ export default function CartClient() {
     };
 
     // Early return for loading state
-    if (!cartItems) {
+    if (!cartItems || isEnriching) {
         return (
             <>
                 <DualNavbarSell handleLogout={handleLogout} />
@@ -122,7 +150,7 @@ export default function CartClient() {
         );
     }
 
-    if (cartItems.length === 0) {
+    if (displayCartItems.length === 0) {
         return (
             <>
                 <DualNavbarSell handleLogout={handleLogout} />
@@ -166,7 +194,7 @@ export default function CartClient() {
                 <h2 className="text-2xl text-gray-900 mb-6">Cart items</h2>
 
                 <div className="space-y-6">
-                    {cartItems.map((item: CartItem) => (
+                    {displayCartItems.map((item: CartItem) => (
                         <div key={`${item._id}-${item.selectedSize}`} className="flex flex-col gap-4 bg-white border border-[#CDEFCB] rounded-2xl p-4 shadow-sm">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
@@ -230,6 +258,12 @@ export default function CartClient() {
                             <span className="text-gray-600">Shipping</span>
                             <span className="text-gray-900 font-medium">Calculated at checkout</span>
                         </div>
+                        {hasCarbonFootprintData && (
+                            <div className="flex justify-between items-center">
+                                <span className="text-gray-600">Environmental Impact</span>
+                                <span className="text-green-600 font-medium">{totalCarbonFootprint.toFixed(2)} kg CO₂e</span>
+                            </div>
+                        )}
                         <div className="border-t border-gray-200 pt-4">
                             <div className="flex justify-between items-center">
                                 <span className="text-gray-900 font-semibold">Total</span>
@@ -276,7 +310,7 @@ export default function CartClient() {
 
                                 {/* Cart Items */}
                                 <div className="space-y-8">
-                                    {cartItems.map((item: CartItem) => (
+                                    {displayCartItems.map((item: CartItem) => (
                                         <div key={`${item._id}-${item.selectedSize}`} className="bg-white border border-[#CDEFCB] rounded-2xl p-6 shadow-sm">
                                             <div className="flex items-center gap-4">
                                                 {/* Product Image */}
@@ -344,6 +378,12 @@ export default function CartClient() {
                                         <span className="text-gray-600">Shipping</span>
                                         <span className="text-gray-900 font-medium">Calculated at checkout</span>
                                     </div>
+                                    {hasCarbonFootprintData && (
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-gray-600">Environmental Impact</span>
+                                            <span className="text-green-600 font-medium">{totalCarbonFootprint.toFixed(2)} kg CO₂e</span>
+                                        </div>
+                                    )}
                                     <div className="pt-4 mt-4 border-t border-gray-100">
                                         <div className="flex justify-between items-center">
                                             <span className="text-gray-900 font-semibold">Total</span>
@@ -358,6 +398,41 @@ export default function CartClient() {
                                     </Link>
                                 </div>
                             </div>
+
+                            {/* Carbon Footprint Summary */}
+                            {hasCarbonFootprintData && (
+                                <div className="mt-6 bg-white rounded-2xl p-6 shadow-sm">
+                                    <div className="flex items-center mb-4">
+                                        <span className="text-green-600 mr-2">🌱</span>
+                                        <h3 className="text-lg font-semibold text-gray-900">Environmental Impact Summary</h3>
+                                    </div>
+                                    <div className="text-center mb-4">
+                                        <div className="text-2xl font-bold text-gray-900 mb-1">
+                                            {totalCarbonFootprint.toFixed(2)} kg CO₂e
+                                        </div>
+                                        <div className="text-sm text-gray-600">Total Environmental Impact</div>
+                                    </div>
+                                    <div className="grid grid-cols-1 gap-3 text-sm">
+                                        <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                            <span className="text-gray-600">Car Ride Equivalent</span>
+                                            <span className="text-gray-900 font-medium">
+                                                {(totalCarbonFootprint * 4).toFixed(1)} km
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                            <span className="text-gray-600">Trees to Offset</span>
+                                            <span className="text-gray-900 font-medium">
+                                                {(totalCarbonFootprint * 0.05).toFixed(1)} trees
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="mt-4 p-3 bg-green-50 rounded-lg">
+                                        <p className="text-xs text-green-700 text-center">
+                                            🌍 Your purchase supports sustainable products and helps reduce environmental impact
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

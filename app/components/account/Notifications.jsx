@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react';
 import { refreshAccessToken } from '../../utils/auth';
 import { decodeJwt } from '../../utils/jwtDecode';
+import { Bell, BellRing, Check, Trash2, AlertCircle, Package, ShoppingCart, User, Settings, Calendar, Clock, Wifi, WifiOff, X, ExternalLink, Eye } from 'lucide-react';
 
 export default function Notifications() {
   const [notifications, setNotifications] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [ws, setWs] = useState(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [filter, setFilter] = useState('all'); // all, unread, read
+  const [selectedNotification, setSelectedNotification] = useState(null);
 
   const fetchNotifications = async () => {
     try {
@@ -96,6 +100,73 @@ export default function Notifications() {
     }
   };
 
+  const handleNotificationClick = async (notification) => {
+    setSelectedNotification(notification);
+    
+    // Mark as read when opened if not already read
+    if (!notification.read) {
+      await handleMarkAsRead(notification._id);
+    }
+  };
+
+  const getNotificationTypeInfo = (type) => {
+    switch (type?.toLowerCase()) {
+      case 'order':
+        return {
+          title: 'Order Notification',
+          description: 'Updates about your orders and purchases',
+          color: 'blue'
+        };
+      case 'product':
+        return {
+          title: 'Product Notification',
+          description: 'Information about products and listings',
+          color: 'green'
+        };
+      case 'account':
+        return {
+          title: 'Account Notification',
+          description: 'Updates about your account and profile',
+          color: 'purple'
+        };
+      case 'system':
+        return {
+          title: 'System Notification',
+          description: 'Important system updates and announcements',
+          color: 'gray'
+        };
+      default:
+        return {
+          title: 'Notification',
+          description: 'General notification',
+          color: 'blue'
+        };
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const unreadIds = notifications.filter(n => !n.read).map(n => n._id);
+      
+      for (const id of unreadIds) {
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications/${id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          credentials: 'include',
+          body: JSON.stringify({ read: true }),
+        });
+      }
+
+      setNotifications(notifications.map(notif => ({ ...notif, read: true })));
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
   const handleClearAll = async () => {
     try {
       const token = localStorage.getItem('accessToken');
@@ -118,6 +189,49 @@ export default function Notifications() {
     }
   };
 
+  const getNotificationIcon = (type) => {
+    switch (type?.toLowerCase()) {
+      case 'order':
+        return <ShoppingCart className="w-5 h-5 text-blue-600" />;
+      case 'product':
+        return <Package className="w-5 h-5 text-green-600" />;
+      case 'account':
+        return <User className="w-5 h-5 text-purple-600" />;
+      case 'system':
+        return <Settings className="w-5 h-5 text-gray-600" />;
+      default:
+        return <Bell className="w-5 h-5 text-blue-600" />;
+    }
+  };
+
+  const getNotificationColor = (type) => {
+    switch (type?.toLowerCase()) {
+      case 'order':
+        return 'bg-blue-100 border-blue-200';
+      case 'product':
+        return 'bg-green-100 border-green-200';
+      case 'account':
+        return 'bg-purple-100 border-purple-200';
+      case 'system':
+        return 'bg-gray-100 border-gray-200';
+      default:
+        return 'bg-blue-100 border-blue-200';
+    }
+  };
+
+  const filteredNotifications = notifications.filter(notif => {
+    switch (filter) {
+      case 'unread':
+        return !notif.read;
+      case 'read':
+        return notif.read;
+      default:
+        return true;
+    }
+  });
+
+  const unreadCount = notifications.filter(n => !n.read).length;
+
   useEffect(() => {
     let userId = localStorage.getItem('userId');
     if (!userId) {
@@ -127,7 +241,7 @@ export default function Notifications() {
         const decoded = decodeJwt(token);
         if (decoded && decoded.id) {
           userId = decoded.id;
-          localStorage.setItem('userId', userId); // Save for future use
+          localStorage.setItem('userId', userId);
         }
       }
     }
@@ -146,6 +260,7 @@ export default function Notifications() {
 
     websocket.onopen = () => {
       console.log('WebSocket connected');
+      setIsConnected(true);
     };
 
     websocket.onmessage = (event) => {
@@ -155,10 +270,12 @@ export default function Notifications() {
 
     websocket.onerror = (error) => {
       console.error('WebSocket error:', error);
+      setIsConnected(false);
     };
 
     websocket.onclose = () => {
       console.log('WebSocket disconnected');
+      setIsConnected(false);
       setTimeout(() => {
         const newWs = new WebSocket(wsUrl);
         setWs(newWs);
@@ -173,46 +290,360 @@ export default function Notifications() {
     };
   }, []);
 
-  if (isLoading) return <div className="flex justify-center"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-blue-500"></div></div>;
-  if (error) return <div className="text-red-600 text-center">{error}</div>;
+  if (isLoading) {
+    return (
+      <div className="bg-white shadow-sm rounded-xl border border-gray-100 p-8">
+        <div className="flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+          <span className="ml-3 text-gray-600">Loading notifications...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white shadow-sm rounded-xl border border-gray-100 p-8">
+        <div className="text-center">
+          <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Error Loading Notifications</h3>
+          <p className="text-red-600 mb-6">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm border">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-semibold">Notifications</h1>
-        {notifications.length > 0 && (
-          <button
-            onClick={handleClearAll}
-            className="text-red-600 hover:text-red-800 underline"
-          >
-            Clear All
-          </button>
-        )}
+    <div className="max-w-4xl mx-auto space-y-6">
+      {/* Header */}
+      <div className="bg-white shadow-sm rounded-xl border border-gray-100 p-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <BellRing className="w-6 h-6 text-blue-600" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-semibold text-gray-900">Notifications</h1>
+              <p className="text-sm text-gray-500 mt-1">
+                Stay updated with your account activity
+                {unreadCount > 0 && (
+                  <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                    {unreadCount} unread
+                  </span>
+                )}
+              </p>
+            </div>
+          </div>
+          
+          {/* Connection Status */}
+          <div className="flex items-center gap-2">
+            {isConnected ? (
+              <div className="flex items-center gap-2 text-green-600 text-sm">
+                <Wifi className="w-4 h-4" />
+                <span>Live</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-gray-400 text-sm">
+                <WifiOff className="w-4 h-4" />
+                <span>Offline</span>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
-      {notifications.length === 0 ? (
-        <p className="text-gray-700 text-center">No notifications found.</p>
-      ) : (
-        <div className="space-y-4">
-          {notifications.map(notif => (
-            <div key={notif._id} className={`border-b pb-4 flex justify-between items-center ${notif.read ? 'opacity-50' : ''}`}>
-              <div>
-                <p><strong>Type:</strong> {notif.type}</p>
-                <p><strong>Message:</strong> {notif.message}</p>
-                <p><strong>Date:</strong> {new Date(notif.createdAt).toLocaleString()}</p>
-              </div>
-              {!notif.read && (
-                <button
-                  onClick={() => handleMarkAsRead(notif._id)}
-                  className="text-green-600 hover:text-green-800 underline"
-                >
-                  Mark as Read
-                </button>
-              )}
-            </div>
-          ))}
+      {/* Controls */}
+      <div className="bg-white shadow-sm rounded-xl border border-gray-100 p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          {/* Filter Tabs */}
+          <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+            {[
+              { key: 'all', label: 'All', count: notifications.length },
+              { key: 'unread', label: 'Unread', count: unreadCount },
+              { key: 'read', label: 'Read', count: notifications.length - unreadCount }
+            ].map(tab => (
+              <button
+                key={tab.key}
+                onClick={() => setFilter(tab.key)}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  filter === tab.key
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                {tab.label} ({tab.count})
+              </button>
+            ))}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-2">
+            {unreadCount > 0 && (
+              <button
+                onClick={handleMarkAllAsRead}
+                className="flex items-center gap-2 px-3 py-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors text-sm font-medium"
+              >
+                <Check className="w-4 h-4" />
+                Mark All Read
+              </button>
+            )}
+            {notifications.length > 0 && (
+              <button
+                onClick={handleClearAll}
+                className="flex items-center gap-2 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors text-sm font-medium"
+              >
+                <Trash2 className="w-4 h-4" />
+                Clear All
+              </button>
+            )}
+          </div>
         </div>
-      )}
-    </div>
-  );
-}
+      </div>
+
+      {/* Notifications List */}
+      <div className="bg-white shadow-sm rounded-xl border border-gray-100">
+        {filteredNotifications.length === 0 ? (
+          <div className="p-12 text-center">
+            <Bell className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              {filter === 'unread' ? 'No unread notifications' : 
+               filter === 'read' ? 'No read notifications' : 
+               'No notifications yet'}
+            </h3>
+            <p className="text-gray-500">
+              {filter === 'all' ? 
+                "You'll see notifications here when there's activity on your account." :
+                `Switch to "${filter === 'unread' ? 'All' : 'All'}" to see ${filter === 'unread' ? 'all' : 'other'} notifications.`
+              }
+            </p>
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-100">
+                         {filteredNotifications.map((notif, index) => (
+               <div
+                 key={notif._id}
+                 onClick={() => handleNotificationClick(notif)}
+                 className={`p-6 hover:bg-gray-50 transition-colors cursor-pointer ${
+                   !notif.read ? 'bg-blue-50/50' : ''
+                 }`}
+               >
+                <div className="flex items-start gap-4">
+                  {/* Icon */}
+                  <div className={`p-2 rounded-lg ${getNotificationColor(notif.type)}`}>
+                    {getNotificationIcon(notif.type)}
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="text-sm font-medium text-gray-900 capitalize">
+                            {notif.type || 'Notification'}
+                          </h3>
+                          {!notif.read && (
+                            <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                          )}
+                        </div>
+                        <p className="text-gray-700 text-sm mb-2">
+                          {notif.message}
+                        </p>
+                        <div className="flex items-center gap-4 text-xs text-gray-500">
+                          <div className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {new Date(notif.createdAt).toLocaleDateString()}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {new Date(notif.createdAt).toLocaleTimeString([], { 
+                              hour: '2-digit', 
+                              minute: '2-digit' 
+                            })}
+                          </div>
+                        </div>
+                      </div>
+
+                                             {/* Action Buttons */}
+                       <div className="flex items-center gap-2">
+                         <button
+                           onClick={(e) => {
+                             e.stopPropagation();
+                             handleNotificationClick(notif);
+                           }}
+                           className="flex items-center gap-1 px-2 py-1 text-blue-600 hover:bg-blue-50 rounded text-xs font-medium transition-colors"
+                         >
+                           <Eye className="w-3 h-3" />
+                           View
+                         </button>
+                         {!notif.read && (
+                           <button
+                             onClick={(e) => {
+                               e.stopPropagation();
+                               handleMarkAsRead(notif._id);
+                             }}
+                             className="flex items-center gap-1 px-2 py-1 text-green-600 hover:bg-green-50 rounded text-xs font-medium transition-colors"
+                           >
+                             <Check className="w-3 h-3" />
+                             Mark Read
+                           </button>
+                         )}
+                       </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+                     </div>
+         )}
+       </div>
+
+       {/* Notification Detail Modal */}
+       {selectedNotification && (
+         <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+           <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+             {/* Modal Header */}
+             <div className="sticky top-0 bg-white border-b border-gray-100 p-6 rounded-t-xl">
+               <div className="flex items-center justify-between">
+                 <div className="flex items-center gap-3">
+                   <div className={`p-2 rounded-lg ${getNotificationColor(selectedNotification.type)}`}>
+                     {getNotificationIcon(selectedNotification.type)}
+                   </div>
+                   <div>
+                     <h2 className="text-xl font-semibold text-gray-900">
+                       {getNotificationTypeInfo(selectedNotification.type).title}
+                     </h2>
+                     <p className="text-sm text-gray-500">
+                       {getNotificationTypeInfo(selectedNotification.type).description}
+                     </p>
+                   </div>
+                 </div>
+                 <button
+                   onClick={() => setSelectedNotification(null)}
+                   className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                 >
+                   <X className="w-5 h-5 text-gray-500" />
+                 </button>
+               </div>
+             </div>
+
+             {/* Modal Content */}
+             <div className="p-6 space-y-6">
+               {/* Status Badge */}
+               <div className="flex items-center justify-between">
+                 <div className="flex items-center gap-2">
+                   {!selectedNotification.read ? (
+                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                       <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                       Unread
+                     </span>
+                   ) : (
+                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                       <Check className="w-3 h-3" />
+                       Read
+                     </span>
+                   )}
+                   <span className="text-xs text-gray-500 capitalize">
+                     {selectedNotification.type || 'General'}
+                   </span>
+                 </div>
+                 
+                 {/* Timestamp */}
+                 <div className="flex items-center gap-4 text-sm text-gray-500">
+                   <div className="flex items-center gap-1">
+                     <Calendar className="w-4 h-4" />
+                     {new Date(selectedNotification.createdAt).toLocaleDateString('en-US', {
+                       year: 'numeric',
+                       month: 'long',
+                       day: 'numeric'
+                     })}
+                   </div>
+                   <div className="flex items-center gap-1">
+                     <Clock className="w-4 h-4" />
+                     {new Date(selectedNotification.createdAt).toLocaleTimeString([], { 
+                       hour: '2-digit', 
+                       minute: '2-digit' 
+                     })}
+                   </div>
+                 </div>
+               </div>
+
+               {/* Message Content */}
+               <div className="bg-gray-50 rounded-lg p-6">
+                 <h3 className="text-sm font-medium text-gray-700 mb-3">Message</h3>
+                 <div className="prose prose-sm max-w-none">
+                   <p className="text-gray-900 leading-relaxed text-base">
+                     {selectedNotification.message}
+                   </p>
+                 </div>
+               </div>
+
+               {/* Additional Details */}
+               {selectedNotification.data && (
+                 <div className="bg-blue-50 rounded-lg p-6">
+                   <h3 className="text-sm font-medium text-blue-900 mb-3 flex items-center gap-2">
+                     <AlertCircle className="w-4 h-4" />
+                     Additional Information
+                   </h3>
+                   <div className="text-sm text-blue-800">
+                     <pre className="whitespace-pre-wrap font-sans">
+                       {typeof selectedNotification.data === 'object' 
+                         ? JSON.stringify(selectedNotification.data, null, 2)
+                         : selectedNotification.data
+                       }
+                     </pre>
+                   </div>
+                 </div>
+               )}
+
+               {/* Quick Actions */}
+               <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                 <div className="flex items-center gap-3">
+                   {!selectedNotification.read && (
+                     <button
+                       onClick={() => {
+                         handleMarkAsRead(selectedNotification._id);
+                         setSelectedNotification({...selectedNotification, read: true});
+                       }}
+                       className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+                     >
+                       <Check className="w-4 h-4" />
+                       Mark as Read
+                     </button>
+                   )}
+                   
+                   {/* Action based on notification type */}
+                   {selectedNotification.type === 'order' && (
+                     <button className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+                       <ExternalLink className="w-4 h-4" />
+                       View Order
+                     </button>
+                   )}
+                   
+                   {selectedNotification.type === 'product' && (
+                     <button className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
+                       <ExternalLink className="w-4 h-4" />
+                       View Product
+                     </button>
+                   )}
+                 </div>
+
+                 <button
+                   onClick={() => setSelectedNotification(null)}
+                   className="px-4 py-2 text-gray-600 hover:text-gray-800 text-sm font-medium"
+                 >
+                   Close
+                 </button>
+               </div>
+             </div>
+           </div>
+         </div>
+       )}
+     </div>
+   );
+ }

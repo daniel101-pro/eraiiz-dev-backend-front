@@ -8,17 +8,46 @@ export function CurrencyProvider({ children }) {
   const [selectedCurrency, setSelectedCurrency] = useState('NGN');
   const [exchangeRates, setExchangeRates] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState(null);
+
+  // Load currency preference from localStorage
+  useEffect(() => {
+    const savedCurrency = localStorage.getItem('preferredCurrency');
+    if (savedCurrency) {
+      setSelectedCurrency(savedCurrency);
+    }
+  }, []);
+
+  // Save currency preference to localStorage
+  useEffect(() => {
+    localStorage.setItem('preferredCurrency', selectedCurrency);
+  }, [selectedCurrency]);
 
   // Fetch exchange rates on mount and every hour
   useEffect(() => {
     const fetchExchangeRates = async () => {
       try {
-        const response = await fetch(`https://api.exchangerate-api.com/v4/latest/NGN`);
+        const response = await fetch(`https://api.exchangerate-api.com/v4/latest/USD`);
         const data = await response.json();
         setExchangeRates(data.rates);
+        setLastUpdated(new Date().toISOString());
         setLoading(false);
       } catch (error) {
         console.error('Error fetching exchange rates:', error);
+        // Fallback rates if API fails
+        const fallbackRates = {
+          USD: 1,
+          NGN: 800,
+          EUR: 0.85,
+          GBP: 0.73,
+          JPY: 110,
+          CHF: 0.92,
+          CAD: 1.25,
+          AUD: 1.35,
+          CNY: 6.45,
+          INR: 75
+        };
+        setExchangeRates(fallbackRates);
         setLoading(false);
       }
     };
@@ -29,46 +58,84 @@ export function CurrencyProvider({ children }) {
     return () => clearInterval(interval);
   }, []);
 
-  // Convert price from NGN to selected currency
-  const convertPrice = (priceInNGN) => {
-    if (!exchangeRates || !priceInNGN) return priceInNGN;
+  // Convert price from any currency to selected currency
+  const convertPrice = (price, fromCurrency = 'NGN') => {
+    if (!exchangeRates || !price) return price;
 
-    const NGNtoUSD = exchangeRates['USD']; // Get NGN to USD rate
-    const priceInUSD = priceInNGN * NGNtoUSD;
+    // If same currency, return as is
+    if (fromCurrency === selectedCurrency) return price;
 
-    if (selectedCurrency === 'NGN') return priceInNGN;
+    // Convert from source currency to USD first
+    const priceInUSD = fromCurrency === 'USD' ? price : price / exchangeRates[fromCurrency];
     
-    const USDtoTarget = exchangeRates[selectedCurrency] / exchangeRates['USD'];
-    const convertedPrice = priceInUSD * USDtoTarget;
-
+    // If target is USD, return USD price
+    if (selectedCurrency === 'USD') return Number(priceInUSD.toFixed(2));
+    
+    // Convert from USD to target currency
+    const convertedPrice = priceInUSD * exchangeRates[selectedCurrency];
+    
     return Number(convertedPrice.toFixed(2));
   };
 
-  // Format price with currency symbol
-  const formatPrice = (price) => {
+  // Convert price with explicit from/to currencies
+  const convertPriceExplicit = (price, fromCurrency, toCurrency) => {
+    if (!exchangeRates || !price) return price;
+    
+    // If same currency, return as is
+    if (fromCurrency === toCurrency) return price;
+
+    // Convert from source currency to USD first
+    const priceInUSD = fromCurrency === 'USD' ? price : price / exchangeRates[fromCurrency];
+    
+    // If target is USD, return USD price
+    if (toCurrency === 'USD') return Number(priceInUSD.toFixed(2));
+    
+    // Convert from USD to target currency
+    const convertedPrice = priceInUSD * exchangeRates[toCurrency];
+    
+    return Number(convertedPrice.toFixed(2));
+  };
+
+  // Get currency info
+  const getCurrencyInfo = (currencyCode = selectedCurrency) => {
     const currencies = {
-      NGN: { symbol: '₦', position: 'before' },
-      USD: { symbol: '$', position: 'before' },
-      EUR: { symbol: '€', position: 'before' },
-      GBP: { symbol: '£', position: 'before' },
-      JPY: { symbol: '¥', position: 'before' },
-      CHF: { symbol: 'CHF', position: 'before' },
+      NGN: { symbol: '₦', name: 'Nigerian Naira', flag: '🇳🇬' },
+      USD: { symbol: '$', name: 'US Dollar', flag: '🇺🇸' },
+      EUR: { symbol: '€', name: 'Euro', flag: '🇪🇺' },
+      GBP: { symbol: '£', name: 'British Pound', flag: '🇬🇧' },
+      JPY: { symbol: '¥', name: 'Japanese Yen', flag: '🇯🇵' },
+      CHF: { symbol: 'CHF', name: 'Swiss Franc', flag: '🇨🇭' },
+      CAD: { symbol: 'C$', name: 'Canadian Dollar', flag: '🇨🇦' },
+      AUD: { symbol: 'A$', name: 'Australian Dollar', flag: '🇦🇺' },
+      CNY: { symbol: '¥', name: 'Chinese Yuan', flag: '🇨🇳' },
+      INR: { symbol: '₹', name: 'Indian Rupee', flag: '🇮🇳' },
+    };
+    return currencies[currencyCode] || currencies.NGN;
+  };
+
+  // Format price with currency symbol
+  const formatPrice = (price, currencyCode = selectedCurrency) => {
+    const { symbol } = getCurrencyInfo(currencyCode);
+    
+    // Handle different formatting for different currencies
+    const formatOptions = {
+      minimumFractionDigits: currencyCode === 'JPY' ? 0 : 2,
+      maximumFractionDigits: currencyCode === 'JPY' ? 0 : 2,
     };
 
-    const { symbol, position } = currencies[selectedCurrency];
-    const formattedNumber = price.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-
-    return position === 'before' ? `${symbol}${formattedNumber}` : `${formattedNumber}${symbol}`;
+    const formattedNumber = price.toLocaleString(undefined, formatOptions);
+    return `${symbol}${formattedNumber}`;
   };
 
   const value = {
     selectedCurrency,
     setSelectedCurrency,
     convertPrice,
+    convertPriceExplicit,
     formatPrice,
+    getCurrencyInfo,
+    exchangeRates,
+    lastUpdated,
     loading,
   };
 

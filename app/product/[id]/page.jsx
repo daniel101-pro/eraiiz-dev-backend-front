@@ -95,11 +95,29 @@ export default function ProductDetail() {
       
       setProduct(productRes.data);
       
+      // Debug: Check what data we're receiving
+      console.log('PRODUCT DETAIL PAGE - Product data:', productRes.data);
+      console.log('PRODUCT DETAIL PAGE - Sizes:', productRes.data.sizes);
+      console.log('PRODUCT DETAIL PAGE - Attributes:', productRes.data.attributes);
+      console.log('PRODUCT DETAIL PAGE - Sustainability:', productRes.data.sustainability);
+      console.log('PRODUCT DETAIL PAGE - Carbon footprint:', productRes.data.carbonFootprint);
+      
       // Set initial selected attribute if available
       if (productRes.data.attributes && productRes.data.attributes.length > 0) {
         setSelectedAttribute(productRes.data.attributes[0]);
         if (productRes.data.attributes[0].values && productRes.data.attributes[0].values.length > 0) {
           setSelectedSize(productRes.data.attributes[0].values[0]);
+        }
+      }
+      
+      // Set initial selected size for new structure if available
+      if (productRes.data.sizes && Object.keys(productRes.data.sizes).length > 0) {
+        const availableSizes = Object.entries(productRes.data.sizes)
+          .filter(([size, sizeData]) => sizeData.available)
+          .map(([size]) => size);
+        
+        if (availableSizes.length > 0 && !selectedSize) {
+          setSelectedSize(availableSizes[0]);
         }
       }
 
@@ -243,7 +261,14 @@ export default function ProductDetail() {
   };
 
   const handleAddToCart = async () => {
-    if (!selectedSize || !selectedAttribute) {
+    // For new size structure, only check selectedSize
+    // For old attribute structure, check both selectedSize and selectedAttribute
+    const hasValidSelection = selectedSize && (
+      (product.sizes && Object.keys(product.sizes).length > 0) || 
+      (product.attributes && product.attributes.length > 0 && selectedAttribute)
+    );
+
+    if (!hasValidSelection) {
       toast.error('Please select a size', {
         id: 'size-error',
         duration: 3000,
@@ -304,7 +329,14 @@ export default function ProductDetail() {
   };
 
   const handleBuyNow = async () => {
-    if (!selectedSize || !selectedAttribute) {
+    // For new size structure, only check selectedSize
+    // For old attribute structure, check both selectedSize and selectedAttribute
+    const hasValidSelection = selectedSize && (
+      (product.sizes && Object.keys(product.sizes).length > 0) || 
+      (product.attributes && product.attributes.length > 0 && selectedAttribute)
+    );
+
+    if (!hasValidSelection) {
       toast.error('Please select a size', {
         style: {
           background: '#EF4444',
@@ -508,6 +540,41 @@ export default function ProductDetail() {
               </div>
             )}
 
+            {/* New Size Selection for updated structure */}
+            {product.sizes && Object.keys(product.sizes).length > 0 && (
+              <div className="mt-8">
+                <h3 className="text-[28px] font-normal text-gray-700 mb-4">Select size</h3>
+                <div className="grid grid-cols-5 gap-4">
+                  {Object.entries(product.sizes).map(([size, sizeData]) => (
+                    <button
+                      key={size}
+                      onClick={() => sizeData.available && setSelectedSize(size)}
+                      disabled={!sizeData.available}
+                      className={`
+                        py-3 px-4 text-base font-medium rounded-xl border-2
+                        ${selectedSize === size && sizeData.available
+                          ? 'border-green-600 bg-white text-green-600'
+                          : sizeData.available
+                            ? 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                            : 'border-gray-100 bg-gray-50 text-gray-300 cursor-not-allowed'
+                        }
+                      `}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Fallback for products without size information */}
+            {(!product.attributes || product.attributes.length === 0) && (!product.sizes || Object.keys(product.sizes).length === 0) && (
+              <div className="mt-8">
+                <h3 className="text-[28px] font-normal text-gray-700 mb-4">Size Information</h3>
+                <p className="text-gray-500">Size information not available for this product.</p>
+              </div>
+            )}
+
             {/* Quantity Selection */}
             <div className="mt-8">
               <h3 className="text-[28px] font-normal text-gray-700 mb-4">Quantity</h3>
@@ -628,6 +695,145 @@ export default function ProductDetail() {
                 <p className="text-gray-900">{product.description}</p>
               </div>
             </div>
+
+            {/* Sustainability Information */}
+            {product.sustainability && (
+              <div className="mt-8">
+                <h2 className="text-xl font-medium text-gray-900 mb-6">Sustainability Information</h2>
+                
+                {/* Materials */}
+                {product.sustainability.materials && product.sustainability.materials.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-lg font-medium text-gray-800 mb-3">Materials</h3>
+                    <div className="space-y-2">
+                      {product.sustainability.materials.map((material, index) => (
+                        <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                          <span className="font-medium">{material.name}</span>
+                          <div className="flex items-center gap-2">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              material.type === 'organic' ? 'bg-green-100 text-green-800' :
+                              material.type === 'recycled' ? 'bg-blue-100 text-blue-800' :
+                              material.type === 'sustainable' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {material.type}
+                            </span>
+                            <span className="text-sm text-gray-600">{material.percentage}%</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Weight */}
+                {product.sustainability.weight && product.sustainability.weight.value > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-lg font-medium text-gray-800 mb-3">Product Weight</h3>
+                    <p className="text-gray-600">
+                      {product.sustainability.weight.value} {product.sustainability.weight.unit}
+                    </p>
+                  </div>
+                )}
+
+                {/* Manufacturing Location */}
+                {product.sustainability.manufacturingLocation && (
+                  <div className="mb-6">
+                    <h3 className="text-lg font-medium text-gray-800 mb-3">Manufacturing Location</h3>
+                    <p className="text-gray-600">
+                      {product.sustainability.manufacturingLocation.city}, {product.sustainability.manufacturingLocation.country}
+                    </p>
+                  </div>
+                )}
+
+                {/* Energy Source */}
+                {product.sustainability.productionEnergySource && product.sustainability.productionEnergySource !== 'unknown' && (
+                  <div className="mb-6">
+                    <h3 className="text-lg font-medium text-gray-800 mb-3">Production Energy Source</h3>
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      product.sustainability.productionEnergySource === 'solar' || 
+                      product.sustainability.productionEnergySource === 'wind' || 
+                      product.sustainability.productionEnergySource === 'hydro' ? 
+                      'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {product.sustainability.productionEnergySource.replace('_', ' ')}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Carbon Footprint Information */}
+            {product.carbonFootprint ? (
+              <div className="mt-8">
+                <h2 className="text-xl font-medium text-gray-900 mb-6">Environmental Impact</h2>
+                
+                <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-lg font-semibold text-green-800">Carbon Footprint</h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className="text-center p-4 bg-white rounded-lg">
+                      <p className="text-2xl font-bold text-green-600">{product.carbonFootprint.total} kg CO₂e</p>
+                      <p className="text-sm text-gray-600">Total Emissions</p>
+                    </div>
+                    <div className="text-center p-4 bg-white rounded-lg">
+                      <p className="text-lg font-semibold text-green-600">{product.carbonFootprint.impactScore}</p>
+                      <p className="text-sm text-gray-600">Impact Level</p>
+                    </div>
+                  </div>
+
+                  {product.carbonFootprint.breakdown && (
+                    <div className="mb-4">
+                      <h4 className="font-medium text-green-800 mb-2">Emission Breakdown</h4>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span>Materials</span>
+                          <span>{product.carbonFootprint.breakdown.materials} kg CO₂e</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span>Production</span>
+                          <span>{product.carbonFootprint.breakdown.production} kg CO₂e</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span>Shipping</span>
+                          <span>{product.carbonFootprint.breakdown.shipping} kg CO₂e</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span>Packaging</span>
+                          <span>{product.carbonFootprint.breakdown.packaging} kg CO₂e</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-2 text-sm text-green-700">
+                    {product.carbonFootprint.equivalentCarRide && (
+                      <p>🚗 Equivalent to {product.carbonFootprint.equivalentCarRide}</p>
+                    )}
+                    {product.carbonFootprint.treesToOffset && (
+                      <p>🌳 {product.carbonFootprint.treesToOffset} to offset</p>
+                    )}
+                    {product.carbonFootprint.savingsVsConventional && (
+                      <p>💚 {product.carbonFootprint.savingsVsConventional}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-8">
+                <h2 className="text-xl font-medium text-gray-900 mb-6">Environmental Impact</h2>
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+                  <p className="text-gray-500 text-center">Carbon footprint information not available for this product.</p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Right Column - Ratings and Reviews */}

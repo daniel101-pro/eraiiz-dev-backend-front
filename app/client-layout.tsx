@@ -3,8 +3,10 @@
 import "./globals.css";
 import { CartProvider } from './context/CartContext';
 import { CurrencyProvider } from './context/CurrencyContext';
+import { FavoritesProvider } from './context/FavoritesContext';
 import { Toaster } from 'react-hot-toast';
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import AIAssistant from './components/AIAssistant/AIAssistant';
 
 // Get the Google Client ID from environment variables
 const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '429710625418-18g91vccienk7nhsvchdeehctl9dsl.apps.googleusercontent.com';
@@ -27,19 +29,22 @@ export default function ClientLayout({
         <GoogleOAuthProvider clientId={googleClientId}>
           <CartProvider>
             <CurrencyProvider>
-              {children}
-              <Toaster
-                position="top-center"
-                toastOptions={{
-                  duration: 2000,
-                  style: {
-                    background: '#333',
-                    color: '#fff',
-                    padding: '16px',
-                    borderRadius: '12px',
-                  },
-                }}
-              />
+              <FavoritesProvider>
+                {children}
+                <Toaster
+                  position="top-center"
+                  toastOptions={{
+                    duration: 2000,
+                    style: {
+                      background: '#333',
+                      color: '#fff',
+                      padding: '16px',
+                      borderRadius: '12px',
+                    },
+                  }}
+                />
+                <AIAssistant />
+              </FavoritesProvider>
             </CurrencyProvider>
           </CartProvider>
         </GoogleOAuthProvider>

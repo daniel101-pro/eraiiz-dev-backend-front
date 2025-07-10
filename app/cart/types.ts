@@ -5,6 +5,14 @@ export interface CartItem {
     quantity: number;
     selectedSize: string;
     images: string[];
+    carbonFootprint?: {
+        total: string;
+        impactScore: string;
+        equivalentCarRide: string;
+        treesToOffset: string;
+        savingsVsConventional?: string;
+    };
+    sustainability?: any;
 }
 
 export interface CartContextType {

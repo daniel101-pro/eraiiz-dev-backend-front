@@ -1,13 +1,20 @@
-import type { NextConfig } from 'next';
+import { NextConfig } from 'next';
 
-const nextConfig: NextConfig = {
+const config: NextConfig = {
+  env: {
+    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000',
+  },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '2mb',
+    },
+  },
   images: {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'res.cloudinary.com',
-        port: '',
-        pathname: '/dagvrhy9e/image/upload/**', // Matches your Cloudinary account
+        hostname: '**',
       },
     ],
   },
@@ -24,4 +31,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default config;

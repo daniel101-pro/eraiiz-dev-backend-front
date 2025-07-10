@@ -140,7 +140,7 @@ export default function AccountPage() {
 
       <DualNavbarSell handleLogout={handleLogout} />
       <div className="flex min-h-screen bg-gray-50">
-        <aside className="w-16 md:w-64 bg-white border-r p-4 md:p-6">
+        <aside className="fixed left-0 top-0 w-16 md:w-64 h-screen bg-white border-r p-4 md:p-6 pt-32 md:pt-40 z-40 overflow-y-auto">
           <div className="mb-4 md:mb-8">
             <div
               className={`flex items-center justify-center gap-2 px-2 py-1 rounded cursor-pointer ${activeSection === 'My Eraiiz Account' ? 'bg-green-50' : ''} md:px-4 md:py-2 md:justify-start`}
@@ -198,7 +198,7 @@ export default function AccountPage() {
           </button>
         </aside>
 
-        <main className="flex-1 p-4 md:p-10">
+        <main className="flex-1 ml-16 md:ml-64 p-4 md:p-10">
           {activeSection === 'My Eraiiz Account' && <MyEraiizAccount user={user} setUser={setUser} onTokenError={handleTokenError} />}
           {activeSection === 'Orders' && <Orders onTokenError={handleTokenError} />}
           {activeSection === 'Favorite Items' && <FavoriteItems onTokenError={handleTokenError} />}

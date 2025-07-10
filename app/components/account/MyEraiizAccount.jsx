@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import { refreshAccessToken } from '../../utils/auth';
+import { User, Mail, Phone, MapPin, Calendar, Globe, Building, Edit3, Save, X, Check, AlertCircle, CreditCard, BarChart3 } from 'lucide-react';
+import EnvironmentalImpact from './EnvironmentalImpact';
 
 export default function MyEraiizAccount({ user, setUser }) {
   const [isEditingAccount, setIsEditingAccount] = useState(false);
   const [isEditingBilling, setIsEditingBilling] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
   const [formData, setFormData] = useState({
     name: user?.name || '',
     email: user?.email || '',
@@ -20,12 +23,17 @@ export default function MyEraiizAccount({ user, setUser }) {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    // Clear messages when user starts typing
+    if (error) setError(null);
+    if (success) setSuccess(null);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
+    setSuccess(null);
+    
     try {
       let token = localStorage.getItem('accessToken');
       if (!token) {
@@ -99,6 +107,7 @@ export default function MyEraiizAccount({ user, setUser }) {
       setUser(data);
       setIsEditingAccount(false);
       setIsEditingBilling(false);
+      setSuccess('Profile updated successfully!');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -106,182 +115,449 @@ export default function MyEraiizAccount({ user, setUser }) {
     }
   };
 
+  const getRoleBadge = (role) => {
+    const roleConfig = {
+      seller: {
+        bg: 'bg-green-100',
+        text: 'text-green-800',
+        icon: '🏪',
+        label: 'Seller'
+      },
+      buyer: {
+        bg: 'bg-blue-100',
+        text: 'text-blue-800',
+        icon: '🛍️',
+        label: 'Buyer'
+      },
+      admin: {
+        bg: 'bg-purple-100',
+        text: 'text-purple-800',
+        icon: '👑',
+        label: 'Admin'
+      }
+    };
+
+    const config = roleConfig[role] || roleConfig.buyer;
+
+    return (
+      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${config.bg} ${config.text}`}>
+        <span>{config.icon}</span>
+        {config.label}
+      </span>
+    );
+  };
+
   return (
-    <>
-      {error && <div className="text-red-600 text-center mb-4">{error}</div>}
-      <h1 className="text-2xl font-semibold mb-8">Account Overview</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div className="max-w-6xl mx-auto space-y-6">
+      {/* Header */}
+      <div className="bg-white shadow-sm rounded-xl border border-gray-100 p-6">
+        <div className="flex items-center gap-4">
+          <div className="p-3 bg-green-100 rounded-lg">
+            <User className="w-8 h-8 text-green-600" />
+          </div>
+          <div className="flex-1">
+            <h1 className="text-2xl font-semibold text-gray-900">Account Overview</h1>
+            <p className="text-sm text-gray-500 mt-1">Manage your personal information and preferences</p>
+          </div>
+          <div className="flex items-center gap-3">
+            {getRoleBadge(user?.role)}
+          </div>
+        </div>
+      </div>
+
+      {/* Success/Error Messages */}
+      {success && (
+        <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3">
+          <div className="p-1 bg-green-100 rounded-full">
+            <Check className="w-4 h-4 text-green-600" />
+          </div>
+          <p className="text-green-800 text-sm font-medium">{success}</p>
+        </div>
+      )}
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3">
+          <div className="p-1 bg-red-100 rounded-full">
+            <AlertCircle className="w-4 h-4 text-red-600" />
+          </div>
+          <p className="text-red-800 text-sm font-medium">{error}</p>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Account Details */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <div className="flex justify-between mb-6">
-            <h2 className="text-lg font-semibold">Account Details</h2>
+        <div className="bg-white shadow-sm rounded-xl border border-gray-100 p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <User className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">Personal Information</h2>
+                <p className="text-sm text-gray-500">Your basic account details</p>
+              </div>
+            </div>
             <button
               onClick={() => setIsEditingAccount(!isEditingAccount)}
-              className="text-sm text-green-600 hover:underline"
+              className="flex items-center gap-2 px-3 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors text-sm font-medium"
             >
-              {isEditingAccount ? 'Cancel' : 'Edit'}
+              {isEditingAccount ? (
+                <>
+                  <X className="w-4 h-4" />
+                  Cancel
+                </>
+              ) : (
+                <>
+                  <Edit3 className="w-4 h-4" />
+                  Edit
+                </>
+              )}
             </button>
           </div>
+
           {isEditingAccount ? (
-            <form onSubmit={handleSubmit} className="text-sm text-gray-700 space-y-3">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <strong>Full name:</strong>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  className="w-full p-2 border rounded mt-1 focus:outline-none focus:ring-2 focus:ring-green-500"
-                  required
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    required
+                  />
+                </div>
               </div>
+              
               <div>
-                <strong>Email address:</strong>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="w-full p-2 border rounded mt-1 focus:outline-none focus:ring-2 focus:ring-green-500"
-                  required
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    required
+                  />
+                </div>
               </div>
+              
               <div>
-                <strong>Date of birth:</strong>
-                <input
-                  type="date"
-                  name="dateOfBirth"
-                  value={formData.dateOfBirth}
-                  onChange={handleChange}
-                  className="w-full p-2 border rounded mt-1 focus:outline-none focus:ring-2 focus:ring-green-500"
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <input
+                    type="date"
+                    name="dateOfBirth"
+                    value={formData.dateOfBirth}
+                    onChange={handleChange}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  />
+                </div>
               </div>
+              
               <div>
-                <strong>Phone number:</strong>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className="w-full p-2 border rounded mt-1 focus:outline-none focus:ring-2 focus:ring-green-500"
-                  required
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    required
+                  />
+                </div>
               </div>
-              <div>
-                <strong>Country:</strong>
-                <input
-                  type="text"
-                  name="country"
-                  value={formData.country}
-                  onChange={handleChange}
-                  className="w-full p-2 border rounded mt-1 focus:outline-none focus:ring-2 focus:ring-green-500"
-                  required
-                />
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                  <div className="relative">
+                    <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <input
+                      type="text"
+                      name="country"
+                      value={formData.country}
+                      onChange={handleChange}
+                      className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">State</label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <input
+                      type="text"
+                      name="state"
+                      value={formData.state}
+                      onChange={handleChange}
+                      className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
               </div>
-              <div>
-                <strong>State of residence:</strong>
-                <input
-                  type="text"
-                  name="state"
-                  value={formData.state}
-                  onChange={handleChange}
-                  className="w-full p-2 border rounded mt-1 focus:outline-none focus:ring-2 focus:ring-green-500"
-                />
-              </div>
-              <div>
-                <strong>Role:</strong>
-                <p className="mt-1 text-gray-600">{user?.role || 'N/A'}</p>
-              </div>
+              
               <button
                 type="submit"
-                className="mt-4 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition duration-200"
                 disabled={isLoading}
+                className="w-full flex items-center justify-center gap-2 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isLoading ? 'Saving...' : 'Save Changes'}
+                {isLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    Save Changes
+                  </>
+                )}
               </button>
             </form>
           ) : (
-            <div className="text-sm text-gray-700 space-y-3">
-              <p><strong>Full name:</strong> {user?.name || 'N/A'}</p>
-              <p><strong>Email address:</strong> {user?.email || 'N/A'}</p>
-              <p><strong>Date of birth:</strong> {user?.dateOfBirth ? new Date(user.dateOfBirth).toLocaleDateString() : 'N/A'}</p>
-              <p><strong>Phone number:</strong> {user?.phone || 'N/A'}</p>
-              <p><strong>Country:</strong> {user?.country || 'N/A'}</p>
-              <p><strong>State of residence:</strong> {user?.state || 'N/A'}</p>
-              <p><strong>Role:</strong> {user?.role || 'N/A'}</p>
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                <User className="w-4 h-4 text-gray-500" />
+                <div>
+                  <p className="text-xs text-gray-500">Full Name</p>
+                  <p className="text-sm font-medium text-gray-900">{user?.name || 'Not provided'}</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                <Mail className="w-4 h-4 text-gray-500" />
+                <div>
+                  <p className="text-xs text-gray-500">Email Address</p>
+                  <p className="text-sm font-medium text-gray-900">{user?.email || 'Not provided'}</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                <Calendar className="w-4 h-4 text-gray-500" />
+                <div>
+                  <p className="text-xs text-gray-500">Date of Birth</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    {user?.dateOfBirth ? new Date(user.dateOfBirth).toLocaleDateString() : 'Not provided'}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                <Phone className="w-4 h-4 text-gray-500" />
+                <div>
+                  <p className="text-xs text-gray-500">Phone Number</p>
+                  <p className="text-sm font-medium text-gray-900">{user?.phone || 'Not provided'}</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <Globe className="w-4 h-4 text-gray-500" />
+                  <div>
+                    <p className="text-xs text-gray-500">Country</p>
+                    <p className="text-sm font-medium text-gray-900">{user?.country || 'Not provided'}</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <MapPin className="w-4 h-4 text-gray-500" />
+                  <div>
+                    <p className="text-xs text-gray-500">State</p>
+                    <p className="text-sm font-medium text-gray-900">{user?.state || 'Not provided'}</p>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>
 
         {/* Billing Address */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <div className="flex justify-between mb-6">
-            <h2 className="text-lg font-semibold">Billing Address</h2>
+        <div className="bg-white shadow-sm rounded-xl border border-gray-100 p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <CreditCard className="w-5 h-5 text-purple-600" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">Billing Address</h2>
+                <p className="text-sm text-gray-500">Your address for billing and shipping</p>
+              </div>
+            </div>
             <button
               onClick={() => setIsEditingBilling(!isEditingBilling)}
-              className="text-sm text-green-600 hover:underline"
+              className="flex items-center gap-2 px-3 py-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors text-sm font-medium"
             >
-              {isEditingBilling ? 'Cancel' : 'Edit'}
+              {isEditingBilling ? (
+                <>
+                  <X className="w-4 h-4" />
+                  Cancel
+                </>
+              ) : (
+                <>
+                  <Edit3 className="w-4 h-4" />
+                  Edit
+                </>
+              )}
             </button>
           </div>
+
           {isEditingBilling ? (
-            <form onSubmit={handleSubmit} className="text-sm text-gray-700 space-y-3">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <strong>House address:</strong>
-                <textarea
-                  name="houseAddress"
-                  value={formData.houseAddress}
-                  onChange={handleChange}
-                  className="w-full p-2 border rounded mt-1 focus:outline-none focus:ring-2 focus:ring-green-500"
-                  rows="3"
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-2">House Address</label>
+                <div className="relative">
+                  <Building className="absolute left-3 top-3 text-gray-400 w-4 h-4" />
+                  <textarea
+                    name="houseAddress"
+                    value={formData.houseAddress}
+                    onChange={handleChange}
+                    rows={3}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    placeholder="Enter your complete house address"
+                  />
+                </div>
               </div>
+              
               <div>
-                <strong>City of residence:</strong>
-                <input
-                  type="text"
-                  name="city"
-                  value={formData.city}
-                  onChange={handleChange}
-                  className="w-full p-2 border rounded mt-1 focus:outline-none focus:ring-2 focus:ring-green-500"
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <input
+                    type="text"
+                    name="city"
+                    value={formData.city}
+                    onChange={handleChange}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    placeholder="Enter your city"
+                  />
+                </div>
               </div>
+              
               <div>
-                <strong>Postal address:</strong>
-                <input
-                  type="text"
-                  name="postalAddress"
-                  value={formData.postalAddress}
-                  onChange={handleChange}
-                  className="w-full p-2 border rounded mt-1 focus:outline-none focus:ring-2 focus:ring-green-500"
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-2">Postal Code</label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <input
+                    type="text"
+                    name="postalAddress"
+                    value={formData.postalAddress}
+                    onChange={handleChange}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    placeholder="Enter postal code"
+                  />
+                </div>
               </div>
+              
               <button
                 type="submit"
-                className="mt-4 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition duration-200"
                 disabled={isLoading}
+                className="w-full flex items-center justify-center gap-2 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isLoading ? 'Saving...' : 'Save Changes'}
+                {isLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    Save Changes
+                  </>
+                )}
               </button>
             </form>
           ) : (
-            <div className="text-sm text-gray-700 space-y-3">
-              <p><strong>House address:</strong> {user?.billingAddress?.houseAddress || 'N/A'}</p>
-              <p><strong>City of residence:</strong> {user?.billingAddress?.city || 'N/A'}</p>
-              <p><strong>Postal address:</strong> {user?.billingAddress?.postalAddress || 'N/A'}</p>
+            <div className="space-y-4">
+              <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                <Building className="w-4 h-4 text-gray-500 mt-0.5" />
+                <div>
+                  <p className="text-xs text-gray-500">House Address</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    {user?.billingAddress?.houseAddress || 'Not provided'}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                <MapPin className="w-4 h-4 text-gray-500" />
+                <div>
+                  <p className="text-xs text-gray-500">City</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    {user?.billingAddress?.city || 'Not provided'}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                <Mail className="w-4 h-4 text-gray-500" />
+                <div>
+                  <p className="text-xs text-gray-500">Postal Code</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    {user?.billingAddress?.postalAddress || 'Not provided'}
+                  </p>
+                </div>
+              </div>
             </div>
           )}
         </div>
+      </div>
 
-        {/* Eraiiz Stats */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border col-span-1 md:col-span-2">
-          <h2 className="text-lg font-semibold mb-6">Eraiiz Stats</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-gray-700">
-            <p><strong>Number of purchases:</strong> {user?.eraizStats?.numberOfPurchases || 0}</p>
-            <p><strong>Total amount spent:</strong> {user?.eraizStats?.totalAmountSpent.toLocaleString() || 0} NGN</p>
+      {/* Eraiiz Stats */}
+      <div className="bg-white shadow-sm rounded-xl border border-gray-100 p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 bg-orange-100 rounded-lg">
+            <BarChart3 className="w-5 h-5 text-orange-600" />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Account Statistics</h2>
+            <p className="text-sm text-gray-500">Your activity summary on Eraiiz</p>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-6 rounded-lg border border-blue-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-blue-900">Total Purchases</p>
+                <p className="text-2xl font-bold text-blue-900 mt-1">
+                  {user?.eraizStats?.numberOfPurchases || 0}
+                </p>
+              </div>
+              <div className="p-3 bg-blue-200 rounded-lg">
+                <BarChart3 className="w-6 h-6 text-blue-700" />
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-gradient-to-r from-green-50 to-green-100 p-6 rounded-lg border border-green-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-green-900">Total Spent</p>
+                <p className="text-2xl font-bold text-green-900 mt-1">
+                  ₦{(user?.eraizStats?.totalAmountSpent || 0).toLocaleString()}
+                </p>
+              </div>
+              <div className="p-3 bg-green-200 rounded-lg">
+                <CreditCard className="w-6 h-6 text-green-700" />
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </>
+
+      {/* Environmental Impact Section */}
+      <EnvironmentalImpact />
+    </div>
   );
 }

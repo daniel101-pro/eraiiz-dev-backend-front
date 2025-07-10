@@ -5,12 +5,16 @@ import axios from 'axios';
 import Image from 'next/image';
 import { toast, Toaster } from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
+import { useCurrency } from '../context/CurrencyContext';
+import { ChevronDown, Globe, DollarSign, Info, Upload, X, Plus, Minus, Package, Camera, Star, ShoppingBag, Leaf, Award } from 'lucide-react';
 
 const ProductUploadForm = () => {
+  const { getCurrencyInfo } = useCurrency();
   const [product, setProduct] = useState({
     name: '',
     description: '',
     price: '',
+    currency: 'NGN',
     category: '',
     material: '',
     details: [''],
@@ -24,18 +28,51 @@ const ProductUploadForm = () => {
     },
     bonus: {
       enabled: false,
-      type: 'percentage', // or 'fixed'
+      type: 'percentage',
       value: 0
+    },
+    sustainability: {
+      materials: [{ name: '', type: 'conventional', percentage: 100 }],
+      weight: { value: 0, unit: 'kg' },
+      manufacturingLocation: { country: '', city: '' },
+      productionEnergySource: 'unknown',
+      shipping: {
+        origin: { country: '', city: '' },
+        destination: { country: 'Nigeria', city: '' },
+        method: 'mixed',
+        distance: 0,
+        packagingType: 'conventional'
+      },
+      certifications: []
     }
   });
+
   const [session, setSession] = useState(null);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSustainability, setShowSustainability] = useState(false);
+  const [carbonFootprint, setCarbonFootprint] = useState(null);
+  const [isCalculating, setIsCalculating] = useState(false);
+  const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
   const router = useRouter();
 
-  // Updated categories list
+  // Currency options
+  const currencies = [
+    { code: 'NGN', symbol: '₦', name: 'Nigerian Naira', flag: '🇳🇬' },
+    { code: 'USD', symbol: '$', name: 'US Dollar', flag: '🇺🇸' },
+    { code: 'EUR', symbol: '€', name: 'Euro', flag: '🇪🇺' },
+    { code: 'GBP', symbol: '£', name: 'British Pound', flag: '🇬🇧' },
+    { code: 'JPY', symbol: '¥', name: 'Japanese Yen', flag: '🇯🇵' },
+    { code: 'CHF', symbol: 'CHF', name: 'Swiss Franc', flag: '🇨🇭' },
+    { code: 'CAD', symbol: 'C$', name: 'Canadian Dollar', flag: '🇨🇦' },
+    { code: 'AUD', symbol: 'A$', name: 'Australian Dollar', flag: '🇦🇺' },
+    { code: 'CNY', symbol: '¥', name: 'Chinese Yuan', flag: '🇨🇳' },
+    { code: 'INR', symbol: '₹', name: 'Indian Rupee', flag: '🇮🇳' },
+  ];
+
+  // Categories
   const categories = [
     'Plastic Made Products',
     'Rubber Made Products',
@@ -45,6 +82,40 @@ const ProductUploadForm = () => {
     'General Recycled Items',
   ];
 
+  // Sustainability options
+  const materialTypes = [
+    { value: 'organic', label: 'Organic' },
+    { value: 'recycled', label: 'Recycled' },
+    { value: 'sustainable', label: 'Sustainable' },
+    { value: 'conventional', label: 'Conventional' }
+  ];
+
+  const energySources = [
+    { value: 'solar', label: 'Solar Power' },
+    { value: 'wind', label: 'Wind Power' },
+    { value: 'hydro', label: 'Hydroelectric' },
+    { value: 'nuclear', label: 'Nuclear' },
+    { value: 'fossil_fuel', label: 'Fossil Fuel' },
+    { value: 'mixed', label: 'Mixed Sources' },
+    { value: 'unknown', label: 'Unknown' }
+  ];
+
+  const shippingMethods = [
+    { value: 'air', label: 'Air Freight' },
+    { value: 'sea', label: 'Sea Freight' },
+    { value: 'land', label: 'Land Transport' },
+    { value: 'rail', label: 'Rail Transport' },
+    { value: 'mixed', label: 'Mixed Methods' }
+  ];
+
+  const packagingTypes = [
+    { value: 'recycled', label: 'Recycled Materials' },
+    { value: 'biodegradable', label: 'Biodegradable' },
+    { value: 'minimal', label: 'Minimal Packaging' },
+    { value: 'conventional', label: 'Conventional' }
+  ];
+
+  // Session management functions
   const refreshToken = async () => {
     const refreshToken = localStorage.getItem('refreshToken');
     if (!refreshToken) return null;
@@ -56,7 +127,6 @@ const ProductUploadForm = () => {
       );
       localStorage.setItem('accessToken', data.accessToken);
       localStorage.setItem('refreshToken', data.refreshToken);
-      console.log('Client: Token Refreshed:', data.accessToken);
       return data.accessToken;
     } catch (err) {
       console.error('Client: Refresh Error:', err.response?.data || err.message);
@@ -67,7 +137,6 @@ const ProductUploadForm = () => {
   useEffect(() => {
     const fetchSession = async () => {
       let token = localStorage.getItem('accessToken');
-      console.log('Client: Initial Token:', token);
       if (!token) {
         setError('Please sign in to access this page.');
         setIsLoading(false);
@@ -78,7 +147,6 @@ const ProductUploadForm = () => {
           headers: { Authorization: `Bearer ${token}` },
           timeout: 30000,
         });
-        console.log('Client: Session Response:', res.status, res.data);
         if (res.status === 401) {
           token = await refreshToken();
           if (!token) throw new Error('Unable to refresh token');
@@ -98,6 +166,7 @@ const ProductUploadForm = () => {
     fetchSession();
   }, []);
 
+  // Form handlers
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setProduct((prev) => ({ ...prev, [name]: value }));
@@ -181,87 +250,153 @@ const ProductUploadForm = () => {
     }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError(null);
-    setSuccess(null);
-    setIsSubmitting(true);
+  // Sustainability handlers
+  const addMaterial = () => {
+    setProduct((prev) => ({
+      ...prev,
+      sustainability: {
+        ...prev.sustainability,
+        materials: [...prev.sustainability.materials, { name: '', type: 'conventional', percentage: 0 }]
+      }
+    }));
+  };
 
-    let token = localStorage.getItem('accessToken');
-    if (!token) {
-      setError('Please sign in to upload products.');
-      setIsSubmitting(false);
-      return;
-    }
+  const removeMaterial = (index) => {
+    setProduct((prev) => ({
+      ...prev,
+      sustainability: {
+        ...prev.sustainability,
+        materials: prev.sustainability.materials.filter((_, i) => i !== index)
+      }
+    }));
+  };
 
-    // Validate required fields
-    if (!product.material) {
-      toast.error('Material is required');
-      setIsSubmitting(false);
-      return;
-    }
+  const updateMaterial = (index, field, value) => {
+    setProduct((prev) => ({
+      ...prev,
+      sustainability: {
+        ...prev.sustainability,
+        materials: prev.sustainability.materials.map((material, i) =>
+          i === index ? { ...material, [field]: value } : material
+        )
+      }
+    }));
+  };
 
-    if (!product.images.length) {
-      toast.error('At least one image is required');
-      setIsSubmitting(false);
-      return;
-    }
+  const updateSustainability = (field, value) => {
+    setProduct((prev) => ({
+      ...prev,
+      sustainability: {
+        ...prev.sustainability,
+        [field]: value
+      }
+    }));
+  };
 
-    // Check if at least one size is available when sizes are used
-    const hasAvailableSizes = Object.values(product.sizes).some(size => size.available);
-    if (!hasAvailableSizes) {
-      toast.error('Please select at least one available size');
-      setIsSubmitting(false);
-      return;
-    }
+  const updateShipping = (field, value) => {
+    setProduct((prev) => ({
+      ...prev,
+      sustainability: {
+        ...prev.sustainability,
+        shipping: {
+          ...prev.sustainability.shipping,
+          [field]: value
+        }
+      }
+    }));
+  };
 
-    // Filter out empty details
-    const filteredDetails = product.details.filter(detail => detail.trim() !== '');
+  const updateShippingLocation = (type, field, value) => {
+    setProduct((prev) => ({
+      ...prev,
+      sustainability: {
+        ...prev.sustainability,
+        shipping: {
+          ...prev.sustainability.shipping,
+          [type]: {
+            ...prev.sustainability.shipping[type],
+            [field]: value
+          }
+        }
+      }
+    }));
+  };
 
-    const formData = new FormData();
-    formData.append('name', product.name);
-    formData.append('description', product.description);
-    formData.append('price', product.price);
-    formData.append('category', product.category);
-    formData.append('material', product.material);
-    formData.append('details', JSON.stringify(filteredDetails));
-    formData.append('sizes', JSON.stringify(product.sizes));
-    formData.append('bonus', JSON.stringify(product.bonus));
-    product.images.forEach((image) => formData.append('images', image));
-
+  const calculateCarbonFootprint = async () => {
+    setIsCalculating(true);
     try {
-      let response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/products/upload`,
-        formData,
+      const token = localStorage.getItem('accessToken');
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/carbonFootprint`,
+        { sustainabilityData: product.sustainability },
         {
           headers: { Authorization: `Bearer ${token}` },
           timeout: 30000,
         }
       );
-      console.log('Client: Upload Response:', response.status, response.data);
-      if (response.status === 401) {
-        token = await refreshToken();
-        if (!token) throw new Error('Unable to refresh token');
-        response = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/products/upload`,
-          formData,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-            timeout: 30000,
-          }
-        );
+      setCarbonFootprint(response.data);
+      toast.success('Carbon footprint calculated successfully!');
+    } catch (error) {
+      console.error('Error calculating carbon footprint:', error);
+      toast.error('Failed to calculate carbon footprint');
+    } finally {
+      setIsCalculating(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const token = localStorage.getItem('accessToken');
+      const formData = new FormData();
+
+      // Add product data
+      Object.keys(product).forEach((key) => {
+        if (key === 'images') {
+          product.images.forEach((image) => formData.append('images', image));
+        } else if (key === 'sizes' || key === 'bonus' || key === 'sustainability') {
+          formData.append(key, JSON.stringify(product[key]));
+        } else if (Array.isArray(product[key])) {
+          formData.append(key, JSON.stringify(product[key]));
+        } else {
+          formData.append(key, product[key]);
+        }
+      });
+
+      // Add carbon footprint if calculated
+      if (carbonFootprint) {
+        formData.append('carbonFootprint', JSON.stringify(carbonFootprint));
       }
+
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/products`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data',
+          },
+          timeout: 60000,
+        }
+      );
+
+      setSuccess('Product uploaded successfully!');
       toast.success('Product uploaded successfully!');
-      // Redirect to success page with product ID
-      const productId = response.data?.productId || response.data?._id || response.data?.product?._id;
-      if (productId) {
-        router.push(`/dashboard/seller/upload/success?productId=${productId}`);
-      } else {
+      
+      // Redirect to success page
+      setTimeout(() => {
         router.push('/dashboard/seller/upload/success');
-      }
+      }, 2000);
+
     } catch (err) {
-      console.error('Client: Upload Error:', err.response?.data || err.message);
-      toast.error(err.response?.data?.message || 'Failed to upload product');
+      console.error('Upload error:', err);
+      const errorMessage = err.response?.data?.message || 'Upload failed. Please try again.';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -269,48 +404,29 @@ const ProductUploadForm = () => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center">
-        <LoadingSpinner size={40} color="#16a34a" />
+      <div className="flex justify-center items-center min-h-screen">
+        <LoadingSpinner />
       </div>
     );
   }
 
-  if (error || !session) {
+  if (!session) {
     return (
-      <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">Unauthorized</h2>
-        <p className="text-red-600 text-center mb-6">{error || 'Please sign in to access this page.'}</p>
-        <a
-          href="/login"
-          className="block w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition duration-200 font-semibold text-center"
-        >
-          Sign In
-        </a>
-      </div>
-    );
-  }
-
-  if (session.role !== 'seller') {
-    return (
-      <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">Unauthorized</h2>
-        <p className="text-red-600 text-center mb-6">Only sellers can access this page.</p>
-        <a
-          href="/login"
-          className="block w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition duration-200 font-semibold text-center"
-        >
-          Sign In
-        </a>
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900">Access Denied</h2>
+          <p className="text-gray-600 mt-2">Please log in to access this page.</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
+    <div className="min-h-screen bg-white md:bg-gradient-to-br md:from-green-50 md:via-white md:to-blue-50 p-0 md:py-12 md:px-4">
       <Toaster
-        position="top-center"
+        position="top-right"
         toastOptions={{
-          duration: 2000,
+          duration: 4000,
           style: {
             background: '#333',
             color: '#fff',
@@ -319,335 +435,745 @@ const ProductUploadForm = () => {
           },
         }}
       />
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900">Upload New Product</h2>
-        <p className="mt-1 text-sm text-gray-500">
-          Create your product listing with all the essential details to attract customers
-        </p>
-      </div>
-      {success && <p className="text-green-600 mb-4">{success}</p>}
-      {error && <p className="text-red-600 mb-4">{error}</p>}
       
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Left Column */}
-          <div className="space-y-6">
-            {/* Basic Information */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Product Name</label>
-              <p className="text-xs text-gray-500 mb-1">
-                Choose a clear, catchy name that helps customers find your product
-              </p>
-          <input
-            type="text"
-            name="name"
-            value={product.name}
-            onChange={handleInputChange}
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Description</label>
-              <p className="text-xs text-gray-500 mb-1">
-                Paint a picture with words - describe what makes your product special
-              </p>
-          <textarea
-            name="description"
-            value={product.description}
-            onChange={handleInputChange}
-                rows={4}
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            required
-          />
-        </div>
-
-        <div>
-              <label className="block text-sm font-medium text-gray-700">Price</label>
-              <p className="text-xs text-gray-500 mb-1">
-                Set a competitive price that reflects your product's value
-              </p>
-              <div className="relative mt-1">
-                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 pointer-events-none">₦</span>
-          <input
-            type="number"
-            name="price"
-            value={product.price}
-            onChange={handleInputChange}
-                  className="block w-full pl-7 rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  min="0"
-            step="0.01"
-            required
-          />
-        </div>
-            </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Category</label>
-              <p className="text-xs text-gray-500 mb-1">
-                Help customers discover your product in the right category
-              </p>
-          <select
-            name="category"
-            value={product.category}
-            onChange={handleInputChange}
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            required
-          >
-                <option value="" className="text-gray-400">Select</option>
-            {categories.map((cat) => (
-                  <option key={cat} value={cat} className="text-gray-700">
-                {cat}
-              </option>
-            ))}
-          </select>
-        </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Material</label>
-              <p className="text-xs text-gray-500 mb-1">
-                Specify the primary material - quality starts with what it's made of
-              </p>
-              <input
-                type="text"
-                name="material"
-                value={product.material}
-                onChange={handleInputChange}
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Product Details</label>
-              <p className="text-xs text-gray-500 mb-1">
-                List unique features, care instructions, or any special characteristics
-              </p>
-              <div className="space-y-2">
-                {product.details.map((detail, index) => (
-                  <div key={index} className="flex gap-2 mb-2">
-                    <input
-                      type="text"
-                      value={detail}
-                      onChange={(e) => handleDetailChange(index, e.target.value)}
-                      className="block w-full rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      placeholder="Enter product detail"
-                    />
-                    {index > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => removeDetail(index)}
-                        className="text-red-500 hover:text-red-600"
-                      >
-                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
+      <div className="max-w-6xl mx-auto m-0 md:mt-0">
+        {/* Header Section */}
+        <div className="text-center mb-2 md:mb-12">
+          <div className="hidden md:inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full mb-6 shadow-lg">
+            <Upload className="h-10 w-10 text-white" />
           </div>
-
-          {/* Right Column */}
-          <div className="space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Product Images</label>
-              <p className="text-xs text-gray-500 mb-1">
-                Show your product's best angles - high-quality images increase sales
-              </p>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
-          <input
-            type="file"
-            multiple
-            accept="image/*"
-            onChange={handleImageUpload}
-                  className="hidden"
-                  id="image-upload"
-                />
-                <label
-                  htmlFor="image-upload"
-                  className="cursor-pointer block text-center"
-                >
-                  <div className="space-y-2">
-                    <svg
-                      className="mx-auto h-12 w-12 text-gray-400"
-                      stroke="currentColor"
-                      fill="none"
-                      viewBox="0 0 48 48"
-                      aria-hidden="true"
-                    >
-                      <path
-                        d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                        strokeWidth={2}
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    <div className="text-sm text-gray-600">
-                      <span className="text-green-600 hover:text-green-700">Upload images</span>
-                      {' '}or drag and drop
-                    </div>
-                    <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
-                  </div>
-                </label>
-              </div>
-              {product.images.length > 0 && (
-                <div className="mt-4 grid grid-cols-3 gap-4">
-                  {product.images.map((image, index) => (
-                    <div key={index} className="relative">
-                      <img
-                        src={URL.createObjectURL(image)}
-                        alt={`Preview ${index + 1}`}
-                        className="h-24 w-full object-cover rounded-lg"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeImage(index)}
-                        className="absolute top-0 right-0 -mt-2 -mr-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                      >
-                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    </div>
-            ))}
-          </div>
-              )}
+          <h1 className="text-xl md:text-4xl font-bold text-gray-900 mb-2 md:mb-4">Upload New Product</h1>
+          <p className="text-sm md:text-xl text-gray-600 max-w-3xl mx-auto">
+            Create your product listing with all the essential details to attract customers and boost sales
+          </p>
         </div>
 
-            {/* Size Selection */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Available Sizes</label>
-              <p className="text-xs text-gray-500 mb-2">
-                Toggle sizes you offer and set stock levels - grey means unavailable
-              </p>
-              <div className="grid grid-cols-5 gap-4">
-                {Object.entries(product.sizes).map(([size, data]) => (
-                  <div key={size} className="space-y-2">
-                    <button
-                      type="button"
-                      onClick={() => handleSizeToggle(size)}
-                      className={`
-                        w-full py-3 px-4 text-base font-medium rounded-xl border-2
-                        ${data.available
-                          ? 'border-green-600 bg-white text-green-600'
-                          : 'border-gray-200 bg-gray-50 text-gray-300'
-                        }
-                        transition-colors duration-200
-                      `}
-                    >
-                      {size}
-                    </button>
-                    {data.available && (
-                      <input
-                        type="number"
-                        min="0"
-                        value={data.stock}
-                        onChange={(e) => handleSizeStockChange(size, e.target.value)}
-                        className="w-full px-2 py-1 text-sm border rounded focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        placeholder="Stock"
-                      />
-                    )}
-            </div>
-          ))}
-              </div>
-            </div>
+        {/* Alert Messages */}
+        {success && (
+          <div className="mb-8 p-4 bg-green-50 border border-green-200 rounded-xl">
+            <p className="text-green-800 flex items-center gap-2">
+              <Award className="h-5 w-5" />
+              {success}
+            </p>
+          </div>
+        )}
+        {error && (
+          <div className="mb-8 p-4 bg-red-50 border border-red-200 rounded-xl">
+            <p className="text-red-800 flex items-center gap-2">
+              <X className="h-5 w-5" />
+              {error}
+            </p>
+          </div>
+        )}
 
-            {/* Bonus/Discount Section */}
-            <div className="border rounded-lg p-4 space-y-4">
-              <div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Special Offer</label>
-                    <p className="text-xs text-gray-500">
-                      Attract customers with a special discount or promotional offer
-                    </p>
+        {/* Main Form */}
+        <form onSubmit={handleSubmit} className="bg-white md:rounded-3xl md:shadow-2xl overflow-hidden">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
+            
+            {/* Left Column */}
+            <div className="p-8 lg:p-12 space-y-8">
+              {/* Basic Information */}
+              <div className="space-y-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                    <Info className="h-5 w-5 text-green-600" />
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleBonusToggle}
-                    className={`
-                      relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent
-                      transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2
-                      ${product.bonus.enabled ? 'bg-green-600' : 'bg-gray-200'}
-                    `}
-                  >
-                    <span
-                      className={`
-                        pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0
-                        transition duration-200 ease-in-out
-                        ${product.bonus.enabled ? 'translate-x-5' : 'translate-x-0'}
-                      `}
-                    />
-                  </button>
+                  <h2 className="text-2xl font-bold text-gray-900">Basic Information</h2>
                 </div>
 
-                {product.bonus.enabled && (
-                  <div className="space-y-3 mt-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">Discount Type</label>
-                      <p className="text-xs text-gray-500 mb-1">
-                        Choose between a percentage off or a fixed amount discount
-                      </p>
-                      <select
-                        value={product.bonus.type}
-                        onChange={(e) => handleBonusChange('type', e.target.value)}
-                        className="block w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                {/* Product Name */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Product Name</label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={product.name}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                    placeholder="Enter a catchy product name..."
+                    required
+                  />
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+                  <textarea
+                    name="description"
+                    value={product.description}
+                    onChange={handleInputChange}
+                    rows={4}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                    placeholder="Describe what makes your product special..."
+                    required
+                  />
+                </div>
+
+                {/* Price and Currency */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <DollarSign className="inline h-4 w-4 mr-1" />
+                    Price & Currency
+                  </label>
+                  
+                  <div className="flex gap-3">
+                    {/* Currency Selector */}
+                    <div className="relative w-40">
+                      <button
+                        type="button"
+                        onClick={() => setIsCurrencyOpen(!isCurrencyOpen)}
+                        className="w-full flex items-center justify-between p-3 border border-gray-300 rounded-xl bg-white hover:bg-gray-50 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors duration-200"
                       >
-                        <option value="percentage">Percentage (%)</option>
-                        <option value="fixed">Fixed Amount (₦)</option>
-                      </select>
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg">{getCurrencyInfo(product.currency).flag}</span>
+                          <span className="text-sm font-medium">{product.currency}</span>
+                        </div>
+                        <ChevronDown className={`h-4 w-4 text-gray-600 transition-transform duration-200 ${isCurrencyOpen ? 'rotate-180' : ''}`} />
+                      </button>
+
+                      {/* Currency Dropdown */}
+                      {isCurrencyOpen && (
+                        <>
+                          <div 
+                            className="fixed inset-0 z-10"
+                            onClick={() => setIsCurrencyOpen(false)}
+                          />
+                          <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-xl z-20 max-h-48 overflow-y-auto">
+                            {currencies.map((currency) => (
+                              <button
+                                key={currency.code}
+                                type="button"
+                                onClick={() => {
+                                  setProduct(prev => ({ ...prev, currency: currency.code }));
+                                  setIsCurrencyOpen(false);
+                                }}
+                                className={`w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors duration-150 ${
+                                  product.currency === currency.code ? 'bg-green-50 text-green-600' : 'text-gray-700'
+                                }`}
+                              >
+                                <span className="text-lg">{currency.flag}</span>
+                                <div className="text-left flex-1">
+                                  <div className="text-sm font-medium">{currency.code}</div>
+                                  <div className="text-xs text-gray-500">{currency.name}</div>
+                                </div>
+                                <span className="text-sm text-gray-500">{currency.symbol}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </>
+                      )}
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        {product.bonus.type === 'percentage' ? 'Percentage Off' : 'Amount Off'}
-                      </label>
-                      <p className="text-xs text-gray-500 mb-1">
-                        {product.bonus.type === 'percentage'
-                          ? 'Enter a percentage between 1-100%'
-                          : 'Enter the amount to subtract from the price'
-                        }
-                      </p>
-                      <div className="relative">
-                        <input
-                          type="number"
-                          min="0"
-                          max={product.bonus.type === 'percentage' ? "100" : undefined}
-                          value={product.bonus.value}
-                          onChange={(e) => handleBonusChange('value', parseFloat(e.target.value) || 0)}
-                          className="block w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                          placeholder={product.bonus.type === 'percentage' ? "Enter percentage" : "Enter amount"}
-                        />
-                        <span className="absolute right-3 top-2 text-gray-500">
-                          {product.bonus.type === 'percentage' ? '%' : '₦'}
-                        </span>
+
+                    {/* Price Input */}
+                    <div className="flex-1 relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 pointer-events-none">
+                        <span className="text-sm font-medium">{getCurrencyInfo(product.currency).symbol}</span>
+                      </div>
+                      <input
+                        type="number"
+                        name="price"
+                        value={product.price}
+                        onChange={handleInputChange}
+                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                        placeholder="0.00"
+                        min="0"
+                        step="0.01"
+                        required
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Price Info */}
+                  <div className="mt-3 p-3 bg-blue-50 rounded-xl border border-blue-200">
+                    <div className="flex items-start gap-2">
+                      <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                      <div className="text-xs text-blue-700">
+                        <p className="font-medium mb-1">💡 Pricing Tips:</p>
+                        <ul className="list-disc list-inside space-y-1">
+                          <li>Research similar products to stay competitive</li>
+                          <li>Buyers can view prices in their preferred currency</li>
+                        </ul>
                       </div>
                     </div>
                   </div>
+                </div>
+
+                {/* Category */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Category</label>
+                  <select
+                    name="category"
+                    value={product.category}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                    required
+                  >
+                    <option value="">Select a category...</option>
+                    {categories.map((cat) => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Material */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Material</label>
+                  <input
+                    type="text"
+                    name="material"
+                    value={product.material}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                    placeholder="e.g., Recycled plastic, Bamboo, Organic cotton..."
+                    required
+                  />
+                </div>
+
+                {/* Product Details */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Product Details</label>
+                  <div className="space-y-2">
+                    {product.details.map((detail, index) => (
+                      <div key={index} className="flex gap-2">
+                        <input
+                          type="text"
+                          value={detail}
+                          onChange={(e) => handleDetailChange(index, e.target.value)}
+                          className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                          placeholder="Enter product detail..."
+                        />
+                        {index > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => removeDetail(index)}
+                            className="p-3 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-xl transition-colors duration-200"
+                          >
+                            <Minus className="h-5 w-5" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={addDetail}
+                      className="flex items-center gap-2 text-green-600 hover:text-green-700 p-2 hover:bg-green-50 rounded-xl transition-colors duration-200"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Add Detail
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column */}
+            <div className="bg-gray-50 p-8 lg:p-12 space-y-8">
+              {/* Product Images */}
+              <div>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <Camera className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-900">Product Images</h2>
+                </div>
+
+                <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-green-400 transition-colors duration-200">
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                    id="image-upload"
+                  />
+                  <label htmlFor="image-upload" className="cursor-pointer">
+                    <Camera className="mx-auto h-16 w-16 text-gray-400 mb-4" />
+                    <p className="text-lg font-medium text-gray-700 mb-2">Upload Product Images</p>
+                    <p className="text-sm text-gray-500">PNG, JPG, GIF up to 10MB each</p>
+                  </label>
+                </div>
+
+                {/* Image Previews */}
+                {product.images.length > 0 && (
+                  <div className="mt-6 grid grid-cols-2 gap-4">
+                    {product.images.map((image, index) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={URL.createObjectURL(image)}
+                          alt={`Preview ${index + 1}`}
+                          className="h-32 w-full object-cover rounded-xl"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(index)}
+                          className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 )}
+              </div>
+
+              {/* Sizes */}
+              <div>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <Package className="h-5 w-5 text-purple-600" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-900">Available Sizes</h2>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  {Object.keys(product.sizes).map((size) => (
+                    <div key={size} className="border border-gray-200 rounded-xl p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <label className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={product.sizes[size].available}
+                            onChange={() => handleSizeToggle(size)}
+                            className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                          />
+                          <span className="font-medium text-gray-700">Size {size}</span>
+                        </label>
+                      </div>
+                      {product.sizes[size].available && (
+                        <input
+                          type="number"
+                          placeholder="Stock"
+                          value={product.sizes[size].stock}
+                          onChange={(e) => handleSizeStockChange(size, e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                          min="0"
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Bonus Offers */}
+              <div>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
+                    <Star className="h-5 w-5 text-yellow-600" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-900">Bonus Offers</h2>
+                </div>
+
+                <div className="space-y-4">
+                  <label className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={product.bonus.enabled}
+                      onChange={handleBonusToggle}
+                      className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                    />
+                    <span className="font-medium text-gray-700">Enable bonus offers</span>
+                  </label>
+
+                  {product.bonus.enabled && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <select
+                        value={product.bonus.type}
+                        onChange={(e) => handleBonusChange('type', e.target.value)}
+                        className="px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      >
+                        <option value="percentage">Percentage</option>
+                        <option value="fixed">Fixed Amount</option>
+                      </select>
+                      <input
+                        type="number"
+                        value={product.bonus.value}
+                        onChange={(e) => handleBonusChange('value', e.target.value)}
+                        className="px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        placeholder={product.bonus.type === 'percentage' ? '10' : '50'}
+                        min="0"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Sustainability Toggle */}
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setShowSustainability(!showSustainability)}
+                  className="flex items-center gap-3 w-full p-4 bg-green-50 border border-green-200 rounded-xl hover:bg-green-100 transition-colors duration-200"
+                >
+                  <Leaf className="h-6 w-6 text-green-600" />
+                  <div className="text-left">
+                    <h3 className="font-semibold text-green-800">Sustainability Information</h3>
+                    <p className="text-sm text-green-600">Optional environmental impact data</p>
+                  </div>
+                  <ChevronDown className={`h-5 w-5 text-green-600 ml-auto transition-transform duration-200 ${showSustainability ? 'rotate-180' : ''}`} />
+                </button>
               </div>
             </div>
           </div>
-        </div>
 
-        <div className="mt-6">
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 ${
-              isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
-            }`}
-          >
-            {isSubmitting ? 'Uploading...' : 'Upload Product'}
-          </button>
-          <p className="text-xs text-gray-500 text-center mt-2">
-            Double-check all details before uploading - happy selling!
-          </p>
-        </div>
-      </form>
+                     {/* Sustainability Section (Full Width) */}
+           {showSustainability && (
+             <div className="border-t border-gray-200 p-8 lg:p-12 bg-white">
+               <div className="max-w-6xl mx-auto space-y-8">
+                 <div className="text-center mb-8">
+                   <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-full mb-4">
+                     <Leaf className="h-8 w-8 text-white" />
+                   </div>
+                   <h2 className="text-3xl font-bold text-gray-900 mb-2">Sustainability Information</h2>
+                   <p className="text-gray-600">Help customers understand the environmental impact of your product</p>
+                 </div>
+
+                 {/* Materials Section */}
+                 <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
+                   <div className="flex items-center gap-3 mb-6">
+                     <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                       <Package className="h-5 w-5 text-green-600" />
+                     </div>
+                     <h3 className="text-xl font-bold text-gray-900">Materials Used</h3>
+                     <span className="text-red-500 text-sm">*Required</span>
+                   </div>
+                   
+                   {product.sustainability.materials.map((material, index) => (
+                     <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end mb-4 p-4 bg-gray-50 rounded-xl">
+                       <div>
+                         <label className="block text-sm font-medium text-gray-700 mb-2">Material Name</label>
+                         <input
+                           type="text"
+                           placeholder="e.g., Recycled Plastic"
+                           value={material.name}
+                           onChange={(e) => updateMaterial(index, 'name', e.target.value)}
+                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                         />
+                       </div>
+                       <div>
+                         <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+                         <select
+                           value={material.type}
+                           onChange={(e) => updateMaterial(index, 'type', e.target.value)}
+                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                         >
+                           {materialTypes.map(type => (
+                             <option key={type.value} value={type.value}>{type.label}</option>
+                           ))}
+                         </select>
+                       </div>
+                       <div>
+                         <label className="block text-sm font-medium text-gray-700 mb-2">Percentage</label>
+                         <input
+                           type="number"
+                           placeholder="100"
+                           value={material.percentage}
+                           onChange={(e) => updateMaterial(index, 'percentage', Number(e.target.value))}
+                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                           min="0"
+                           max="100"
+                         />
+                       </div>
+                       {product.sustainability.materials.length > 1 && (
+                         <button
+                           type="button"
+                           onClick={() => removeMaterial(index)}
+                           className="flex items-center justify-center px-4 py-3 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-xl transition-colors duration-200"
+                         >
+                           <Minus className="h-5 w-5" />
+                         </button>
+                       )}
+                     </div>
+                   ))}
+                   <button
+                     type="button"
+                     onClick={addMaterial}
+                     className="flex items-center gap-2 text-green-600 hover:text-green-700 p-3 hover:bg-green-50 rounded-xl transition-colors duration-200"
+                   >
+                     <Plus className="h-4 w-4" />
+                     Add Material
+                   </button>
+                 </div>
+
+                 {/* Weight and Energy Section */}
+                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                   <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
+                     <div className="flex items-center gap-3 mb-6">
+                       <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                         <Star className="h-5 w-5 text-blue-600" />
+                       </div>
+                       <h3 className="text-xl font-bold text-gray-900">Product Details</h3>
+                     </div>
+                     
+                     <div className="space-y-4">
+                       <div>
+                         <label className="block text-sm font-medium text-gray-700 mb-2">
+                           Product Weight <span className="text-red-500">*</span>
+                         </label>
+                         <div className="flex gap-3">
+                           <input
+                             type="number"
+                             step="0.01"
+                             placeholder="0.00"
+                             value={product.sustainability.weight.value}
+                             onChange={(e) => updateSustainability('weight', { 
+                               ...product.sustainability.weight, 
+                               value: Number(e.target.value) 
+                             })}
+                             className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                           />
+                           <select
+                             value={product.sustainability.weight.unit}
+                             onChange={(e) => updateSustainability('weight', { 
+                               ...product.sustainability.weight, 
+                               unit: e.target.value 
+                             })}
+                             className="px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                           >
+                             <option value="kg">kg</option>
+                             <option value="g">g</option>
+                             <option value="lbs">lbs</option>
+                             <option value="oz">oz</option>
+                           </select>
+                         </div>
+                       </div>
+                     </div>
+                   </div>
+
+                   <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
+                     <div className="flex items-center gap-3 mb-6">
+                       <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
+                         <Globe className="h-5 w-5 text-yellow-600" />
+                       </div>
+                       <h3 className="text-xl font-bold text-gray-900">Production Energy</h3>
+                     </div>
+                     
+                     <div>
+                       <label className="block text-sm font-medium text-gray-700 mb-2">Energy Source</label>
+                       <select
+                         value={product.sustainability.productionEnergySource}
+                         onChange={(e) => updateSustainability('productionEnergySource', e.target.value)}
+                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                       >
+                         {energySources.map(source => (
+                           <option key={source.value} value={source.value}>{source.label}</option>
+                         ))}
+                       </select>
+                     </div>
+                   </div>
+                 </div>
+
+                 {/* Manufacturing Location */}
+                 <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
+                   <div className="flex items-center gap-3 mb-6">
+                     <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                       <Globe className="h-5 w-5 text-purple-600" />
+                     </div>
+                     <h3 className="text-xl font-bold text-gray-900">Manufacturing Location</h3>
+                   </div>
+                   
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                     <div>
+                       <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                       <input
+                         type="text"
+                         placeholder="e.g., Nigeria"
+                         value={product.sustainability.manufacturingLocation.country}
+                         onChange={(e) => updateSustainability('manufacturingLocation', { 
+                           ...product.sustainability.manufacturingLocation, 
+                           country: e.target.value 
+                         })}
+                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                       />
+                     </div>
+                     <div>
+                       <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
+                       <input
+                         type="text"
+                         placeholder="e.g., Lagos"
+                         value={product.sustainability.manufacturingLocation.city}
+                         onChange={(e) => updateSustainability('manufacturingLocation', { 
+                           ...product.sustainability.manufacturingLocation, 
+                           city: e.target.value 
+                         })}
+                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                       />
+                     </div>
+                   </div>
+                 </div>
+
+                 {/* Shipping Information */}
+                 <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
+                   <div className="flex items-center gap-3 mb-6">
+                     <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
+                       <Package className="h-5 w-5 text-indigo-600" />
+                     </div>
+                     <h3 className="text-xl font-bold text-gray-900">Shipping Information</h3>
+                   </div>
+                   
+                   <div className="space-y-6">
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                       <div>
+                         <label className="block text-sm font-medium text-gray-700 mb-2">Origin Country</label>
+                         <input
+                           type="text"
+                           placeholder="Origin Country"
+                           value={product.sustainability.shipping.origin.country}
+                           onChange={(e) => updateShippingLocation('origin', 'country', e.target.value)}
+                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                         />
+                       </div>
+                       <div>
+                         <label className="block text-sm font-medium text-gray-700 mb-2">Origin City</label>
+                         <input
+                           type="text"
+                           placeholder="Origin City"
+                           value={product.sustainability.shipping.origin.city}
+                           onChange={(e) => updateShippingLocation('origin', 'city', e.target.value)}
+                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                         />
+                       </div>
+                     </div>
+                     
+                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                       <div>
+                         <label className="block text-sm font-medium text-gray-700 mb-2">Shipping Method</label>
+                         <select
+                           value={product.sustainability.shipping.method}
+                           onChange={(e) => updateShipping('method', e.target.value)}
+                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                         >
+                           {shippingMethods.map(method => (
+                             <option key={method.value} value={method.value}>{method.label}</option>
+                           ))}
+                         </select>
+                       </div>
+                       <div>
+                         <label className="block text-sm font-medium text-gray-700 mb-2">Distance (km)</label>
+                         <input
+                           type="number"
+                           placeholder="0"
+                           value={product.sustainability.shipping.distance}
+                           onChange={(e) => updateShipping('distance', Number(e.target.value))}
+                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                           min="0"
+                         />
+                       </div>
+                       <div>
+                         <label className="block text-sm font-medium text-gray-700 mb-2">Packaging Type</label>
+                         <select
+                           value={product.sustainability.shipping.packagingType}
+                           onChange={(e) => updateShipping('packagingType', e.target.value)}
+                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                         >
+                           {packagingTypes.map(type => (
+                             <option key={type.value} value={type.value}>{type.label}</option>
+                           ))}
+                         </select>
+                       </div>
+                     </div>
+                   </div>
+                 </div>
+
+                 {/* Carbon Footprint Calculation */}
+                 <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
+                   <div className="text-center">
+                     <div className="mb-4">
+                       <h3 className="text-xl font-bold text-gray-900 mb-2">
+                         Calculate Carbon Footprint <span className="text-red-500">*Required</span>
+                       </h3>
+                       <p className="text-gray-600">
+                         Calculate your product's environmental impact based on the information provided
+                       </p>
+                     </div>
+                     
+                     <button
+                       type="button"
+                       onClick={calculateCarbonFootprint}
+                       disabled={isCalculating}
+                       className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-green-600 to-green-700 text-white text-lg font-semibold rounded-xl hover:from-green-700 hover:to-green-800 disabled:opacity-50 transition-all duration-200 shadow-lg hover:shadow-xl"
+                     >
+                       {isCalculating ? (
+                         <>
+                           <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                           Calculating Carbon Footprint...
+                         </>
+                       ) : (
+                         <>
+                           <Leaf className="h-5 w-5" />
+                           Calculate Carbon Footprint (Required)
+                         </>
+                       )}
+                     </button>
+
+                     {carbonFootprint && (
+                                                <div className="mt-8 p-6 bg-white rounded-xl border border-gray-200">
+                           <h4 className="text-lg font-semibold text-green-800 mb-4">🌱 Carbon Footprint Results</h4>
+                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                             <div className="text-center bg-gray-50 rounded-lg p-4 border border-gray-200">
+                               <div className="text-2xl font-bold text-green-600">
+                                 {carbonFootprint.total?.toFixed(2) || carbonFootprint.carbonFootprint?.total || 0}
+                               </div>
+                               <div className="text-sm text-gray-600">kg CO₂e Total</div>
+                             </div>
+                             <div className="text-center bg-gray-50 rounded-lg p-4 border border-gray-200">
+                               <div className="text-2xl font-bold text-blue-600">
+                                 {carbonFootprint.impactScore || carbonFootprint.carbonFootprint?.impactScore || 'A'}
+                               </div>
+                               <div className="text-sm text-gray-600">Impact Score</div>
+                             </div>
+                             <div className="text-center bg-gray-50 rounded-lg p-4 border border-gray-200">
+                               <div className="text-2xl font-bold text-purple-600">
+                                 {carbonFootprint.equivalents?.treesPlanted || carbonFootprint.summary?.treesToOffset || '0 trees'}
+                               </div>
+                               <div className="text-sm text-gray-600">Trees to Offset</div>
+                             </div>
+                             <div className="text-center bg-gray-50 rounded-lg p-4 border border-gray-200">
+                               <div className="text-2xl font-bold text-orange-600">
+                                 {carbonFootprint.equivalents?.carRideDistance || carbonFootprint.summary?.equivalentCarRide || '0 km'}
+                               </div>
+                               <div className="text-sm text-gray-600">Car Ride Equivalent</div>
+                             </div>
+                           </div>
+                         
+                                                    {carbonFootprint.summary?.savingsVsConventional && (
+                             <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                               <p className="text-sm text-green-700 font-medium">
+                                 💚 {carbonFootprint.summary.savingsVsConventional}
+                               </p>
+                             </div>
+                           )}
+                       </div>
+                     )}
+                   </div>
+                 </div>
+               </div>
+             </div>
+           )}
+
+          {/* Submit Button */}
+          <div className="border-t border-gray-200 p-8 lg:p-12 bg-white">
+            <div className="text-center">
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-green-600 to-green-700 text-white text-lg font-semibold rounded-xl hover:from-green-700 hover:to-green-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    Uploading Product...
+                  </>
+                ) : (
+                  <>
+                    <ShoppingBag className="h-5 w-5" />
+                    Upload Product
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

@@ -11,11 +11,11 @@ import axios from 'axios';
 import { debounce } from 'lodash';
 
 // Icons from lucide-react
-import { ShoppingCart, User, ChevronDown, Search, Filter, Menu, X, LogOut, Clock, ArrowRight } from 'lucide-react';
+import { ShoppingCart, User, ChevronDown, Search, Filter, Menu, X, LogOut, Clock, ArrowRight, Globe } from 'lucide-react';
 
 export default function DualNavbarSell({ handleLogout }) {
   const router = useRouter();
-  const { selectedCurrency, setSelectedCurrency } = useCurrency();
+  const { selectedCurrency, setSelectedCurrency, getCurrencyInfo, loading: currencyLoading } = useCurrency();
   const { cartItems, clearCart } = useCart();
 
   // State for navbar visibility
@@ -42,12 +42,16 @@ export default function DualNavbarSell({ handleLogout }) {
 
   // Currency options
   const currencies = [
-    { code: 'NGN', symbol: '₦', name: 'Naira' },
-    { code: 'USD', symbol: '$', name: 'US Dollar' },
-    { code: 'EUR', symbol: '€', name: 'Euro' },
-    { code: 'GBP', symbol: '£', name: 'British Pound' },
-    { code: 'JPY', symbol: '¥', name: 'Japanese Yen' },
-    { code: 'CHF', symbol: 'CHF', name: 'Swiss Franc' },
+    { code: 'NGN', symbol: '₦', name: 'Nigerian Naira', flag: '🇳🇬' },
+    { code: 'USD', symbol: '$', name: 'US Dollar', flag: '🇺🇸' },
+    { code: 'EUR', symbol: '€', name: 'Euro', flag: '🇪🇺' },
+    { code: 'GBP', symbol: '£', name: 'British Pound', flag: '🇬🇧' },
+    { code: 'JPY', symbol: '¥', name: 'Japanese Yen', flag: '🇯🇵' },
+    { code: 'CHF', symbol: 'CHF', name: 'Swiss Franc', flag: '🇨🇭' },
+    { code: 'CAD', symbol: 'C$', name: 'Canadian Dollar', flag: '🇨🇦' },
+    { code: 'AUD', symbol: 'A$', name: 'Australian Dollar', flag: '🇦🇺' },
+    { code: 'CNY', symbol: '¥', name: 'Chinese Yuan', flag: '🇨🇳' },
+    { code: 'INR', symbol: '₹', name: 'Indian Rupee', flag: '🇮🇳' },
   ];
 
   // Load user role from localStorage only on the client
@@ -203,13 +207,14 @@ export default function DualNavbarSell({ handleLogout }) {
 
   // Handle search submission
   const handleSearch = (query = searchQuery) => {
-    if (!query.trim()) return;
+    const searchTerm = String(query || '').trim();
+    if (!searchTerm) return;
     
-    saveToHistory(query);
+    saveToHistory(searchTerm);
     setIsMobileSearchOpen(false);
     setIsDesktopSearchOpen(false);
     setSearchQuery('');
-    router.push(`/search?q=${encodeURIComponent(query)}`);
+    router.push(`/search?q=${encodeURIComponent(searchTerm)}`);
   };
 
   // Add this small component for the cart badge
@@ -275,13 +280,133 @@ export default function DualNavbarSell({ handleLogout }) {
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <button 
-                onClick={() => setIsMobileSearchOpen(true)} 
-                aria-label="Search" 
-                className="text-gray-600 hover:text-green-600"
-              >
-                <Search className="h-5 w-5" />
-              </button>
+              <div className="relative">
+                <button 
+                  onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)} 
+                  aria-label="Search" 
+                  className="text-gray-600 hover:text-green-600"
+                >
+                  <Search className="h-5 w-5" />
+                </button>
+
+                {/* Mobile Search Dropdown */}
+                {isMobileSearchOpen && (
+                  <>
+                    {/* Overlay to capture clicks outside */}
+                    <div 
+                      className="fixed inset-0 bg-black bg-opacity-50 z-30"
+                      onClick={() => {
+                        setIsMobileSearchOpen(false);
+                        setSearchQuery('');
+                        setSuggestions([]);
+                      }}
+                    />
+                    
+                    {/* Search Panel */}
+                    <div className="fixed left-0 right-0 top-0 bg-white z-40 border-b border-gray-200">
+                      <div className="p-4">
+                        <div className="flex items-center gap-3 mb-4">
+                          <button 
+                            onClick={() => {
+                              setIsMobileSearchOpen(false);
+                              setSearchQuery('');
+                              setSuggestions([]);
+                            }}
+                            className="text-gray-600"
+                          >
+                            <X className="h-6 w-6" />
+                          </button>
+                          <form 
+                            className="flex-1"
+                            onSubmit={(e) => {
+                              e.preventDefault();
+                              handleSearch(searchQuery);
+                            }}
+                          >
+                            <div className="relative">
+                              <input
+                                type="text"
+                                value={searchQuery}
+                                onChange={handleSearchChange}
+                                placeholder="Search item or product codes..."
+                                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-1 focus:ring-green-600 shadow-sm"
+                                autoFocus
+                              />
+                              <Search className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+                            </div>
+                          </form>
+                        </div>
+
+                        {/* Search Content */}
+                        <div className="max-h-[calc(100vh-150px)] overflow-y-auto">
+                          {/* Recent Searches */}
+                          {!searchQuery && searchHistory.length > 0 && (
+                            <div>
+                              <h3 className="text-sm font-medium text-gray-900 mb-2">Recent Searches</h3>
+                              <div className="space-y-2">
+                                {searchHistory.map((query, index) => (
+                                  <button
+                                    key={index}
+                                    onClick={() => handleSearch(query)}
+                                    className="flex items-center w-full text-left text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 p-2 rounded-lg transition-colors duration-150"
+                                  >
+                                    <Clock className="h-4 w-4 mr-3 text-gray-400" />
+                                    <span>{query}</span>
+                                    <ArrowRight className="h-4 w-4 ml-auto text-gray-400" />
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Search Suggestions */}
+                          {searchQuery && (
+                            <div>
+                              {suggestions.length > 0 ? (
+                                <div className="space-y-2">
+                                  {suggestions.map((product) => (
+                                    <button
+                                      key={product._id}
+                                      onClick={() => {
+                                        router.push(`/product/${product._id}`);
+                                        setIsMobileSearchOpen(false);
+                                        setSearchQuery('');
+                                        setSuggestions([]);
+                                      }}
+                                      className="flex items-center w-full text-left text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 p-2 rounded-lg transition-colors duration-150"
+                                    >
+                                      <Search className="h-4 w-4 mr-3 text-gray-400" />
+                                      <div>
+                                        <div className="font-medium">{product.name}</div>
+                                        <div className="text-xs text-gray-500">{product.category}</div>
+                                      </div>
+                                      <ArrowRight className="h-4 w-4 ml-auto text-gray-400" />
+                                    </button>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="text-center py-6">
+                                  <Search className="h-8 w-8 mx-auto text-gray-300 mb-2" />
+                                  <p className="text-gray-500 text-sm">No products found for "{searchQuery}"</p>
+                                  <button
+                                    onClick={() => {
+                                      handleSearch();
+                                      setIsMobileSearchOpen(false);
+                                    }}
+                                    className="mt-2 px-4 py-1.5 bg-green-600 text-white rounded-full text-sm hover:bg-green-700 transition-colors duration-150"
+                                  >
+                                    Search anyway
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
               <Link href="/cart" className="text-gray-600 hover:text-green-600" aria-label="Cart">
                 <CartBadge />
               </Link>
@@ -291,106 +416,6 @@ export default function DualNavbarSell({ handleLogout }) {
             </div>
           </div>
         </header>
-
-        {/* Mobile Search Modal */}
-        {isMobileSearchOpen && (
-          <div className="md:hidden fixed inset-0 z-50 bg-white">
-            <div className="flex flex-col h-full">
-              {/* Search Header */}
-              <div className="border-b p-4">
-                <div className="flex items-center gap-3">
-                  <button 
-                    onClick={() => {
-                      setIsMobileSearchOpen(false);
-                      setSearchQuery('');
-                      setSuggestions([]);
-                    }} 
-                    className="text-gray-600"
-                  >
-                    <X className="h-6 w-6" />
-                  </button>
-                  <div className="flex-1">
-                    <div className="relative">
-                      <form onSubmit={(e) => {
-                        e.preventDefault();
-                        handleSearch(searchQuery);
-                      }}>
-                        <input
-                          type="text"
-                          value={searchQuery}
-                          onChange={handleSearchChange}
-                          placeholder="Search item or product codes..."
-                          className="w-full pl-10 pr-4 py-2 border rounded-full text-sm focus:outline-none focus:ring-1 focus:ring-green-600"
-                          autoFocus
-                        />
-                        <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                      </form>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Search Content */}
-              <div className="flex-1 overflow-y-auto p-4">
-                {/* Recent Searches */}
-                {!searchQuery && searchHistory.length > 0 && (
-                  <div className="mb-6">
-                    <h3 className="text-sm font-medium text-gray-900 mb-3">Recent Searches</h3>
-                    <div className="space-y-3">
-                      {searchHistory.map((query, index) => (
-                        <button
-                          key={index}
-                          onClick={() => handleSearch(query)}
-                          className="flex items-center w-full text-left text-sm text-gray-600 hover:text-gray-900"
-                        >
-                          <Clock className="h-4 w-4 mr-3 text-gray-400" />
-                          <span>{query}</span>
-                          <ArrowRight className="h-4 w-4 ml-auto text-gray-400" />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Search Suggestions - Mobile */}
-                {searchQuery && (
-                  <div>
-                    {suggestions.length > 0 ? (
-                      <div className="space-y-3">
-                        {suggestions.map((product) => (
-                          <button
-                            key={product._id}
-                            onClick={() => router.push(`/product/${product._id}`)}
-                            className="flex items-center w-full text-left text-sm text-gray-600 hover:text-gray-900 p-2"
-                          >
-                            <Search className="h-4 w-4 mr-3 text-gray-400" />
-                            <div>
-                              <div className="font-medium">{product.name}</div>
-                              <div className="text-xs text-gray-500">{product.category}</div>
-                            </div>
-                            <ArrowRight className="h-4 w-4 ml-auto text-gray-400" />
-                          </button>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-8">
-                        <Search className="h-12 w-12 mx-auto text-gray-300 mb-3" />
-                        <p className="text-gray-500">No products found for "{searchQuery}"</p>
-                        <p className="text-sm text-gray-400 mt-1">Try searching with different keywords</p>
-                        <button
-                          onClick={() => handleSearch()}
-                          className="mt-4 px-6 py-2 bg-green-600 text-white rounded-full text-sm hover:bg-green-700"
-                        >
-                          Search anyway
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Mobile Sidebar */}
         <div
@@ -406,10 +431,10 @@ export default function DualNavbarSell({ handleLogout }) {
             aria-hidden="true"
           ></div>
 
-          <div
-            className={`fixed top-0 left-0 h-full w-64 bg-white shadow-lg transform transition-transform duration-300 ${
+          <aside
+            className={`fixed top-0 left-0 w-64 h-screen bg-white shadow-lg transform transition-transform duration-300 ${
               isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-            }`}
+            } flex flex-col`}
           >
             <div className="flex items-center justify-between p-4 border-b">
               <div className="flex items-center">
@@ -427,92 +452,133 @@ export default function DualNavbarSell({ handleLogout }) {
                 <X className="h-6 w-6 text-gray-600" />
               </button>
             </div>
-            <div className="p-4 flex flex-col gap-4">
-              <nav className="flex flex-col gap-3 text-sm text-gray-600">
-                <Link href="/seller-about" className="nav-link hover:text-green-600 relative group" onClick={toggleSidebar}>
-                  <span className="group-hover:animate-float">About Eraiiz</span>
-                  <span className="nav-link-effect"></span>
-                </Link>
-                <Link href="/help" className="nav-link hover:text-green-600 relative group" onClick={toggleSidebar}>
-                  <span className="group-hover:animate-float">Help</span>
-                  <span className="nav-link-effect"></span>
-                </Link>
-                <Link href="/contact" className="nav-link hover:text-green-600 relative group" onClick={toggleSidebar}>
-                  <span className="group-hover:animate-float">Contact Support</span>
-                  <span className="nav-link-effect"></span>
-                </Link>
-                {userRole === 'buyer' && (
-                  <Link href="/supplier/migrate" className="nav-link hover:text-green-600 relative group" onClick={toggleSidebar}>
-                    <span className="group-hover:animate-float">Become a Supplier</span>
+            <div className="flex-1 overflow-y-auto bg-white">
+              <div className="p-4 flex flex-col gap-4">
+                <nav className="flex flex-col gap-3 text-sm text-gray-600">
+                  <Link href="/seller-about" className="nav-link hover:text-green-600 relative group" onClick={toggleSidebar}>
+                    <span className="group-hover:animate-float">About Eraiiz</span>
                     <span className="nav-link-effect"></span>
                   </Link>
-                )}
-                <button
-                  onClick={() => { onLogout(); toggleSidebar(); }}
-                  className="nav-link flex items-center gap-2 text-sm text-gray-600 hover:text-green-600 relative group"
-                  aria-label="Logout"
-                >
-                  <LogOut className="h-4 w-4 group-hover:animate-spin-slow" />
-                  <span className="group-hover:animate-float">Logout</span>
-                  <span className="nav-link-effect"></span>
-                </button>
-              </nav>
+                  <Link href="/help" className="nav-link hover:text-green-600 relative group" onClick={toggleSidebar}>
+                    <span className="group-hover:animate-float">Help</span>
+                    <span className="nav-link-effect"></span>
+                  </Link>
+                  <Link href="/contact" className="nav-link hover:text-green-600 relative group" onClick={toggleSidebar}>
+                    <span className="group-hover:animate-float">Contact Support</span>
+                    <span className="nav-link-effect"></span>
+                  </Link>
+                  {userRole === 'buyer' && (
+                    <Link href="/supplier/migrate" className="nav-link hover:text-green-600 relative group" onClick={toggleSidebar}>
+                      <span className="group-hover:animate-float">Become a Supplier</span>
+                      <span className="nav-link-effect"></span>
+                    </Link>
+                  )}
+                  <button
+                    onClick={() => { onLogout(); toggleSidebar(); }}
+                    className="nav-link flex items-center gap-2 text-sm text-gray-600 hover:text-green-600 relative group"
+                    aria-label="Logout"
+                  >
+                    <LogOut className="h-4 w-4 group-hover:animate-spin-slow" />
+                    <span className="group-hover:animate-float">Logout</span>
+                    <span className="nav-link-effect"></span>
+                  </button>
+                </nav>
 
-              <hr className="my-2 border-gray-200" />
+                <hr className="my-2 border-gray-200" />
 
-              <nav className="flex flex-col gap-3 text-sm text-gray-600">
-                <Link href="/categories/plastic" className="nav-link hover:text-green-600 relative group" onClick={toggleSidebar}>
-                  <span className="group-hover:animate-float">Plastic Made Products</span>
-                  <span className="nav-link-effect"></span>
-                </Link>
-                <Link href="/categories/glass" className="nav-link hover:text-green-600 relative group" onClick={toggleSidebar}>
-                  <span className="group-hover:animate-float">Glass Made Products</span>
-                  <span className="nav-link-effect"></span>
-                </Link>
-                <Link href="/categories/rubber" className="nav-link hover:text-green-600 relative group" onClick={toggleSidebar}>
-                  <span className="group-hover:animate-float">Rubber Made Products</span>
-                  <span className="nav-link-effect"></span>
-                </Link>
-                <Link href="/categories/wood" className="nav-link hover:text-green-600 relative group" onClick={toggleSidebar}>
-                  <span className="group-hover:animate-float">Wood Made Products</span>
-                  <span className="nav-link-effect"></span>
-                </Link>
-                <Link href="/categories/palm-frond" className="nav-link hover:text-green-600 relative group" onClick={toggleSidebar}>
-                  <span className="group-hover:animate-float">Palm Frond Made Products</span>
-                  <span className="nav-link-effect"></span>
-                </Link>
-                <Link href="/categories/recycled" className="nav-link hover:text-green-600 relative group" onClick={toggleSidebar}>
-                  <span className="group-hover:animate-float">General Recycled Items</span>
-                  <span className="nav-link-effect"></span>
-                </Link>
-                <Link href="/categories/fruits" className="nav-link hover:text-green-600 relative group" onClick={toggleSidebar}>
-                  <span className="group-hover:animate-float">Fruits Waste Products</span>
-                  <span className="nav-link-effect"></span>
-                </Link>
-                <Link href="/categories" className="nav-link hover:text-green-600 relative group" onClick={toggleSidebar}>
-                  <span className="group-hover:animate-float">Others</span>
-                  <span className="nav-link-effect"></span>
-                </Link>
-              </nav>
+                <nav className="flex flex-col gap-3 text-sm text-gray-600">
+                  <Link href="/categories/plastic" className="nav-link hover:text-green-600 relative group" onClick={toggleSidebar}>
+                    <span className="group-hover:animate-float">Plastic Made Products</span>
+                    <span className="nav-link-effect"></span>
+                  </Link>
+                  <Link href="/categories/glass" className="nav-link hover:text-green-600 relative group" onClick={toggleSidebar}>
+                    <span className="group-hover:animate-float">Glass Made Products</span>
+                    <span className="nav-link-effect"></span>
+                  </Link>
+                  <Link href="/categories/rubber" className="nav-link hover:text-green-600 relative group" onClick={toggleSidebar}>
+                    <span className="group-hover:animate-float">Rubber Made Products</span>
+                    <span className="nav-link-effect"></span>
+                  </Link>
+                  <Link href="/categories/wood" className="nav-link hover:text-green-600 relative group" onClick={toggleSidebar}>
+                    <span className="group-hover:animate-float">Wood Made Products</span>
+                    <span className="nav-link-effect"></span>
+                  </Link>
+                  <Link href="/categories/palm-frond" className="nav-link hover:text-green-600 relative group" onClick={toggleSidebar}>
+                    <span className="group-hover:animate-float">Palm Frond Made Products</span>
+                    <span className="nav-link-effect"></span>
+                  </Link>
+                  <Link href="/categories/recycled" className="nav-link hover:text-green-600 relative group" onClick={toggleSidebar}>
+                    <span className="group-hover:animate-float">General Recycled Items</span>
+                    <span className="nav-link-effect"></span>
+                  </Link>
+                  <Link href="/categories/fruits" className="nav-link hover:text-green-600 relative group" onClick={toggleSidebar}>
+                    <span className="group-hover:animate-float">Fruits Waste Products</span>
+                    <span className="nav-link-effect"></span>
+                  </Link>
+                  <Link href="/categories" className="nav-link hover:text-green-600 relative group" onClick={toggleSidebar}>
+                    <span className="group-hover:animate-float">Others</span>
+                    <span className="nav-link-effect"></span>
+                  </Link>
+                </nav>
 
-              <div className="flex flex-col gap-3">
-                <button
-                  onClick={handleSearch}
-                  className="flex items-center gap-2 text-sm text-gray-600 hover:text-green-600"
-                  aria-label="Go to Search Page"
-                >
-                  <Search className="h-4 w-4" /> Search
-                </button>
-                <button
-                  onClick={toggleFilterModal}
-                  className="flex items-center gap-2 text-sm text-gray-600 hover:text-green-600"
-                  aria-label="Open Filter Modal"
-                >
-                  <Filter className="h-4 w-4" /> Filters
-                </button>
+                {/* Currency Selector in Mobile Sidebar */}
+                <div className="px-4 py-3 border-t border-gray-200 mt-4">
+                  <div className="relative">
+                    <button
+                      onClick={() => setIsCurrencyOpen(!isCurrencyOpen)}
+                      className="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Globe className="h-5 w-5 text-gray-600" />
+                        <div className="text-left">
+                          <div className="text-sm font-medium text-gray-900">
+                            {getCurrencyInfo(selectedCurrency).flag} {selectedCurrency}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {getCurrencyInfo(selectedCurrency).name}
+                          </div>
+                        </div>
+                      </div>
+                      <ChevronDown className={`h-4 w-4 text-gray-600 transition-transform duration-200 ${isCurrencyOpen ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    {/* Currency Dropdown */}
+                    {isCurrencyOpen && (
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto">
+                        {currencies.map((currency) => (
+                          <button
+                            key={currency.code}
+                            onClick={() => handleCurrencyChange(currency.code)}
+                            className={`w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors duration-150 ${
+                              selectedCurrency === currency.code ? 'bg-green-50 text-green-600' : 'text-gray-700'
+                            }`}
+                          >
+                            <span className="text-lg">{currency.flag}</span>
+                            <div className="text-left flex-1">
+                              <div className="text-sm font-medium">{currency.code}</div>
+                              <div className="text-xs text-gray-500">{currency.name}</div>
+                            </div>
+                            <span className="text-sm text-gray-500">{currency.symbol}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Logout in Mobile Sidebar */}
+                <div className="px-4 py-3 border-t border-gray-200 mt-auto">
+                  <button
+                    onClick={onLogout}
+                    className="w-full flex items-center gap-3 p-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                  >
+                    <LogOut className="h-5 w-5" />
+                    <span className="text-sm font-medium">Logout</span>
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
+          </aside>
         </div>
 
         {/* Desktop Dual Navbar */}
@@ -642,6 +708,60 @@ export default function DualNavbarSell({ handleLogout }) {
                 )}
               </div>
               <div className="flex items-center space-x-4">
+                {/* Currency Selector */}
+                <div className="relative">
+                  <button
+                    onClick={() => setIsCurrencyOpen(!isCurrencyOpen)}
+                    className="flex items-center gap-2 text-gray-600 hover:text-green-600 transition-colors duration-200 group"
+                    aria-label="Select Currency"
+                  >
+                    <Globe className="h-5 w-5 group-hover:animate-float" />
+                    <span className="text-sm font-medium hidden lg:block group-hover:animate-float">
+                      {getCurrencyInfo(selectedCurrency).flag} {selectedCurrency}
+                    </span>
+                    <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isCurrencyOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {/* Currency Dropdown */}
+                  {isCurrencyOpen && (
+                    <>
+                      {/* Overlay */}
+                      <div 
+                        className="fixed inset-0 z-30"
+                        onClick={() => setIsCurrencyOpen(false)}
+                      />
+                      
+                      {/* Dropdown */}
+                      <div className="absolute top-full right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-40 max-h-64 overflow-y-auto animate-slideDown">
+                        <div className="p-2">
+                          <div className="text-xs font-medium text-gray-500 px-3 py-2 uppercase tracking-wider">
+                            Select Currency
+                          </div>
+                          {currencies.map((currency) => (
+                            <button
+                              key={currency.code}
+                              onClick={() => handleCurrencyChange(currency.code)}
+                              className={`w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors duration-150 ${
+                                selectedCurrency === currency.code ? 'bg-green-50 text-green-600 ring-1 ring-green-200' : 'text-gray-700'
+                              }`}
+                            >
+                              <span className="text-lg">{currency.flag}</span>
+                              <div className="text-left flex-1">
+                                <div className="text-sm font-medium">{currency.code}</div>
+                                <div className="text-xs text-gray-500">{currency.name}</div>
+                              </div>
+                              <span className="text-sm text-gray-500 font-mono">{currency.symbol}</span>
+                              {selectedCurrency === currency.code && (
+                                <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+
                 <Link href="/cart" className="text-gray-600 hover:text-green-600 relative group transform transition-transform hover:-translate-y-1" aria-label="Cart">
                   <div className="relative">
                     <ShoppingCart className="h-6 w-6 group-hover:animate-float" />
