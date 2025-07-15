@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import axios from 'axios';
 import Image from 'next/image';
-import { toast, Toaster } from 'react-hot-toast';
+import { Toaster } from 'react-hot-toast';
+import { showProductToast, showError, showSuccess } from '../utils/toast';
 import { useRouter } from 'next/navigation';
 import { useCurrency } from '../context/CurrencyContext';
 import { ChevronDown, Globe, DollarSign, Info, Upload, X, Plus, Minus, Package, Camera, Star, ShoppingBag, Leaf, Award } from 'lucide-react';
@@ -335,13 +336,47 @@ const ProductUploadForm = () => {
         }
       );
       setCarbonFootprint(response.data);
-      toast.success('Carbon footprint calculated successfully!');
+      showProductToast('Carbon footprint calculated successfully!', 'success');
     } catch (error) {
       console.error('Error calculating carbon footprint:', error);
-      toast.error('Failed to calculate carbon footprint');
+      showError('Failed to calculate carbon footprint');
     } finally {
       setIsCalculating(false);
     }
+  };
+
+  const validateSustainability = () => {
+    const { sustainability } = product;
+    
+    // Check if materials are filled
+    if (!sustainability.materials.length || 
+        sustainability.materials.some(material => !material.name.trim())) {
+      return 'Please fill in all material names';
+    }
+    
+    // Check if weight is provided
+    if (!sustainability.weight.value || sustainability.weight.value <= 0) {
+      return 'Please provide a valid product weight';
+    }
+    
+    // Check if manufacturing location is provided
+    if (!sustainability.manufacturingLocation.country.trim() || 
+        !sustainability.manufacturingLocation.city.trim()) {
+      return 'Please provide manufacturing location (country and city)';
+    }
+    
+    // Check if shipping origin is provided
+    if (!sustainability.shipping.origin.country.trim() || 
+        !sustainability.shipping.origin.city.trim()) {
+      return 'Please provide shipping origin (country and city)';
+    }
+    
+    // Check if shipping distance is provided
+    if (!sustainability.shipping.distance || sustainability.shipping.distance <= 0) {
+      return 'Please provide shipping distance';
+    }
+    
+    return null;
   };
 
   const handleSubmit = async (e) => {
@@ -349,6 +384,15 @@ const ProductUploadForm = () => {
     setIsSubmitting(true);
     setError(null);
     setSuccess(null);
+
+    // Validate sustainability information
+    const sustainabilityError = validateSustainability();
+    if (sustainabilityError) {
+      setError(sustainabilityError);
+      showError(sustainabilityError);
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
       const token = localStorage.getItem('accessToken');
@@ -385,7 +429,7 @@ const ProductUploadForm = () => {
       );
 
       setSuccess('Product uploaded successfully!');
-      toast.success('Product uploaded successfully!');
+      showProductToast('Product uploaded successfully!', 'success');
       
       // Redirect to success page
       setTimeout(() => {
@@ -396,7 +440,7 @@ const ProductUploadForm = () => {
       console.error('Upload error:', err);
       const errorMessage = err.response?.data?.message || 'Upload failed. Please try again.';
       setError(errorMessage);
-      toast.error(errorMessage);
+      showError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -423,18 +467,7 @@ const ProductUploadForm = () => {
 
   return (
     <div className="min-h-screen bg-white md:bg-gradient-to-br md:from-green-50 md:via-white md:to-blue-50 p-0 md:py-12 md:px-4">
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 4000,
-          style: {
-            background: '#333',
-            color: '#fff',
-            padding: '16px',
-            borderRadius: '12px',
-          },
-        }}
-      />
+
       
       <div className="max-w-6xl mx-auto m-0 md:mt-0">
         {/* Header Section */}
@@ -802,14 +835,14 @@ const ProductUploadForm = () => {
                 <button
                   type="button"
                   onClick={() => setShowSustainability(!showSustainability)}
-                  className="flex items-center gap-3 w-full p-4 bg-green-50 border border-green-200 rounded-xl hover:bg-green-100 transition-colors duration-200"
+                  className="flex items-center gap-3 w-full p-4 bg-red-50 border border-red-200 rounded-xl hover:bg-red-100 transition-colors duration-200"
                 >
-                  <Leaf className="h-6 w-6 text-green-600" />
+                  <Leaf className="h-6 w-6 text-red-600" />
                   <div className="text-left">
-                    <h3 className="font-semibold text-green-800">Sustainability Information</h3>
-                    <p className="text-sm text-green-600">Optional environmental impact data</p>
+                    <h3 className="font-semibold text-red-800">Sustainability Information</h3>
+                    <p className="text-sm text-red-600">Required environmental impact data</p>
                   </div>
-                  <ChevronDown className={`h-5 w-5 text-green-600 ml-auto transition-transform duration-200 ${showSustainability ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`h-5 w-5 text-red-600 ml-auto transition-transform duration-200 ${showSustainability ? 'rotate-180' : ''}`} />
                 </button>
               </div>
             </div>
@@ -829,13 +862,13 @@ const ProductUploadForm = () => {
 
                  {/* Materials Section */}
                  <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
-                   <div className="flex items-center gap-3 mb-6">
-                     <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                       <Package className="h-5 w-5 text-green-600" />
+                                        <div className="flex items-center gap-3 mb-6">
+                       <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
+                         <Package className="h-5 w-5 text-red-600" />
+                       </div>
+                       <h3 className="text-xl font-bold text-gray-900">Materials Used</h3>
+                       <span className="text-red-500 text-sm font-semibold">*Required</span>
                      </div>
-                     <h3 className="text-xl font-bold text-gray-900">Materials Used</h3>
-                     <span className="text-red-500 text-sm">*Required</span>
-                   </div>
                    
                    {product.sustainability.materials.map((material, index) => (
                      <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end mb-4 p-4 bg-gray-50 rounded-xl">
@@ -846,7 +879,8 @@ const ProductUploadForm = () => {
                            placeholder="e.g., Recycled Plastic"
                            value={material.name}
                            onChange={(e) => updateMaterial(index, 'name', e.target.value)}
-                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                           required
                          />
                        </div>
                        <div>
@@ -907,20 +941,21 @@ const ProductUploadForm = () => {
                      <div className="space-y-4">
                        <div>
                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                           Product Weight <span className="text-red-500">*</span>
+                           Product Weight <span className="text-red-500 font-semibold">*Required</span>
                          </label>
                          <div className="flex gap-3">
-                           <input
-                             type="number"
-                             step="0.01"
-                             placeholder="0.00"
-                             value={product.sustainability.weight.value}
-                             onChange={(e) => updateSustainability('weight', { 
-                               ...product.sustainability.weight, 
-                               value: Number(e.target.value) 
-                             })}
-                             className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                           />
+                                                    <input
+                           type="number"
+                           step="0.01"
+                           placeholder="0.00"
+                           value={product.sustainability.weight.value}
+                           onChange={(e) => updateSustainability('weight', { 
+                             ...product.sustainability.weight, 
+                             value: Number(e.target.value) 
+                           })}
+                           className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                           required
+                         />
                            <select
                              value={product.sustainability.weight.unit}
                              onChange={(e) => updateSustainability('weight', { 
@@ -982,7 +1017,8 @@ const ProductUploadForm = () => {
                            ...product.sustainability.manufacturingLocation, 
                            country: e.target.value 
                          })}
-                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                         required
                        />
                      </div>
                      <div>
@@ -995,7 +1031,8 @@ const ProductUploadForm = () => {
                            ...product.sustainability.manufacturingLocation, 
                            city: e.target.value 
                          })}
-                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                         required
                        />
                      </div>
                    </div>
@@ -1019,7 +1056,8 @@ const ProductUploadForm = () => {
                            placeholder="Origin Country"
                            value={product.sustainability.shipping.origin.country}
                            onChange={(e) => updateShippingLocation('origin', 'country', e.target.value)}
-                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                           required
                          />
                        </div>
                        <div>
@@ -1029,7 +1067,8 @@ const ProductUploadForm = () => {
                            placeholder="Origin City"
                            value={product.sustainability.shipping.origin.city}
                            onChange={(e) => updateShippingLocation('origin', 'city', e.target.value)}
-                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                           required
                          />
                        </div>
                      </div>
@@ -1054,8 +1093,9 @@ const ProductUploadForm = () => {
                            placeholder="0"
                            value={product.sustainability.shipping.distance}
                            onChange={(e) => updateShipping('distance', Number(e.target.value))}
-                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent"
                            min="0"
+                           required
                          />
                        </div>
                        <div>

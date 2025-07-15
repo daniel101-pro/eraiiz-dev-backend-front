@@ -18,21 +18,6 @@ const Navbar = () => {
 
   return (
     <>
-      {/* Splash Cursor with pointer-events-none and lower z-index */}
-      <div className="fixed inset-0 pointer-events-none" style={{ zIndex: -1 }}>
-        <SplashCursor
-          BACK_COLOR={{ r: 0, g: 0, b: 0 }}
-          SPLAT_RADIUS={0.08}
-          SPLAT_FORCE={2000}
-          CURL={5}
-          COLOR_UPDATE_SPEED={1.5}
-          DENSITY_DISSIPATION={2.8}
-          VELOCITY_DISSIPATION={2.5}
-          PRESSURE={0.2}
-          TRANSPARENT={true}
-          SHADING={false}
-        />
-      </div>
 
       {/* Navbar */}
       <div className="fixed top-0 left-0 w-full bg-white shadow-md py-4 px-6 z-50">

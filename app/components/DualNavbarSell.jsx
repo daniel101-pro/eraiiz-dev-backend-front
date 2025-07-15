@@ -78,6 +78,24 @@ export default function DualNavbarSell({ handleLogout }) {
     }
   }, []);
 
+  // Close currency dropdown when clicking outside sidebar
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isCurrencyOpen && isSidebarOpen) {
+        // Check if the click is outside the sidebar
+        const sidebar = document.querySelector('aside');
+        if (sidebar && !sidebar.contains(event.target)) {
+          setIsCurrencyOpen(false);
+        }
+      }
+    };
+
+    if (isCurrencyOpen && isSidebarOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isCurrencyOpen, isSidebarOpen]);
+
   // Save search history to localStorage
   const saveToHistory = (query) => {
     const updatedHistory = [query, ...searchHistory.filter(item => item !== query)].slice(0, 5);
@@ -544,24 +562,33 @@ export default function DualNavbarSell({ handleLogout }) {
 
                     {/* Currency Dropdown */}
                     {isCurrencyOpen && (
-                      <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto">
-                        {currencies.map((currency) => (
-                          <button
-                            key={currency.code}
-                            onClick={() => handleCurrencyChange(currency.code)}
-                            className={`w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors duration-150 ${
-                              selectedCurrency === currency.code ? 'bg-green-50 text-green-600' : 'text-gray-700'
-                            }`}
-                          >
-                            <span className="text-lg">{currency.flag}</span>
-                            <div className="text-left flex-1">
-                              <div className="text-sm font-medium">{currency.code}</div>
-                              <div className="text-xs text-gray-500">{currency.name}</div>
-                            </div>
-                            <span className="text-sm text-gray-500">{currency.symbol}</span>
-                          </button>
-                        ))}
-                      </div>
+                      <>
+                        {/* Overlay for click outside */}
+                        <div 
+                          className="fixed inset-0 z-[70]"
+                          onClick={() => setIsCurrencyOpen(false)}
+                        />
+                        
+                        {/* Dropdown */}
+                        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-[80] max-h-48 overflow-y-auto">
+                          {currencies.map((currency) => (
+                            <button
+                              key={currency.code}
+                              onClick={() => handleCurrencyChange(currency.code)}
+                              className={`w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors duration-150 ${
+                                selectedCurrency === currency.code ? 'bg-green-50 text-green-600' : 'text-gray-700'
+                              }`}
+                            >
+                              <span className="text-lg">{currency.flag}</span>
+                              <div className="text-left flex-1">
+                                <div className="text-sm font-medium">{currency.code}</div>
+                                <div className="text-xs text-gray-500">{currency.name}</div>
+                              </div>
+                              <span className="text-sm text-gray-500">{currency.symbol}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </>
                     )}
                   </div>
                 </div>

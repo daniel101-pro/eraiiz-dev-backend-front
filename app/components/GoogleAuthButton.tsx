@@ -2,15 +2,16 @@ import { useGoogleLogin } from '@react-oauth/google';
 import { FcGoogle } from 'react-icons/fc';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
-import toast from 'react-hot-toast';
+import { showAuthToast } from '../utils/toast';
 import { useState } from 'react';
 
 interface GoogleAuthButtonProps {
   text: string;
   onSuccess?: () => void;
+  isSignup?: boolean; // New prop to distinguish signup vs login
 }
 
-export default function GoogleAuthButton({ text, onSuccess }: GoogleAuthButtonProps) {
+export default function GoogleAuthButton({ text, onSuccess, isSignup = false }: GoogleAuthButtonProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -27,38 +28,59 @@ export default function GoogleAuthButton({ text, onSuccess }: GoogleAuthButtonPr
           { code: codeResponse.code }
         );
 
-        // Store user data and tokens
-        localStorage.setItem('user', JSON.stringify(data.user));
-        localStorage.setItem('accessToken', data.accessToken);
-        localStorage.setItem('refreshToken', data.refreshToken);
-        localStorage.setItem('role', data.user.role);
+        // Any new user (regardless of login/signup page) goes to role selection
+        if (data.isNewUser) {
+          // New user flow - always goes to role selection
+          localStorage.setItem('tempGoogleUser', JSON.stringify(data.user));
+          localStorage.setItem('tempGoogleTokens', JSON.stringify({
+            accessToken: data.accessToken,
+            refreshToken: data.refreshToken
+          }));
 
-        toast.success('Successfully signed in with Google!');
-        
-        // Call success callback if provided
-        if (onSuccess) {
-          onSuccess();
+          const message = isSignup 
+            ? 'Account created! Please select your role.'
+            : 'New account created! Please select your role.';
+          
+          showAuthToast(message, 'success');
+          router.push('/role-selection');
+        } else {
+          // Existing user - go directly to dashboard
+          localStorage.setItem('user', JSON.stringify(data.user));
+          localStorage.setItem('accessToken', data.accessToken);
+          localStorage.setItem('refreshToken', data.refreshToken);
+          localStorage.setItem('role', data.user.role);
+
+          const message = isSignup 
+            ? 'Account already exists! Signed in successfully.'
+            : 'Successfully signed in with Google!';
+          
+          showAuthToast(message, 'success');
+          
+          // Call success callback if provided
+          if (onSuccess) {
+            onSuccess();
+          }
+
+          // Redirect to appropriate dashboard
+          router.push(`/dashboard/${data.user.role}`);
         }
-
-        // Redirect to appropriate dashboard
-        router.push(`/dashboard/${data.user.role}`);
       } catch (error: any) {
         console.error('Google auth error:', error);
-        toast.error(error.response?.data?.message || 'Failed to sign in with Google. Please try again.');
+        showAuthToast(error.response?.data?.message || 'Failed to sign in with Google. Please try again.', 'error');
       } finally {
         setIsLoading(false);
       }
     },
     onError: (errorResponse) => {
       console.error('Google login error:', errorResponse);
-      toast.error('Google sign in failed. Please try again.');
+      showAuthToast('Google sign in failed. Please try again.', 'error');
       setIsLoading(false);
     },
   });
 
   const handleClick = () => {
     if (!isGoogleConfigured) {
-      toast.error('Google authentication is not configured. Please try another method.');
+      showAuthToast('Google authentication is not configured. Please try another method.', 'error');
       return;
     }
     handleGoogleLogin();

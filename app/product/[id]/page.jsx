@@ -7,7 +7,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useCart } from '../../context/CartContext';
 import { useCurrency } from '../../context/CurrencyContext';
-import { toast, Toaster } from 'react-hot-toast';
+
+import { showCartToast, showError } from '../../utils/toast';
 import DualNavbarSell from '../../components/DualNavbarSell';
 import ImageGallery from '../../components/ImageGallery';
 
@@ -269,22 +270,14 @@ export default function ProductDetail() {
     );
 
     if (!hasValidSelection) {
-      toast.error('Please select a size', {
-        id: 'size-error',
-        duration: 3000,
-        position: 'top-center',
-      });
+      showError('Please select a size');
       return;
     }
 
     try {
       const token = localStorage.getItem('accessToken');
       if (!token) {
-        toast.error('Please log in to add items to cart', {
-          id: 'login-error',
-          duration: 3000,
-          position: 'top-center',
-        });
+        showError('Please log in to add items to cart');
         router.push('/login');
         return;
       }
@@ -292,11 +285,7 @@ export default function ProductDetail() {
       setIsAddingToCart(true);
       
       // Show success toast immediately with a unique ID
-      toast.success('Item has been added to cart! 🛍️', {
-        id: 'add-to-cart-success',
-        duration: 3000,
-        position: 'top-center',
-      });
+      showCartToast('Item has been added to cart!', 'success');
 
       // Format cart item
       const cartItem = {
@@ -314,11 +303,7 @@ export default function ProductDetail() {
       
     } catch (err) {
       console.error('Error adding to cart:', err);
-      toast.error('Failed to add to cart. Please try again.', {
-        id: 'add-to-cart-error',
-        duration: 3000,
-        position: 'top-center',
-      });
+      showError('Failed to add to cart. Please try again.');
     } finally {
       setIsAddingToCart(false);
     }
@@ -337,30 +322,14 @@ export default function ProductDetail() {
     );
 
     if (!hasValidSelection) {
-      toast.error('Please select a size', {
-        style: {
-          background: '#EF4444',
-          color: '#fff',
-          padding: '16px',
-          borderRadius: '12px',
-        },
-        icon: '⚠️',
-      });
+      showError('Please select a size');
       return;
     }
 
     try {
       const token = localStorage.getItem('accessToken');
       if (!token) {
-        toast.error('Please log in to proceed with purchase', {
-          style: {
-            background: '#EF4444',
-            color: '#fff',
-            padding: '16px',
-            borderRadius: '12px',
-          },
-          icon: '🔒',
-        });
+        showError('Please log in to proceed with purchase');
         router.push('/login');
         return;
       }
@@ -373,15 +342,7 @@ export default function ProductDetail() {
       router.push('/checkout/billing');
     } catch (err) {
       console.error('Error proceeding to checkout:', err);
-      toast.error('Failed to proceed to checkout. Please try again.', {
-        style: {
-          background: '#EF4444',
-          color: '#fff',
-          padding: '16px',
-          borderRadius: '12px',
-        },
-        icon: '❌',
-      });
+      showError('Failed to proceed to checkout. Please try again.');
     } finally {
       setIsBuyingNow(false);
     }
@@ -432,18 +393,7 @@ export default function ProductDetail() {
   return (
     <>
       <DualNavbarSell />
-      <Toaster
-        position="top-center"
-        toastOptions={{
-          duration: 2000,
-          style: {
-            background: '#333',
-            color: '#fff',
-            padding: '16px',
-            borderRadius: '12px',
-          },
-        }}
-      />
+
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">

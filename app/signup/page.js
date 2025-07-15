@@ -8,7 +8,7 @@ import { FaShoppingCart, FaStore } from 'react-icons/fa';
 import { ChevronDown } from 'lucide-react';
 import countryCodes from '@/lib/countryCodes';
 import GoogleAuthButton from '../components/GoogleAuthButton';
-import toast from 'react-hot-toast';
+import { showAuthToast } from '../utils/toast';
 
 export default function SignupPage() {
   const [name, setName] = useState('');
@@ -51,11 +51,11 @@ export default function SignupPage() {
 
       localStorage.setItem('verifyingEmail', email);
       localStorage.setItem('tempPassword', password);
-      toast.success('Account created successfully! Please verify your email.');
+      showAuthToast('Account created successfully! Please verify your email.', 'success');
       router.push('/verify-email');
     } catch (err) {
       console.error('Fetch error:', err.message, err);
-      toast.error(`Signup failed: ${err.message}`);
+      showAuthToast(`Signup failed: ${err.message}`, 'error');
     } finally {
       setIsLoading(false);
     }
@@ -75,7 +75,7 @@ export default function SignupPage() {
                 Create your account to start buying or selling with Eraiiz.
               </p>
               
-              <GoogleAuthButton text="Sign up with Google" />
+              <GoogleAuthButton text="Sign up with Google" isSignup={true} />
               
               <div className="text-center text-gray-400 mb-4">Or</div>
               

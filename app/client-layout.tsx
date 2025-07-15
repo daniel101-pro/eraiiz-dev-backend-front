@@ -34,13 +34,23 @@ export default function ClientLayout({
                 <Toaster
                   position="top-center"
                   toastOptions={{
-                    duration: 2000,
+                    duration: 3000,
                     style: {
-                      background: '#333',
-                      color: '#fff',
-                      padding: '16px',
+                      background: '#1F2937',
+                      color: '#FFFFFF',
+                      padding: '16px 20px',
                       borderRadius: '12px',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      backdropFilter: 'blur(10px)',
+                      minWidth: '300px',
+                      maxWidth: '500px',
                     },
+                  }}
+                  containerStyle={{
+                    top: 20,
                   }}
                 />
                 <AIAssistant />

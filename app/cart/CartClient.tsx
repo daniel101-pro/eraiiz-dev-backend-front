@@ -6,7 +6,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import DualNavbarSell from '../components/DualNavbarSell';
 import { useCart } from '../context/CartContext';
-import toast, { Toaster } from 'react-hot-toast';
+
+import { showCartToast } from '../utils/toast';
 import { CartItem } from './types';
 import CarbonFootprintDisplay from '../components/CarbonFootprintDisplay';
 
@@ -106,34 +107,14 @@ export default function CartClient() {
     const handleRemoveItem = (id: string, size: string) => {
         if (removeFromCart) {
             removeFromCart(id, size);
-            toast.success('Item removed from cart', {
-                duration: 2000,
-                position: 'top-center',
-                style: {
-                    background: '#EF4444',
-                    color: '#fff',
-                    padding: '16px',
-                    borderRadius: '8px',
-                },
-                icon: '🗑️',
-            });
+                        showCartToast('Item removed from cart', 'error');
         }
     };
 
     const handleClearCart = () => {
         if (clearCart) {
             clearCart();
-            toast.success('Cart cleared', {
-                duration: 2000,
-                position: 'top-center',
-                style: {
-                    background: '#EF4444',
-                    color: '#fff',
-                    padding: '16px',
-                    borderRadius: '8px',
-                },
-                icon: '🗑️',
-            });
+                        showCartToast('Cart cleared', 'error');
         }
     };
 
@@ -186,7 +167,7 @@ export default function CartClient() {
         <>
             <DualNavbarSell handleLogout={handleLogout} />
             <ProgressBar />
-            <Toaster />
+    
             
             {/* Mobile Layout */}
             <div className="md:hidden px-4 py-6">

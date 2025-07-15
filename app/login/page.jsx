@@ -7,7 +7,7 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import Image from 'next/image';
 import Navbar from '../components/Navbar';
 import GoogleAuthButton from '../components/GoogleAuthButton';
-import toast from 'react-hot-toast';
+import { showAuthToast } from '../utils/toast';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -30,12 +30,12 @@ export default function Login() {
       localStorage.setItem('accessToken', data.accessToken);
       localStorage.setItem('refreshToken', data.refreshToken);
       localStorage.setItem('role', data.user.role);
-      toast.success('Successfully logged in!');
+      showAuthToast('Successfully logged in!', 'success');
       router.push(`/dashboard/${data.user.role}`);
     } catch (err) {
       console.error('Login error:', err.response?.data || err.message);
       setError(err.response?.data?.message || 'Invalid credentials');
-      toast.error(err.response?.data?.message || 'Invalid credentials');
+      showAuthToast(err.response?.data?.message || 'Invalid credentials', 'error');
     } finally {
       setIsLoading(false);
     }

@@ -6,44 +6,8 @@ import { useCurrency } from '../context/CurrencyContext';
 import { useCart } from '../context/CartContext';
 import { useFavorites } from '../context/FavoritesContext';
 import { useState, useEffect } from 'react';
-import toast, { Toaster } from 'react-hot-toast';
 
-// Toast counter for tracking multiple additions
-let toastCount = 0;
-let currentToastId = null;
-
-const showAddToCartToast = () => {
-  // If there's an existing toast, dismiss it
-  if (currentToastId) {
-    toast.dismiss(currentToastId);
-  }
-
-  // Increment counter
-  toastCount++;
-
-  // Show new toast with counter
-  currentToastId = toast.success(
-    toastCount > 1 ? `Added ${toastCount} items to cart! 🛍️` : 'Added to cart! 🛍️',
-    {
-      duration: 2000,
-      position: 'top-center',
-      style: {
-        background: '#3F8E3F',
-        color: '#fff',
-        padding: '16px',
-        borderRadius: '12px',
-      },
-    }
-  );
-
-  // Reset counter after toast expires
-  setTimeout(() => {
-    if (currentToastId) {
-      toastCount = 0;
-      currentToastId = null;
-    }
-  }, 2000);
-};
+import { showCartToast, showError, showSuccess } from '../utils/toast';
 
 export default function ProductCard({ product }) {
   const { convertPrice, formatPrice } = useCurrency();
@@ -71,7 +35,7 @@ export default function ProductCard({ product }) {
       images: product.images
     };
     addToCart(cartItem);
-    showAddToCartToast();
+    showCartToast('Added to cart!', 'success');
   };
 
   const handleIncrement = (e) => {
@@ -87,7 +51,7 @@ export default function ProductCard({ product }) {
       images: product.images
     };
     addToCart(cartItem);
-    showAddToCartToast();
+    showCartToast('Added to cart!', 'success');
   };
 
   const handleDecrement = (e) => {
@@ -97,20 +61,7 @@ export default function ProductCard({ product }) {
       const newQuantity = quantity - 1;
       if (newQuantity === 0) {
         removeFromCart(product._id, 'S');
-        // Reset toast counter when removing items
-        toastCount = 0;
-        currentToastId = null;
-        toast('Removed from cart', {
-          duration: 2000,
-          position: 'top-center',
-          style: {
-            background: '#EF4444',
-            color: '#fff',
-            padding: '16px',
-            borderRadius: '12px',
-          },
-          icon: '🗑️',
-        });
+        showCartToast('Removed from cart', 'error');
       } else {
         updateQuantity(product._id, 'S', newQuantity);
       }
@@ -124,16 +75,7 @@ export default function ProductCard({ product }) {
     // Check if user is logged in
     const token = localStorage.getItem('accessToken');
     if (!token) {
-      toast.error('Please login to add favorites', {
-        duration: 2000,
-        position: 'top-center',
-        style: {
-          background: '#EF4444',
-          color: '#fff',
-          padding: '16px',
-          borderRadius: '12px',
-        },
-      });
+      showError('Please login to add favorites');
       return;
     }
 
@@ -145,43 +87,15 @@ export default function ProductCard({ product }) {
       
       if (success) {
         const isNowFavorited = !wasFavorited; // Toggle state
-        toast.success(
-          isNowFavorited ? 'Added to favorites! ❤️' : 'Removed from favorites',
-          {
-            duration: 2000,
-            position: 'top-center',
-            style: {
-              background: isNowFavorited ? '#EF4444' : '#6B7280',
-              color: '#fff',
-              padding: '16px',
-              borderRadius: '12px',
-            },
-          }
+        showSuccess(
+          isNowFavorited ? 'Added to favorites! ❤️' : 'Removed from favorites'
         );
       } else {
-        toast.error('Failed to update favorites', {
-          duration: 2000,
-          position: 'top-center',
-          style: {
-            background: '#EF4444',
-            color: '#fff',
-            padding: '16px',
-            borderRadius: '12px',
-          },
-        });
+        showError('Failed to update favorites');
       }
     } catch (error) {
       console.error('Error toggling favorite:', error);
-      toast.error('Something went wrong', {
-        duration: 2000,
-        position: 'top-center',
-        style: {
-          background: '#EF4444',
-          color: '#fff',
-          padding: '16px',
-          borderRadius: '12px',
-        },
-      });
+      showError('Something went wrong');
     } finally {
       // Reset animation after different delays based on animation type
       const animationDuration = isFavorited(product._id) ? 600 : 300; // heart-bounce is longer
@@ -191,7 +105,7 @@ export default function ProductCard({ product }) {
 
   return (
     <>
-      <Toaster />
+
       <style jsx>{`
         @keyframes heartPulse {
           0% {

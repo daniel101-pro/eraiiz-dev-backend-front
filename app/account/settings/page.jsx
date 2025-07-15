@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
-import toast from 'react-hot-toast';
+import { showSuccess, showError } from '../utils/toast';
 
 export default function AccountSettings() {
   const [currency, setCurrency] = useState('USD');
@@ -28,10 +28,10 @@ export default function AccountSettings() {
       // Update local storage
       localStorage.setItem('preferredCurrency', newCurrency);
       setCurrency(newCurrency);
-      toast.success('Currency preference updated');
+      showSuccess('Currency preference updated');
     } catch (error) {
       console.error('Error updating currency:', error);
-      toast.error('Failed to update currency preference');
+      showError('Failed to update currency preference');
     } finally {
       setIsLoading(false);
     }
