@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
-import { showSuccess, showError } from '../utils/toast';
+import { showSuccess, showError } from '../../utils/toast';
 
 export default function AccountSettings() {
   const [currency, setCurrency] = useState('USD');
