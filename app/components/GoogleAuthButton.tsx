@@ -27,6 +27,12 @@ export default function GoogleAuthButton({ text, onSuccess }: GoogleAuthButtonPr
           { code: codeResponse.code }
         );
 
+        console.log('=== GOOGLE AUTH RESPONSE ===');
+        console.log('Full response data:', data);
+        console.log('isNewUser:', data.isNewUser);
+        console.log('user role:', data.user?.role);
+        console.log('============================');
+
         // Check if this is a new user who needs role selection
         if (data.isNewUser && data.user.role === 'pending') {
           // Store temporary data for role selection
