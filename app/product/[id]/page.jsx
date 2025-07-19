@@ -84,15 +84,23 @@ export default function ProductDetail() {
         throw new Error('API URL is not configured');
       }
 
-      let token = localStorage.getItem('accessToken');
-      if (!token) {
-        token = await refreshToken();
-      }
+      let productRes;
+      try {
+        // First try the protected endpoint with authentication
+        let token = localStorage.getItem('accessToken');
+        if (!token) {
+          token = await refreshToken();
+        }
 
-      // Always fetch with authentication
-      const productRes = await axios.get(`${apiUrl}/api/products/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+        console.log('Fetching product with auth, product ID:', id);
+        productRes = await axios.get(`${apiUrl}/api/products/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } catch (authError) {
+        console.log('Auth endpoint failed, trying public endpoint:', authError.message);
+        // If auth fails, try the public endpoint
+        productRes = await axios.get(`${apiUrl}/api/products/${id}/public`);
+      }
       
       setProduct(productRes.data);
       
@@ -122,15 +130,39 @@ export default function ProductDetail() {
         }
       }
 
-      // Use populated seller data
+      // Handle seller data (different formats for protected vs public endpoints)
       if (productRes.data.sellerId) {
         const sellerData = productRes.data.sellerId;
-        setSeller({
-          username: sellerData.name,
-          isVerified: sellerData.isVerified,
-          email: sellerData.email,
-          role: sellerData.role
-        });
+        
+        // Check if it's populated seller data (object) or just ID (string)
+        if (typeof sellerData === 'object' && sellerData.name) {
+          // Protected endpoint - populated seller data
+          setSeller({
+            username: sellerData.name,
+            isVerified: sellerData.isVerified,
+            email: sellerData.email,
+            role: sellerData.role
+          });
+        } else {
+          // Public endpoint - only seller ID, fetch seller info separately
+          try {
+            const sellerRes = await axios.get(`${apiUrl}/api/users/seller/${sellerData}`);
+            setSeller({
+              username: sellerRes.data.name,
+              isVerified: sellerRes.data.isVerified,
+              email: sellerRes.data.email,
+              role: sellerRes.data.role
+            });
+          } catch (sellerError) {
+            console.log('Failed to fetch seller data:', sellerError.message);
+            setSeller({
+              username: 'Seller',
+              isVerified: false,
+              email: '',
+              role: 'seller'
+            });
+          }
+        }
       } else {
         setSeller({
           username: 'Anonymous Seller',

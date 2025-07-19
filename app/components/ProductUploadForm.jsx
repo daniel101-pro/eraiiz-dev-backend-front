@@ -324,22 +324,53 @@ const ProductUploadForm = () => {
   };
 
   const calculateCarbonFootprint = async () => {
+    // Validate required sustainability data before sending
+    if (!product.sustainability.materials || product.sustainability.materials.length === 0) {
+      showError('Please add at least one material before calculating carbon footprint');
+      return;
+    }
+    
+    if (!product.sustainability.weight || product.sustainability.weight.value <= 0) {
+      showError('Please enter a valid product weight before calculating carbon footprint');
+      return;
+    }
+
     setIsCalculating(true);
     try {
       const token = localStorage.getItem('accessToken');
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/carbonFootprint`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/carbon-footprint/calculate`,
         { sustainabilityData: product.sustainability },
         {
           headers: { Authorization: `Bearer ${token}` },
           timeout: 30000,
         }
       );
-      setCarbonFootprint(response.data);
-      showProductToast('Carbon footprint calculated successfully!', 'success');
+      
+      console.log('Carbon footprint API response:', response.data);
+      
+      if (response.data && response.data.success) {
+        console.log('Carbon footprint data:', response.data.data.carbonFootprint);
+        setCarbonFootprint(response.data.data.carbonFootprint);
+        showProductToast('Carbon footprint calculated successfully!', 'success');
+      } else {
+        console.error('Carbon footprint calculation failed:', response.data);
+        throw new Error(response.data?.error || 'Calculation failed');
+      }
     } catch (error) {
       console.error('Error calculating carbon footprint:', error);
-      showError('Failed to calculate carbon footprint');
+      
+      if (error.response?.status === 404) {
+        showError('Carbon footprint service is not available. Please try again later.');
+      } else if (error.response?.status === 400) {
+        showError(error.response?.data?.message || 'Invalid sustainability data provided');
+      } else if (error.response?.status === 500) {
+        showError('Server error while calculating carbon footprint. Please try again.');
+      } else if (error.code === 'ECONNABORTED') {
+        showError('Request timed out. Please check your connection and try again.');
+      } else {
+        showError(error.message || 'Failed to calculate carbon footprint. Please check your data and try again.');
+      }
     } finally {
       setIsCalculating(false);
     }
@@ -394,6 +425,15 @@ const ProductUploadForm = () => {
       return;
     }
 
+    // Validate that carbon footprint has been calculated
+    if (!carbonFootprint) {
+      const cfError = 'Please calculate the carbon footprint before uploading the product';
+      setError(cfError);
+      showError(cfError);
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const token = localStorage.getItem('accessToken');
       const formData = new FormData();
@@ -414,10 +454,15 @@ const ProductUploadForm = () => {
       // Add carbon footprint if calculated
       if (carbonFootprint) {
         formData.append('carbonFootprint', JSON.stringify(carbonFootprint));
+        console.log('Adding carbon footprint to upload:', carbonFootprint);
       }
 
+      // Debug: Log what we're sending
+      console.log('Uploading product with sustainability data:', product.sustainability);
+      console.log('Carbon footprint being uploaded:', carbonFootprint);
+
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/products`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/products/upload`,
         formData,
         {
           headers: {
@@ -431,9 +476,9 @@ const ProductUploadForm = () => {
       setSuccess('Product uploaded successfully!');
       showProductToast('Product uploaded successfully!', 'success');
       
-      // Redirect to success page
+      // Redirect to success page with product ID
       setTimeout(() => {
-        router.push('/dashboard/seller/upload/success');
+        router.push(`/dashboard/seller/upload/success?productId=${response.data.productId}`);
       }, 2000);
 
     } catch (err) {
@@ -1146,42 +1191,42 @@ const ProductUploadForm = () => {
                      </button>
 
                      {carbonFootprint && (
-                                                <div className="mt-8 p-6 bg-white rounded-xl border border-gray-200">
-                           <h4 className="text-lg font-semibold text-green-800 mb-4">🌱 Carbon Footprint Results</h4>
-                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                             <div className="text-center bg-gray-50 rounded-lg p-4 border border-gray-200">
-                               <div className="text-2xl font-bold text-green-600">
-                                 {carbonFootprint.total?.toFixed(2) || carbonFootprint.carbonFootprint?.total || 0}
-                               </div>
-                               <div className="text-sm text-gray-600">kg CO₂e Total</div>
+                       <div className="mt-8 p-6 bg-white rounded-xl border border-gray-200">
+                         <h4 className="text-lg font-semibold text-green-800 mb-4">🌱 Carbon Footprint Results</h4>
+                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                           <div className="text-center bg-gray-50 rounded-lg p-4 border border-gray-200">
+                             <div className="text-2xl font-bold text-green-600">
+                               {carbonFootprint?.total || '0'}
                              </div>
-                             <div className="text-center bg-gray-50 rounded-lg p-4 border border-gray-200">
-                               <div className="text-2xl font-bold text-blue-600">
-                                 {carbonFootprint.impactScore || carbonFootprint.carbonFootprint?.impactScore || 'A'}
-                               </div>
-                               <div className="text-sm text-gray-600">Impact Score</div>
-                             </div>
-                             <div className="text-center bg-gray-50 rounded-lg p-4 border border-gray-200">
-                               <div className="text-2xl font-bold text-purple-600">
-                                 {carbonFootprint.equivalents?.treesPlanted || carbonFootprint.summary?.treesToOffset || '0 trees'}
-                               </div>
-                               <div className="text-sm text-gray-600">Trees to Offset</div>
-                             </div>
-                             <div className="text-center bg-gray-50 rounded-lg p-4 border border-gray-200">
-                               <div className="text-2xl font-bold text-orange-600">
-                                 {carbonFootprint.equivalents?.carRideDistance || carbonFootprint.summary?.equivalentCarRide || '0 km'}
-                               </div>
-                               <div className="text-sm text-gray-600">Car Ride Equivalent</div>
-                             </div>
+                             <div className="text-sm text-gray-600">kg CO₂e Total</div>
                            </div>
-                         
-                                                    {carbonFootprint.summary?.savingsVsConventional && (
-                             <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                               <p className="text-sm text-green-700 font-medium">
-                                 💚 {carbonFootprint.summary.savingsVsConventional}
-                               </p>
+                           <div className="text-center bg-gray-50 rounded-lg p-4 border border-gray-200">
+                             <div className="text-2xl font-bold text-blue-600">
+                               {carbonFootprint?.impactScore || 'Medium'}
                              </div>
-                           )}
+                             <div className="text-sm text-gray-600">Impact Score</div>
+                           </div>
+                           <div className="text-center bg-gray-50 rounded-lg p-4 border border-gray-200">
+                             <div className="text-2xl font-bold text-purple-600">
+                               {carbonFootprint?.treesToOffset || '0 trees'}
+                             </div>
+                             <div className="text-sm text-gray-600">Trees to Offset</div>
+                           </div>
+                           <div className="text-center bg-gray-50 rounded-lg p-4 border border-gray-200">
+                             <div className="text-2xl font-bold text-orange-600">
+                               {carbonFootprint?.equivalentCarRide || '0 km'}
+                             </div>
+                             <div className="text-sm text-gray-600">Car Ride Equivalent</div>
+                           </div>
+                         </div>
+                         
+                         {carbonFootprint?.savingsVsConventional && (
+                           <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                             <p className="text-sm text-green-700 font-medium">
+                               💚 {carbonFootprint.savingsVsConventional}
+                             </p>
+                           </div>
+                         )}
                        </div>
                      )}
                    </div>

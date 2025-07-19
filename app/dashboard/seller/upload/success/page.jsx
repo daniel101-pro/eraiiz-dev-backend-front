@@ -5,6 +5,10 @@ export default function ProductUploadSuccess() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const productId = searchParams.get('productId');
+  
+  // Debug logging
+  console.log('Success page - productId from URL:', productId);
+  console.log('Success page - all search params:', Object.fromEntries(searchParams.entries()));
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -28,11 +32,12 @@ export default function ProductUploadSuccess() {
             Continue Selling
           </button>
           <button
-            className="w-full md:w-1/2 bg-white border border-green-600 text-green-600 py-3 rounded-lg font-semibold hover:bg-green-50 transition disabled:opacity-50"
-            onClick={() => router.push(`/product/${productId}`)}
+            className="w-full md:w-1/2 bg-white border border-green-600 text-green-600 py-3 rounded-lg font-semibold hover:bg-green-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={() => productId ? router.push(`/product/${productId}`) : console.error('No product ID available')}
             disabled={!productId}
+            title={!productId ? 'Product ID not available' : 'View your uploaded product'}
           >
-            View Product
+            {!productId ? 'Product ID Missing' : 'View Product'}
           </button>
         </div>
       </div>

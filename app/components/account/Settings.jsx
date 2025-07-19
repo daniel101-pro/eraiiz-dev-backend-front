@@ -249,7 +249,7 @@ export default function Settings() {
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Security</h2>
-              <p className="text-sm text-gray-500">Update your password to keep your account secure</p>
+              <p className="text-sm text-gray-500">Set or update your password to enable email/password login</p>
             </div>
           </div>
 

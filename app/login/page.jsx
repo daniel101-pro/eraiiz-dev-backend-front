@@ -14,12 +14,18 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPasswordSetup, setShowPasswordSetup] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isSettingPassword, setIsSettingPassword] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
+    setShowPasswordSetup(false);
+    
     try {
       const { data } = await axios.post(
         process.env.NEXT_PUBLIC_API_URL + '/api/auth/login',
@@ -34,10 +40,44 @@ export default function Login() {
       router.push(`/dashboard/${data.user.role}`);
     } catch (err) {
       console.error('Login error:', err.response?.data || err.message);
-      setError(err.response?.data?.message || 'Invalid credentials');
-      showAuthToast(err.response?.data?.message || 'Invalid credentials', 'error');
+      const errorData = err.response?.data;
+      
+      if (errorData?.authType === 'google_oauth_no_password' && errorData?.canSetPassword) {
+        setShowPasswordSetup(true);
+        setError('');
+      } else {
+        setError(errorData?.message || 'Invalid credentials');
+        showAuthToast(errorData?.message || 'Invalid credentials', 'error');
+      }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handlePasswordSetup = async (e) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      showAuthToast('Passwords do not match', 'error');
+      return;
+    }
+    
+    if (newPassword.length < 8) {
+      showAuthToast('Password must be at least 8 characters long', 'error');
+      return;
+    }
+
+    setIsSettingPassword(true);
+    
+    try {
+      // First, we need to get a token by using Google OAuth
+      showAuthToast('Please complete Google sign-in first to set your password', 'info');
+      // The user should use Google OAuth first, then set password in settings
+      setShowPasswordSetup(false);
+      setError('Please sign in with Google first, then you can set a password in your account settings.');
+    } catch (err) {
+      showAuthToast('Failed to set password. Please try again.', 'error');
+    } finally {
+      setIsSettingPassword(false);
     }
   };
 
@@ -59,38 +99,61 @@ export default function Login() {
               <GoogleAuthButton text="Sign in with Google" />
               
               <div className="text-center text-gray-400 mb-4">Or</div>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {error && <p className="text-red-500 text-center">{error}</p>}
-                <input
-                  type="email"
-                  placeholder="Email address"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                  required
-                />
-                <input
-                  type="password"
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                  required
-                />
-                <button
-                  type="submit"
-                  className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition duration-200 font-semibold flex justify-center items-center"
-                  disabled={isLoading}
-                >
-                  {isLoading ? <LoadingSpinner size={20} color="#ffffff" /> : 'Login'}
-                </button>
-                <p className="text-center text-gray-600">
-                  Forgot Password? <a href="/reset-password" className="text-green-600 hover:underline">Reset here</a>
-                </p>
-                <p className="text-center text-gray-600">
-                  Don't have an account? <a href="/signup" className="text-green-600 hover:underline">Sign up here</a>
-                </p>
-              </form>
+              
+              {showPasswordSetup ? (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                  <h3 className="text-lg font-semibold text-blue-800 mb-2">Account Created with Google</h3>
+                  <p className="text-blue-700 mb-4">
+                    This account was created using Google. You have two options:
+                  </p>
+                  <div className="space-y-3">
+                    <GoogleAuthButton text="Continue with Google" />
+                    <div className="text-center text-gray-400">Or</div>
+                    <p className="text-sm text-blue-600 text-center">
+                      Sign in with Google first, then set a password in your account settings to use email/password login in the future.
+                    </p>
+                    <button
+                      onClick={() => setShowPasswordSetup(false)}
+                      className="w-full bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 transition duration-200"
+                    >
+                      Back to Login
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  {error && <p className="text-red-500 text-center">{error}</p>}
+                  <input
+                    type="email"
+                    placeholder="Email address"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="block w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    required
+                  />
+                  <input
+                    type="password"
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="block w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    required
+                  />
+                  <button
+                    type="submit"
+                    className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition duration-200 font-semibold flex justify-center items-center"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? <LoadingSpinner size={20} color="#ffffff" /> : 'Login'}
+                  </button>
+                  <p className="text-center text-gray-600">
+                    Forgot Password? <a href="/reset-password" className="text-green-600 hover:underline">Reset here</a>
+                  </p>
+                  <p className="text-center text-gray-600">
+                    Don't have an account? <a href="/signup" className="text-green-600 hover:underline">Sign up here</a>
+                  </p>
+                </form>
+              )}
             </div>
           </div>
 
