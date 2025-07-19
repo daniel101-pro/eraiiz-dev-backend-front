@@ -27,21 +27,41 @@ export default function GoogleAuthButton({ text, onSuccess }: GoogleAuthButtonPr
           { code: codeResponse.code }
         );
 
-        // Store user data and tokens
-        localStorage.setItem('user', JSON.stringify(data.user));
-        localStorage.setItem('accessToken', data.accessToken);
-        localStorage.setItem('refreshToken', data.refreshToken);
-        localStorage.setItem('role', data.user.role);
+        // Check if this is a new user who needs role selection
+        if (data.isNewUser && data.user.role === 'pending') {
+          // Store temporary data for role selection
+          localStorage.setItem('tempGoogleUser', JSON.stringify(data.user));
+          localStorage.setItem('tempGoogleTokens', JSON.stringify({
+            accessToken: data.accessToken,
+            refreshToken: data.refreshToken
+          }));
 
-        showAuthToast('Successfully signed in with Google!', 'success');
-        
-        // Call success callback if provided
-        if (onSuccess) {
-          onSuccess();
+          showAuthToast('Welcome! Please select your account type.', 'success');
+          
+          // Call success callback if provided
+          if (onSuccess) {
+            onSuccess();
+          }
+
+          // Redirect to role selection for new users
+          router.push('/role-selection');
+        } else {
+          // Store user data and tokens for existing users
+          localStorage.setItem('user', JSON.stringify(data.user));
+          localStorage.setItem('accessToken', data.accessToken);
+          localStorage.setItem('refreshToken', data.refreshToken);
+          localStorage.setItem('role', data.user.role);
+
+          showAuthToast('Successfully signed in with Google!', 'success');
+          
+          // Call success callback if provided
+          if (onSuccess) {
+            onSuccess();
+          }
+
+          // Redirect to appropriate dashboard for existing users
+          router.push(`/dashboard/${data.user.role}`);
         }
-
-        // Redirect to appropriate dashboard
-        router.push(`/dashboard/${data.user.role}`);
       } catch (error: any) {
         console.error('Google auth error:', error);
         showAuthToast(error.response?.data?.message || 'Failed to sign in with Google. Please try again.', 'error');
