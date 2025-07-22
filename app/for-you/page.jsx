@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import Link from 'next/link';
-import DualNavbar from '../components/DualNavbar';
+import DualNavbarSell from '../components/DualNavbarSell';
 
 export default function ForYouPage() {
   const [products, setProducts] = useState([]);
@@ -44,7 +44,7 @@ export default function ForYouPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <DualNavbar handleLogout={handleLogout} />
+      <DualNavbarSell />
       <main className="flex-1">
         <div className="container mx-auto px-4 py-8">
           <h1 className="text-3xl font-semibold text-gray-800 mb-8">For You</h1>
