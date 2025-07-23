@@ -127,373 +127,206 @@ const SoundwaveVisualization = ({ isActive }: { isActive: boolean }) => {
   );
 };
 
-// Voice recognition hook
-const useVoiceRecognition = () => {
+// AI-Powered Voice Recognition Hook (OpenAI Whisper)
+const useAIVoiceRecognition = () => {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [isSupported, setIsSupported] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [hasError, setHasError] = useState(false);
-  const recognitionRef = useRef<any>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const streamRef = useRef<MediaStream | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const currentLanguageRef = useRef<number>(0);
-  const isInLanguageFallbackRef = useRef<boolean>(false);
-  
-  // List of languages to try (start with most compatible)
-  const supportedLanguages = [null, '', 'en', 'en-US', 'en-GB', 'auto'];
 
-     // Test microphone permissions
-   const testMicrophonePermissions = async () => {
-     try {
-       console.log('🎤 Testing microphone permissions...');
-       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-       console.log('✅ Microphone permissions granted');
-       stream.getTracks().forEach(track => track.stop()); // Clean up
-       return true;
-     } catch (error) {
-       console.log('❌ Microphone permission denied or not available:', error);
-       return false;
-     }
-   };
-
-   // Function to create recognition instance with language fallback
-   const createRecognitionInstance = (languageIndex = 0) => {
-     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-     if (!SpeechRecognition) {
-       console.log('❌ No SpeechRecognition API available');
-       return null;
-     }
-     
-     try {
-       const recognition = new SpeechRecognition();
-       
-       // Set basic properties
-       recognition.continuous = true;
-       recognition.interimResults = true;
-       recognition.maxAlternatives = 1;
-       
-       // Set language if specified (start with no language for maximum compatibility)
-       const language = supportedLanguages[languageIndex];
-       if (language === null) {
-         console.log('🌐 Using browser default (no language attribute set at all)');
-       } else if (language && language !== 'auto' && language !== '') {
-         try {
-           recognition.lang = language;
-           console.log(`✅ Set speech recognition language to: ${language}`);
-         } catch (langError) {
-           console.log(`❌ Failed to set language ${language}, using default`);
-         }
-       } else if (language === '') {
-         console.log('🌐 Using empty string language (browser chooses)');
-       } else if (language === 'auto') {
-         console.log('🌐 Using auto language detection');
-       }
-       
-       return recognition;
-     } catch (error) {
-       console.error('❌ Error creating speech recognition instance:', error);
-       return null;
-     }
-   };
-
-    useEffect(() => {
-    // Only run on client side
-    if (typeof window === 'undefined') return;
-
-    // Check browser context and permissions
-    const checkSpeechRecognitionContext = () => {
-      console.log('🔍 Checking speech recognition context...');
-      console.log('  Protocol:', window.location.protocol);
-      console.log('  Host:', window.location.host);
-      console.log('  User Agent:', navigator.userAgent.substring(0, 100));
+       // Test microphone permissions and setup MediaRecorder
+  const initializeAudioRecording = async () => {
+    try {
+      console.log('🎤 Initializing AI voice recognition...');
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          sampleRate: 16000,
+          channelCount: 1,
+          echoCancellation: true,
+          noiseSuppression: true
+        } 
+      });
+      console.log('✅ Microphone access granted');
       
-      // Check if we're on HTTPS (required for speech recognition in modern browsers)
-      if (window.location.protocol !== 'https:') {
-                 console.log('❌ Speech recognition requires HTTPS in modern browsers');
-         console.log('🔧 Quick Solutions (choose one):');
-         console.log('  🟢 EASIEST: Enable Chrome flag for localhost');
-         console.log('     1. Go to: chrome://flags/#unsafely-treat-insecure-origin-as-secure');
-         console.log('     2. Add: http://localhost:3000');
-         console.log('     3. Restart Chrome');
-         console.log('  🔧 OR: Use HTTPS development server');
-         console.log('     1. Stop current server (Ctrl+C)');
-         console.log('     2. Run: npm run dev:https');
-         console.log('     3. Visit: https://localhost:3000 (accept certificate warning)');
+      streamRef.current = stream;
+      
+      // Check if MediaRecorder is supported
+      if (!MediaRecorder.isTypeSupported('audio/webm')) {
+        console.log('❌ Audio recording not supported');
         setIsSupported(false);
         setHasError(true);
         return false;
       }
       
+      setIsSupported(true);
+      setHasError(false);
+      console.log('✅ AI voice recognition ready');
       return true;
-    };
+      
+    } catch (error) {
+      console.log('❌ Microphone permission denied:', error);
+      setIsSupported(false);
+      setHasError(true);
+      return false;
+    }
+  };
 
-    const initializeRecognition = async () => {
-      if (!checkSpeechRecognitionContext()) {
-        return;
+  // Send audio to OpenAI Whisper API
+  const transcribeAudio = async (audioBlob: Blob) => {
+    try {
+      console.log('🤖 Sending audio to AI for transcription...');
+      
+      const formData = new FormData();
+      formData.append('file', audioBlob, 'audio.webm');
+      formData.append('model', 'whisper-1');
+      
+      const response = await fetch('/api/ai/transcribe', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error('Transcription failed');
       }
       
-      // Test microphone permissions first
-      const micAvailable = await testMicrophonePermissions();
-      if (!micAvailable) {
-        console.log('❌ Cannot initialize speech recognition without microphone access');
-        setIsSupported(false);
-        setHasError(true);
-        return;
-      }
+      const data = await response.json();
+      console.log('✅ AI transcription complete:', data.text);
+      return data.text;
       
-      const recognition = createRecognitionInstance(currentLanguageRef.current);
-      if (!recognition) {
-        console.log('❌ Speech recognition not supported in this browser');
-        setIsSupported(false);
-        return;
-      }
-      
-      recognitionRef.current = recognition;
-       
-       // Add start handler for debugging
-       recognitionRef.current.onstart = () => {
-         console.log('Speech recognition actually started and is listening...');
-       };
-       
-       // Set up event handlers
-       recognitionRef.current.onresult = (event: any) => {
-         try {
-           const current = event.resultIndex;
-           const transcript = event.results[current][0].transcript;
-           const isFinal = event.results[current].isFinal;
-           
-           console.log('Speech result:', transcript, 'Final:', isFinal);
-           setTranscript(transcript);
-           
-           // If it's a final result and we have continuous mode, 
-           // we can process it immediately
-           if (isFinal && transcript.trim()) {
-             console.log('Final speech result received, stopping...');
-             setTimeout(() => stopListening(), 500); // Small delay to ensure clean stop
-           }
-         } catch (e) {
-           console.error('Error processing speech result:', e);
-         }
-       };
+    } catch (error) {
+      console.error('❌ AI transcription error:', error);
+      throw error;
+    }
+  };
 
-       recognitionRef.current.onend = () => {
-         console.log('Speech recognition ended, transcript:', transcript);
-         setIsListening(false);
-         
-         // Process transcript if we have one
-         if (transcript && transcript.trim()) {
-           console.log('Processing transcript:', transcript);
-           setIsProcessing(true);
-         } else {
-           console.log('No transcript to process');
-         }
-       };
+      useEffect(() => {
+    // Only run on client side
+    if (typeof window === 'undefined') return;
 
-       recognitionRef.current.onerror = (event: any) => {
-         console.log('🚨 Speech recognition error occurred:', event.error);
-         
-         // Try next language if language-not-supported
-         if (event.error === 'language-not-supported') {
-           console.log(`❌ Language not supported (attempt ${currentLanguageRef.current + 1}/${supportedLanguages.length})`);
-           
-           // Set fallback flag to maintain listening state during language switching
-           isInLanguageFallbackRef.current = true;
-           
-           currentLanguageRef.current += 1;
-           if (currentLanguageRef.current < supportedLanguages.length) {
-             console.log(`🔄 Trying next language option (${supportedLanguages[currentLanguageRef.current] === null ? 'no-lang-attribute' : supportedLanguages[currentLanguageRef.current] || 'browser default'})...`);
-             
-             // Don't stop listening state during fallback - keep blur active
-             setIsProcessing(false);
-             
-             setTimeout(async () => {
-               await initializeRecognition();
-               // After successful reinit, restart listening automatically
-               setTimeout(() => {
-                 console.log('🔍 Auto-restart check:');
-                 console.log('  recognitionRef.current:', !!recognitionRef.current);
-                 console.log('  isSupported:', isSupported);
-                 console.log('  isInLanguageFallbackRef.current:', isInLanguageFallbackRef.current);
-                 
-                 if (recognitionRef.current && isInLanguageFallbackRef.current) {
-                   console.log('🔄 Auto-restarting speech recognition with new language...');
-                   try {
-                     setTranscript('');
-                     setIsProcessing(false);
-                     // Keep isListening true to maintain blur
-                     setHasError(false);
-                     recognitionRef.current.start();
-                     
-                     // Set timeout again for the new session
-                     if (timeoutRef.current) {
-                       clearTimeout(timeoutRef.current);
-                     }
-                     timeoutRef.current = setTimeout(() => {
-                       console.log('⏰ Speech recognition timeout - stopping...');
-                       stopListening();
-                     }, 15000);
-                     
-                     console.log('✅ Auto-restart successful');
-                     isInLanguageFallbackRef.current = false;
-                   } catch (restartError) {
-                     console.log('❌ Auto-restart failed:', restartError);
-                     setIsListening(false);
-                     isInLanguageFallbackRef.current = false;
-                   }
-                 } else {
-                   console.log('❌ Auto-restart conditions not met, skipping...');
-                 }
-               }, 500);
-             }, 100);
-             return;
-           } else {
-             console.log('💀 All language options exhausted - this browser cannot use speech recognition on HTTP');
-             console.log('🔧 The issue is HTTP vs HTTPS (see detailed instructions above)');
-             console.log('  ✅ Microphone: Working');
-             console.log('  ✅ Browser: Supported'); 
-             console.log('  ❌ Protocol: HTTP (needs HTTPS)');
-             console.log('👆 Scroll up for step-by-step HTTPS setup instructions');
-             setIsListening(false);
-             setHasError(true);
-             setIsSupported(false);
-             isInLanguageFallbackRef.current = false;
-             return;
-           }
-         }
-         
-         // For other errors, stop listening normally
-         setIsListening(false);
-         setIsProcessing(false);
-         
-         // Only disable for truly critical errors
-         if (event.error === 'audio-capture' || 
-             event.error === 'not-allowed') {
-           setHasError(true);
-           console.warn('🚫 Critical speech recognition error:', event.error);
-         } else {
-           setHasError(false);
-           console.log('⚠️ Non-critical error:', event.error, '- continuing...');
-         }
-       };
-
-       // If we get here, speech recognition is working
-       setIsSupported(true);
-       setHasError(false);
-       const currentLang = supportedLanguages[currentLanguageRef.current];
-       const langDisplay = currentLang === null ? 'no-lang-attribute' : currentLang || 'browser default';
-       console.log(`✅ Speech recognition initialized successfully with language: ${langDisplay}`);
-     };
-     
-     // Reset language index on first load
-     currentLanguageRef.current = 0;
-     
-     // Start initialization
-     initializeRecognition().catch(error => {
-       console.error('❌ Failed to initialize speech recognition:', error);
-       setIsSupported(false);
-       setHasError(true);
-     });
+    // Initialize AI voice recognition
+    initializeAudioRecording();
 
     return () => {
-      // Cleanup timeout
+      // Cleanup
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
       }
       
-      // Clear fallback flag
-      isInLanguageFallbackRef.current = false;
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
       
-      if (recognitionRef.current) {
-        try {
-          recognitionRef.current.stop();
-        } catch (error) {
-          console.error('Error stopping speech recognition:', error);
-        }
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.stop();
       }
     };
-  }, [transcript]);
+  }, []);
 
   const startListening = () => {
-    const currentLang = supportedLanguages[currentLanguageRef.current];
-    const langDisplay = currentLang === null ? 'no-lang-attribute' : currentLang || 'browser default';
-    console.log(`🎤 Starting speech recognition with language: ${langDisplay}...`);
+    console.log('🎤 Starting AI voice recognition...');
     
-    if (recognitionRef.current && isSupported) {
-      try {
-        // Clear any existing timeout
-        if (timeoutRef.current) {
-          clearTimeout(timeoutRef.current);
-        }
-        
-        // Reset fallback flag for new user-initiated session
-        isInLanguageFallbackRef.current = false;
-        
-        setTranscript('');
-        setIsProcessing(false);
-        setIsListening(true);
-        setHasError(false);
-        recognitionRef.current.start();
-        console.log('✅ Speech recognition started successfully');
-        
-        // Set a timeout to stop listening after 15 seconds
-        timeoutRef.current = setTimeout(() => {
-          console.log('⏰ Speech recognition timeout - stopping...');
-          stopListening();
-        }, 15000);
-        
-      } catch (error) {
-        console.error('❌ Error starting speech recognition:', error);
-        
-        // If start fails, try to reinitialize with next language
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        const errorName = error instanceof Error ? error.name : '';
-        if (errorName === 'InvalidStateError' || errorMessage.includes('already started')) {
-          console.log('🔄 Recognition already started or in invalid state, stopping and retrying...');
-          try {
-            recognitionRef.current.stop();
-          } catch (e) {}
-          setTimeout(() => startListening(), 500);
-          return;
-        }
-        
-        setIsListening(false);
-        setHasError(true);
+    if (!streamRef.current || !isSupported) {
+      console.log('🚫 Cannot start recording - not initialized');
+      setHasError(true);
+      return;
+    }
+    
+    try {
+      // Clear any existing timeout
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
       }
-    } else {
-      console.log('🚫 Cannot start speech recognition');
-      console.log('recognitionRef.current:', !!recognitionRef.current);
-      console.log('isSupported:', isSupported);
-      console.log('hasError:', hasError);
       
-      // If not supported, give clear feedback
-      if (!isSupported && !hasError) {
-        console.log('🔄 Speech recognition not initialized yet, please try again in a moment...');
-      }
+      // Reset audio chunks
+      audioChunksRef.current = [];
+      
+      // Create MediaRecorder
+      mediaRecorderRef.current = new MediaRecorder(streamRef.current, {
+        mimeType: 'audio/webm'
+      });
+      
+      // Set up event handlers
+      mediaRecorderRef.current.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+      
+      mediaRecorderRef.current.onstop = async () => {
+        console.log('🎵 Recording stopped, processing audio...');
+        setIsListening(false);
+        setIsProcessing(true);
+        
+        try {
+          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+          console.log('📦 Audio blob created:', audioBlob.size, 'bytes');
+          
+          const transcriptText = await transcribeAudio(audioBlob);
+          setTranscript(transcriptText);
+          setIsProcessing(false);
+          
+          // Process the transcript
+          if (transcriptText.trim()) {
+            console.log('✅ Transcription ready for processing');
+            // The transcript will be processed by the existing useEffect
+          }
+          
+        } catch (error) {
+          console.error('❌ Transcription failed:', error);
+          setIsProcessing(false);
+          setHasError(true);
+        }
+      };
+      
+      // Start recording
+      setTranscript('');
+      setIsProcessing(false);
+      setIsListening(true);
+      setHasError(false);
+      
+      mediaRecorderRef.current.start();
+      console.log('✅ AI voice recording started');
+      
+      // Set a timeout to stop listening after 15 seconds
+      timeoutRef.current = setTimeout(() => {
+        console.log('⏰ Recording timeout - stopping...');
+        stopListening();
+      }, 15000);
+      
+    } catch (error) {
+      console.error('❌ Error starting recording:', error);
+      setIsListening(false);
+      setHasError(true);
     }
   };
 
   const stopListening = () => {
-    if (recognitionRef.current) {
-      try {
-        console.log('🛑 Stopping speech recognition...');
-        
-        // Clear timeout
-        if (timeoutRef.current) {
-          clearTimeout(timeoutRef.current);
-          timeoutRef.current = null;
-        }
-        
-        // Clear fallback flag
-        isInLanguageFallbackRef.current = false;
-        
-        recognitionRef.current.stop();
-        setIsListening(false);
-      } catch (error) {
-        console.error('❌ Error stopping speech recognition:', error);
-        setIsListening(false);
-        isInLanguageFallbackRef.current = false;
+    try {
+      console.log('🛑 Stopping AI voice recording...');
+      
+      // Clear timeout
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
       }
+      
+      // Stop recording
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+        mediaRecorderRef.current.stop();
+      } else {
+        setIsListening(false);
+      }
+      
+    } catch (error) {
+      console.error('❌ Error stopping recording:', error);
+      setIsListening(false);
     }
   };
 
@@ -518,26 +351,42 @@ export default function AIAssistant() {
   const [isOpen, setIsOpen] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
 
-  // Debug log to ensure component is mounting
+    // Debug log to ensure component is mounting
   useEffect(() => {
-    console.log('🤖 AIAssistant component mounted (v3.0 - Smart Speech Recognition with Diagnostics)');
+    console.log('🤖 AIAssistant component mounted (v4.0 - AI-Powered Voice Recognition with OpenAI Whisper)');
     
-         // Add global test function for manual debugging
-     (window as any).testSpeechRecognition = () => {
-       console.log('🧪 Manual Speech Recognition Test');
-       console.log('Protocol:', window.location.protocol);
-       console.log('Host:', window.location.host);
-       console.log('SpeechRecognition available:', !!(window.SpeechRecognition || window.webkitSpeechRecognition));
-       
-       if (window.location.protocol !== 'https:') {
-         console.log('❌ ISSUE FOUND: HTTP protocol detected');
-         console.log('🔧 Solution: Enable HTTPS or Chrome flag (see above for instructions)');
-       }
-       
-       navigator.mediaDevices?.getUserMedia({ audio: true })
-         .then(() => console.log('✅ Microphone accessible'))
-         .catch(e => console.log('❌ Microphone error:', e));
-     };
+    // Add global test function for manual debugging
+    (window as any).testAIVoice = async () => {
+      console.log('🧪 AI Voice Recognition Test');
+      console.log('Protocol:', window.location.protocol);
+      console.log('Host:', window.location.host);
+      console.log('MediaRecorder supported:', !!window.MediaRecorder);
+      console.log('OpenAI API available:', !!process.env.NEXT_PUBLIC_OPENAI_API_KEY || 'Unknown (check server)');
+      
+      // Test MediaRecorder capabilities
+      if (MediaRecorder) {
+        console.log('✅ MediaRecorder available');
+        console.log('Supported types:');
+        console.log('  audio/webm:', MediaRecorder.isTypeSupported('audio/webm'));
+        console.log('  audio/mp4:', MediaRecorder.isTypeSupported('audio/mp4'));
+        console.log('  audio/wav:', MediaRecorder.isTypeSupported('audio/wav'));
+      } else {
+        console.log('❌ MediaRecorder not available');
+      }
+      
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        console.log('✅ Microphone accessible');
+        stream.getTracks().forEach(track => track.stop());
+        
+        // Test audio recording capability
+        const recorder = new MediaRecorder(stream);
+        console.log('✅ Can create MediaRecorder instance');
+        
+      } catch (e) {
+        console.log('❌ Microphone/Recording error:', e);
+      }
+    };
   }, []);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
@@ -567,7 +416,7 @@ export default function AIAssistant() {
     startListening,
     stopListening,
     resetProcessing
-  } = useVoiceRecognition();
+  } = useAIVoiceRecognition();
 
   // Initialize AI service with router
   useEffect(() => {
@@ -1021,10 +870,7 @@ export default function AIAssistant() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
               >
-                {window.location.protocol !== 'https:' 
-                  ? "🔒 Voice needs HTTPS - Check console for setup" 
-                  : "🎤 Voice not supported - Use text chat"
-                }
+"🤖 AI Voice not available - Use text chat"
               </motion.div>
             )}
           </motion.div>
