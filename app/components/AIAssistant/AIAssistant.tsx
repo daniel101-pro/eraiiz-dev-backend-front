@@ -502,7 +502,7 @@ Respond as a friendly, knowledgeable sustainability expert. Be enthusiastic abou
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer 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',
+          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_OPENROUTER_API_KEY}`,
           'HTTP-Referer': 'https://eraiiz.com',
           'X-Title': 'Eraiiz - Eco-Friendly Marketplace'
         },
