@@ -801,6 +801,7 @@ const ProductUploadForm = () => {
                     <Package className="h-5 w-5 text-purple-600" />
                   </div>
                   <h2 className="text-2xl font-bold text-gray-900">Available Sizes</h2>
+                  <span className="text-gray-500 text-sm font-medium">(Optional)</span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -829,6 +830,21 @@ const ProductUploadForm = () => {
                       )}
                     </div>
                   ))}
+                </div>
+                
+                {/* Optional note */}
+                <div className="mt-4 p-3 bg-gray-50 rounded-xl border border-gray-200">
+                  <div className="flex items-start gap-2">
+                    <Info className="h-4 w-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                    <div className="text-xs text-gray-600">
+                      <p className="font-medium mb-1">💡 Size Information:</p>
+                      <ul className="list-disc list-inside space-y-1">
+                        <li>Sizes are optional - you can skip this section if your product doesn't have sizes</li>
+                        <li>Only select sizes that are available for your product</li>
+                        <li>Stock quantities help customers know availability</li>
+                      </ul>
+                    </div>
+                  </div>
                 </div>
               </div>
 

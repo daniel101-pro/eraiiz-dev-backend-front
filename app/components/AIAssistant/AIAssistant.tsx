@@ -2,9 +2,9 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bot, X, Loader2, Send, ShoppingCart, Search, Maximize2, Minimize2, Mic, MicOff, MessageSquare, Waves } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { AIAssistantService } from '../../services/aiAssistant';
+import { Bot, X, Loader2, Send, ShoppingCart, Search, Maximize2, Minimize2, Mic, MicOff, MessageSquare, Waves, StopCircle } from 'lucide-react';
+// Removed useRouter - no longer needed with Google Gemini API
+// Removed AIAssistantService - now using Google Gemini API directly
 
 // Type declarations for Speech Recognition API
 declare global {
@@ -104,18 +104,19 @@ const SoundwaveVisualization = ({ isActive }: { isActive: boolean }) => {
   };
 
   return (
-    <div className="flex items-end justify-center space-x-2 h-32">
+    <div className="flex items-end justify-center space-x-3 h-40 bg-black bg-opacity-30 rounded-2xl p-6">
       {audioData.map((value, index) => (
         <motion.div
           key={index}
-          className="bg-gradient-to-t from-green-400 to-green-600 rounded-full"
+          className="bg-gradient-to-t from-green-300 via-green-400 to-green-500 rounded-full shadow-lg shadow-green-400/50"
           style={{
-            width: '8px',
-            minHeight: '20px'
+            width: '10px',
+            minHeight: '30px'
           }}
           animate={{
-            height: Math.max(20, value * 120 + 20) + 'px',
-            opacity: isActive ? 1 : 0.3
+            height: Math.max(30, value * 150 + 30) + 'px',
+            opacity: isActive ? 1 : 0.4,
+            scale: isActive ? 1 : 0.8
           }}
           transition={{
             duration: 0.1,
@@ -123,6 +124,79 @@ const SoundwaveVisualization = ({ isActive }: { isActive: boolean }) => {
           }}
         />
       ))}
+    </div>
+  );
+};
+
+// Add cute blob animation component
+const CuteAIBlob = ({ isActive }: { isActive: boolean }) => {
+  return (
+    <div className="flex items-center justify-center h-40">
+      <motion.div
+        className="relative"
+        animate={isActive ? {
+          scale: [1, 1.2, 1, 1.1, 1],
+          rotate: [0, 5, -5, 3, 0]
+        } : { scale: 1, rotate: 0 }}
+        transition={{
+          duration: 2,
+          repeat: isActive ? Infinity : 0,
+          ease: "easeInOut"
+        }}
+      >
+        {/* Main blob body */}
+        <motion.div
+          className="w-32 h-32 bg-gradient-to-br from-purple-400 via-pink-400 to-blue-400 rounded-full relative overflow-hidden"
+          animate={isActive ? {
+            borderRadius: ["50%", "60% 40% 40% 60%", "40% 60% 60% 40%", "50%"]
+          } : {}}
+          transition={{
+            duration: 3,
+            repeat: isActive ? Infinity : 0,
+            ease: "easeInOut"
+          }}
+        >
+          {/* Cute eyes */}
+          <div className="absolute top-8 left-6 w-3 h-3 bg-white rounded-full"></div>
+          <div className="absolute top-8 right-6 w-3 h-3 bg-white rounded-full"></div>
+          
+          {/* Cute mouth */}
+          <motion.div
+            className="absolute bottom-10 left-1/2 transform -translate-x-1/2 w-4 h-2 bg-white rounded-full"
+            animate={isActive ? {
+              scaleX: [1, 1.3, 1, 1.2, 1],
+              scaleY: [1, 0.8, 1, 0.9, 1]
+            } : {}}
+            transition={{
+              duration: 1.5,
+              repeat: isActive ? Infinity : 0,
+              ease: "easeInOut"
+            }}
+          />
+          
+          {/* Thinking dots */}
+          {isActive && (
+            <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 flex space-x-1">
+              {[0, 1, 2].map((i) => (
+                <motion.div
+                  key={i}
+                  className="w-2 h-2 bg-purple-300 rounded-full"
+                  animate={{
+                    y: [-2, -8, -2],
+                    opacity: [0.5, 1, 0.5]
+                  }}
+                  transition={{
+                    duration: 1,
+                    repeat: Infinity,
+                    delay: i * 0.2,
+                    ease: "easeInOut"
+                  }}
+                />
+              ))}
+            </div>
+          )}
+        </motion.div>
+      </motion.div>
     </div>
   );
 };
@@ -176,30 +250,33 @@ const useAIVoiceRecognition = () => {
     }
   };
 
-  // Send audio to OpenAI Whisper API
+  // Send audio to Google Gemini API for transcription
   const transcribeAudio = async (audioBlob: Blob) => {
     try {
-      console.log('🤖 Sending audio to AI for transcription...');
+      console.log('🤖 Sending audio to Google Gemini for transcription...');
       
       const formData = new FormData();
       formData.append('file', audioBlob, 'audio.webm');
-      formData.append('model', 'whisper-1');
       
       const response = await fetch('/api/ai/transcribe', {
         method: 'POST',
         body: formData,
       });
       
-      if (!response.ok) {
-        throw new Error('Transcription failed');
+      const data = await response.json();
+      console.log('📡 Gemini transcription response:', data);
+      
+      if (response.ok && data.text) {
+        console.log('✅ Gemini transcription complete:', data.text);
+        return data.text;
+      } else {
+        console.log('❌ Gemini transcription failed:', data.message);
+        setHasError(true);
+        throw new Error(data.message || 'Transcription failed');
       }
       
-      const data = await response.json();
-      console.log('✅ AI transcription complete:', data.text);
-      return data.text;
-      
     } catch (error) {
-      console.error('❌ AI transcription error:', error);
+      console.error('❌ Gemini transcription error:', error);
       throw error;
     }
   };
@@ -307,7 +384,7 @@ const useAIVoiceRecognition = () => {
     }
   };
 
-  const stopListening = () => {
+  const stopListening = async () => {
     try {
       console.log('🛑 Stopping AI voice recording...');
       
@@ -348,20 +425,183 @@ const useAIVoiceRecognition = () => {
 };
 
 export default function AIAssistant() {
+  // All useState hooks at the top
   const [isOpen, setIsOpen] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputValue, setInputValue] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [showVoiceOverlay, setShowVoiceOverlay] = useState(false);
+  const [aiResponse, setAiResponse] = useState<string | null>(null);
+  const [isAIResponding, setIsAIResponding] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
 
-    // Debug log to ensure component is mounting
+  // Refs
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  // Removed router and aiService - now using Google Gemini API directly
+
+  // Hook for voice recognition
+  const {
+    isListening: hookIsListening,
+    transcript: hookTranscript,
+    isSupported,
+    isProcessing: hookIsProcessing,
+    hasError,
+    startListening: hookStartListening,
+    stopListening: hookStopListening,
+    resetProcessing
+  } = useAIVoiceRecognition();
+
+  // OpenRouter API integration for AI responses - Sustainability & Eraiiz Focus
+  const getAIResponse = async (userMessage: string): Promise<string> => {
+    try {
+      console.log('🌱 Getting sustainability-focused AI response from OpenRouter (DeepSeek) for:', userMessage);
+      
+      const requestBody = {
+        model: "openai/gpt-3.5-turbo",
+        messages: [
+          {
+            role: "system",
+            content: `You are "Eco-Edu", a passionate sustainability educator and AI assistant for Eraiiz, an eco-friendly marketplace.
+
+CRITICAL INSTRUCTIONS:
+- NEVER use <think> tags or show internal reasoning
+- NEVER start responses with "Okay" or "Let me think"
+- Give direct, immediate responses
+- Do not explain your thinking process
+- Respond as if you're speaking directly to the user
+
+Your mission is to help people learn about sustainability, carbon emissions, environmental impact, and eco-friendly living.
+
+Key topics you're an expert in:
+- Carbon footprint calculation and reduction
+- Sustainable materials (recycled, biodegradable, renewable)
+- Environmental impact of consumer choices
+- Green living tips and practices
+- Eraiiz marketplace features and eco-products
+- Climate change and environmental science
+- Circular economy principles
+- Sustainable shopping habits
+
+Respond as a friendly, knowledgeable sustainability expert. Be enthusiastic about environmental topics, use emojis when appropriate, and always connect your answers to how Eraiiz helps people make sustainable choices. Keep responses conversational, educational, and inspiring (150-200 words max).`
+          },
+          {
+            role: "user",
+            content: userMessage
+          }
+        ],
+        temperature: 0.8,
+        max_tokens: 300
+      };
+
+      console.log('📡 Sending request to OpenRouter API...');
+      
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer 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',
+          'HTTP-Referer': 'https://eraiiz.com',
+          'X-Title': 'Eraiiz - Eco-Friendly Marketplace'
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      console.log('📱 OpenRouter API response status:', response.status);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('❌ OpenRouter API error:', errorData);
+        throw new Error(`OpenRouter API error: ${response.status} - ${JSON.stringify(errorData)}`);
+      }
+
+      const data = await response.json();
+      console.log('📊 OpenRouter API response data:', data);
+      
+      // Check if data is empty or malformed
+      if (!data || typeof data !== 'object') {
+        console.error('❌ Invalid response data:', data);
+        throw new Error('Invalid response from OpenRouter API');
+      }
+      
+      // Check for error in response
+      if (data.error) {
+        console.error('❌ OpenRouter API error in response:', data.error);
+        throw new Error(`OpenRouter API error: ${data.error.message || data.error}`);
+      }
+      
+      // Check if choices array exists and has content
+      if (!data.choices || !Array.isArray(data.choices) || data.choices.length === 0) {
+        console.error('❌ No choices in response:', data);
+        throw new Error('No response choices from OpenRouter API');
+      }
+      
+      const aiResponse = data.choices[0]?.message?.content;
+      
+      if (aiResponse && typeof aiResponse === 'string') {
+        console.log('✅ AI response extracted:', aiResponse);
+        
+        // Clean up any thinking tags or internal reasoning
+        let cleanedResponse = aiResponse.trim();
+        
+        // Remove <think> tags and their content
+        cleanedResponse = cleanedResponse.replace(/<think>[\s\S]*?<\/think>/g, '');
+        
+        // Remove any remaining thinking indicators
+        cleanedResponse = cleanedResponse.replace(/^(Okay,|Let me think|I think|Hmm,)/i, '');
+        
+        // Remove extra whitespace
+        cleanedResponse = cleanedResponse.replace(/\s+/g, ' ').trim();
+        
+        // If response is empty after cleaning, provide a fallback
+        if (!cleanedResponse) {
+          return "🌱 I'm Eco-Edu, your sustainability educator! I'm here to help you learn about environmental impact, carbon footprints, and eco-friendly living. At Eraiiz, we make sustainable shopping easy and accessible. What sustainability topic interests you today? 💚";
+        }
+        
+        return cleanedResponse;
+      } else {
+        console.error('❌ No valid response text in data:', data);
+        console.error('❌ Response structure:', {
+          hasChoices: !!data.choices,
+          choicesLength: data.choices?.length,
+          firstChoice: data.choices?.[0],
+          hasMessage: !!data.choices?.[0]?.message,
+          messageContent: data.choices?.[0]?.message?.content
+        });
+        throw new Error('No valid response content from OpenRouter API');
+      }
+      
+    } catch (error) {
+      console.error('❌ AI response error details:', error);
+      
+      // Provide a helpful fallback response based on the user's message
+      const lowerMessage = userMessage.toLowerCase();
+      
+      if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('hey')) {
+        return "🌱 Hey there! I'm Eco-Edu, your sustainability educator at Eraiiz! I'm here to help you learn about eco-friendly living, carbon footprints, and sustainable choices. What would you like to know about sustainability today? 💚";
+      } else if (lowerMessage.includes('carbon') || lowerMessage.includes('footprint')) {
+        return "🌍 Carbon footprints measure the total greenhouse gas emissions from your activities! At Eraiiz, we help you make sustainable choices that reduce your environmental impact. Every eco-friendly product you choose makes a difference! Want to learn more about calculating your carbon footprint? 🌱";
+      } else if (lowerMessage.includes('sustainable') || lowerMessage.includes('eco')) {
+        return "♻️ Sustainability is all about meeting our needs without compromising future generations! At Eraiiz, we connect you with eco-friendly products made from recycled materials, biodegradable substances, and renewable resources. Every sustainable choice helps protect our planet! 🌿";
+      } else {
+        return "🌱 I'm Eco-Edu, your sustainability educator! I'm here to help you learn about environmental impact, carbon footprints, and eco-friendly living. At Eraiiz, we make sustainable shopping easy and accessible. What sustainability topic interests you today? 💚";
+      }
+    }
+  };
+
+  // Debug log to ensure component is mounting
   useEffect(() => {
-    console.log('🤖 AIAssistant component mounted (v4.0 - AI-Powered Voice Recognition with OpenAI Whisper)');
+    console.log('🌱 AIAssistant component mounted (v10.0 - OpenRouter Integration)');
     
     // Add global test function for manual debugging
     (window as any).testAIVoice = async () => {
-      console.log('🧪 AI Voice Recognition Test');
+      console.log('🧪 Google Gemini Voice Recognition Test');
       console.log('Protocol:', window.location.protocol);
       console.log('Host:', window.location.host);
       console.log('MediaRecorder supported:', !!window.MediaRecorder);
-      console.log('OpenAI API available:', !!process.env.NEXT_PUBLIC_OPENAI_API_KEY || 'Unknown (check server)');
+      console.log('Google Gemini API: Configured and ready');
       
       // Test MediaRecorder capabilities
       if (MediaRecorder) {
@@ -387,12 +627,20 @@ export default function AIAssistant() {
         console.log('❌ Microphone/Recording error:', e);
       }
     };
+
+    // Add test function for AI response
+    (window as any).testAIResponse = async (message = "Hello, how are you?") => {
+      console.log('🧪 Testing AI Response with:', message);
+      try {
+        const response = await getAIResponse(message);
+        console.log('✅ Test AI Response:', response);
+        return response;
+      } catch (error) {
+        console.error('❌ Test AI Response failed:', error);
+        return null;
+      }
+    };
   }, []);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [inputValue, setInputValue] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
 
   // Set initial position after component mounts
   useEffect(() => {
@@ -403,25 +651,8 @@ export default function AIAssistant() {
       });
     }
   }, []);
-  const chatContainerRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
-  const aiService = useRef(new AIAssistantService());
-  
-  const {
-    isListening,
-    transcript,
-    isSupported,
-    isProcessing,
-    hasError,
-    startListening,
-    stopListening,
-    resetProcessing
-  } = useAIVoiceRecognition();
 
-  // Initialize AI service with router
-  useEffect(() => {
-    aiService.current.setRouter(router);
-  }, [router]);
+  // Removed AI service initialization - now using Google Gemini API directly
 
   // Show welcome message when opened
   useEffect(() => {
@@ -430,18 +661,46 @@ export default function AIAssistant() {
     }
   }, [isOpen]);
 
-  // Handle voice transcript
+  // Update the voice transcript handler with better state management
   useEffect(() => {
-    if (transcript && !isListening && isProcessing) {
-      setInputValue(transcript);
-      handleSendMessage(undefined, transcript);
+    if (hookTranscript && !hookIsListening && hookIsProcessing) {
+      console.log('🎯 Processing transcript:', hookTranscript);
+      setInputValue(hookTranscript);
+      
+      // Keep overlay open and start AI response process
+      setShowVoiceOverlay(true);
+      setIsAIResponding(true);
+      
+      console.log('🤖 Starting AI response...');
+      
+      // Get real AI response with better error handling
+      getAIResponse(hookTranscript)
+        .then((response) => {
+          console.log('✅ AI response received:', response);
+          setAiResponse(response);
+          setIsAIResponding(false);
+        })
+        .catch((error) => {
+          console.error('❌ AI response failed:', error);
+          setAiResponse("Sorry, I couldn't process that. Please try again!");
+          setIsAIResponding(false);
+        });
+      
       resetProcessing();
     }
-  }, [transcript, isListening, isProcessing]);
+  }, [hookTranscript, hookIsListening, hookIsProcessing]);
+
+  // Show error modal when voice recognition is not supported or has error
+  useEffect(() => {
+    if ((!isSupported || hasError) && !showErrorModal) {
+      setShowErrorModal(true);
+    }
+  }, [isSupported, hasError, showErrorModal]);
 
   const handleInitialMessage = async () => {
     try {
-      const initialMessage = await aiService.current.processMessage('__INIT__');
+      // Use Google Gemini API for sustainability-focused welcome message
+      const initialMessage = await getAIResponse('Hello! I just opened the chat. Please give me an enthusiastic welcome message introducing yourself as Eco-Edu, a sustainability educator for Eraiiz. Tell me about your mission to help people learn about sustainability, carbon emissions, and eco-friendly living. Make it inspiring and educational!');
       setMessages([
         {
           role: 'assistant',
@@ -451,12 +710,20 @@ export default function AIAssistant() {
       ]);
     } catch (error) {
       console.error('Error getting initial message:', error);
+      // Fallback sustainability-focused welcome message
+      setMessages([
+        {
+          role: 'assistant',
+          content: '🌱 Hello! I\'m Eco-Edu, your passionate sustainability educator here at Eraiiz! 🌍✨\n\nI\'m here to help you learn everything about sustainable living, carbon footprints, and making eco-friendly choices. Whether you want to understand how your shopping impacts the planet, learn about sustainable materials, or discover ways to reduce your environmental footprint - I\'ve got you covered!\n\nWhat sustainability topic would you like to explore today? From carbon emissions to green living tips, I\'m excited to share knowledge that helps you make a positive impact! 🌿💚',
+          timestamp: new Date()
+        }
+      ]);
     }
   };
 
-  const handleSendMessage = async (e?: React.FormEvent, voiceInput?: string) => {
+    const handleSendMessage = async (e?: React.FormEvent, voiceInput?: string) => {
     if (e) e.preventDefault();
-    
+
     const messageText = voiceInput || inputValue.trim();
     if (!messageText || isLoading) return;
 
@@ -480,7 +747,8 @@ export default function AIAssistant() {
     setMessages(prev => [...prev, loadingMessage]);
 
     try {
-      const response = await aiService.current.processMessage(messageText);
+      // Use Google Gemini API for text chat responses
+      const response = await getAIResponse(messageText);
       
       // Remove loading message and add actual response
       setMessages(prev => {
@@ -530,10 +798,11 @@ export default function AIAssistant() {
   };
 
   const handleVoiceInput = () => {
-    if (isListening) {
-      stopListening();
+    if (hookIsListening) {
+      hookStopListening();
     } else {
-      startListening();
+      setShowVoiceOverlay(true);
+      hookStartListening();
     }
   };
 
@@ -562,21 +831,39 @@ export default function AIAssistant() {
     }
   }, [messages]);
 
-  // Add blur effect to body when voice is active
+  // Add blur effect to background content when voice is active (but not the voice overlay)
   useEffect(() => {
-    if (isListening || isProcessing) {
-      document.body.style.filter = 'blur(8px)';
-      document.body.style.pointerEvents = 'none';
+    if (hookIsListening || hookIsProcessing || isAIResponding) {
+      // Add a CSS class that blurs everything except our voice overlay
+      const style = document.createElement('style');
+      style.id = 'voice-blur-style';
+      style.textContent = `
+        body > *:not(.voice-overlay) {
+          filter: blur(8px) !important;
+          pointer-events: none !important;
+        }
+        .voice-overlay {
+          filter: none !important;
+          pointer-events: auto !important;
+        }
+      `;
+      document.head.appendChild(style);
     } else {
-      document.body.style.filter = '';
-      document.body.style.pointerEvents = '';
+      // Remove the blur style
+      const existingStyle = document.getElementById('voice-blur-style');
+      if (existingStyle) {
+        existingStyle.remove();
+      }
     }
 
     return () => {
-      document.body.style.filter = '';
-      document.body.style.pointerEvents = '';
+      // Cleanup on unmount
+      const existingStyle = document.getElementById('voice-blur-style');
+      if (existingStyle) {
+        existingStyle.remove();
+      }
     };
-  }, [isListening, isProcessing]);
+  }, [hookIsListening, hookIsProcessing, isAIResponding]);
 
   const renderMessageContent = (message: Message) => {
     if (message.loading) {
@@ -596,20 +883,54 @@ export default function AIAssistant() {
     return message.content;
   };
 
+  // Handler for closing overlay
+  const handleCloseOverlay = () => {
+    setShowVoiceOverlay(false);
+    setAiResponse(null);
+    setIsAIResponding(false);
+  };
+
+  // Handler for closing error modal
+  const handleCloseErrorModal = () => {
+    console.log('🔴 Closing error modal');
+    setShowErrorModal(false);
+  };
+
+
+
   return (
     <>
       {/* Full-screen voice overlay */}
       <AnimatePresence>
-        {(isListening || isProcessing) && (
+        {(showVoiceOverlay || hookIsListening || hookIsProcessing || isAIResponding) && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[9999] flex items-center justify-center"
+            className="voice-overlay fixed inset-0 z-[9999] flex items-center justify-center"
             style={{ backdropFilter: 'blur(20px)', backgroundColor: 'rgba(0, 0, 0, 0.7)' }}
           >
-            <div className="text-center text-white">
-              {isListening ? (
+            <div className="text-center text-white relative">
+              {/* X icon to close overlay */}
+              <button
+                className="absolute top-4 right-4 bg-black bg-opacity-40 rounded-full p-2 hover:bg-opacity-70 transition"
+                onClick={handleCloseOverlay}
+                aria-label="Close"
+              >
+                <X className="h-6 w-6" />
+              </button>
+              {/* Stop icon to end/submit voice input */}
+              {hookIsListening && (
+                <button
+                  className="absolute top-4 left-4 bg-black bg-opacity-40 rounded-full p-2 hover:bg-opacity-70 transition"
+                  onClick={hookStopListening}
+                  aria-label="Stop Recording"
+                >
+                  <StopCircle className="h-6 w-6 text-red-400" />
+                </button>
+              )}
+              {/* Main content */}
+              {hookIsListening ? (
                 <>
                   <motion.div
                     initial={{ scale: 0.8, opacity: 0 }}
@@ -622,36 +943,37 @@ export default function AIAssistant() {
                       </div>
                       <h2 className="text-2xl font-bold mb-2">Listening...</h2>
                       <p className="text-lg opacity-80">Speak now, I'm all ears! 👂</p>
+                      {/*new audio SoundwaveVisualization animation position*/}
+                      {/* transcriptText goes here */}
+                        
                     </div>
+                    
                   </motion.div>
 
-                  {/* Soundwave Visualization */}
-                  <SoundwaveVisualization isActive={isListening} />
+                  {/* Enhanced Soundwave Visualization */}
+                  <div className="my-8">
+                    <SoundwaveVisualization isActive={hookIsListening} />
+                  </div>
 
-                  {/* Live Transcript */}
-                  {transcript && (
+                  {/* Live Transcript - Enhanced Display */}
+                  {hookTranscript && (
                     <motion.div
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="mt-8 p-4 bg-black bg-opacity-50 rounded-lg max-w-md mx-auto"
+                      className="mt-6 p-6 bg-black bg-opacity-60 rounded-2xl max-w-lg mx-auto border border-green-400/30"
                     >
-                      <p className="text-sm opacity-70 mb-1">You said:</p>
-                      <p className="text-lg font-medium">"{transcript}"</p>
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                        <p className="text-sm text-green-300 font-medium">Transcribed Text:</p>
+                      </div>
+                      <p className="text-lg font-semibold text-white leading-relaxed">"{hookTranscript}"</p>
                     </motion.div>
                   )}
 
                   {/* Cancel Button */}
-                  <motion.button
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.3 }}
-                    onClick={stopListening}
-                    className="mt-8 px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-full font-medium transition-colors"
-                  >
-                    Cancel
-                  </motion.button>
+                  {/* Removed Cancel button, replaced with Stop and X */}
                 </>
-              ) : isProcessing ? (
+              ) : hookIsProcessing ? (
                 <motion.div
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
@@ -662,14 +984,70 @@ export default function AIAssistant() {
                   </div>
                   <h2 className="text-2xl font-bold mb-2">Processing...</h2>
                   <p className="text-lg opacity-80">Understanding what you said 🤔</p>
-                  {transcript && (
-                    <div className="mt-6 p-4 bg-black bg-opacity-50 rounded-lg max-w-md mx-auto">
-                      <p className="text-sm opacity-70 mb-1">Processing:</p>
-                      <p className="text-lg font-medium">"{transcript}"</p>
+                  {hookTranscript && (
+                    <div className="mt-6 p-6 bg-black bg-opacity-60 rounded-2xl max-w-lg mx-auto border border-green-400/30">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                        <p className="text-sm text-green-300 font-medium">Processing:</p>
+                      </div>
+                      <p className="text-lg font-semibold text-white leading-relaxed">"{hookTranscript}"</p>
                     </div>
                   )}
                 </motion.div>
-              ) : null}
+              ) : isAIResponding ? (
+                // New AI responding state with cute blob
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  className="text-center"
+                >
+                  <div className="mb-6">
+                    <h2 className="text-2xl font-bold mb-2">Thinking...</h2>
+                    <p className="text-lg opacity-80">Let me think about that! 🤔</p>
+                  </div>
+                  
+                  {/* Show transcript */}
+                  {hookTranscript && (
+                    <div className="mb-6 p-4 bg-black bg-opacity-40 rounded-2xl max-w-lg mx-auto">
+                      <p className="text-sm text-green-300 mb-1">You said:</p>
+                      <p className="text-lg font-medium">"{hookTranscript}"</p>
+                    </div>
+                  )}
+                  
+                  {/* Cute AI Blob Animation */}
+                  <CuteAIBlob isActive={true} />
+                </motion.div>
+              ) : (
+                // Final state showing transcript and AI response
+                <div className="flex flex-col items-center justify-center">
+                  {hookTranscript && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mt-6 p-6 bg-black bg-opacity-60 rounded-2xl max-w-lg mx-auto border border-green-400/30"
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                        <p className="text-sm text-green-300 font-medium">You said:</p>
+                      </div>
+                      <p className="text-lg font-semibold text-white leading-relaxed">"{hookTranscript}"</p>
+                    </motion.div>
+                  )}
+                  {aiResponse && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mt-6 p-6 bg-black bg-opacity-60 rounded-2xl max-w-lg mx-auto border border-purple-400/30"
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
+                        <p className="text-sm text-purple-300 font-medium">AI Response:</p>
+                      </div>
+                      <p className="text-lg font-semibold text-white leading-relaxed">{aiResponse}</p>
+                    </motion.div>
+                  )}
+                </div>
+              )}
             </div>
           </motion.div>
         )}
@@ -680,7 +1058,7 @@ export default function AIAssistant() {
         {isOpen ? (
           <motion.div
             key="chat-window"
-            className="fixed z-50 bg-white rounded-2xl shadow-2xl overflow-hidden pointer-events-auto select-none"
+            className="fixed z-50 bg-gradient-to-br from-green-50 to-emerald-50 rounded-3xl shadow-2xl overflow-hidden pointer-events-auto select-none border border-green-200"
             initial={{ 
               scale: 0.8, 
               opacity: 0
@@ -698,82 +1076,107 @@ export default function AIAssistant() {
             style={{
               bottom: '6rem',
               right: '1.5rem',
-              width: '400px',
-              height: '500px',
+              width: '450px',
+              height: '650px',
               maxWidth: '90vw',
-              maxHeight: '80vh'
+              maxHeight: '85vh'
             }}
           >
-            {/* Header */}
-            <div className="bg-green-600 text-white p-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Bot className="h-5 w-5" />
-                <h3 className="font-semibold">AI Assistant</h3>
+            {/* Enhanced Header */}
+            <div className="bg-gradient-to-r from-green-600 via-emerald-600 to-green-700 text-white p-6 flex items-center justify-between relative overflow-hidden">
+              {/* Background decoration */}
+              <div className="absolute inset-0 bg-gradient-to-r from-green-400/20 to-emerald-400/20"></div>
+              <div className="absolute top-0 right-0 w-32 h-32 bg-green-300/10 rounded-full -translate-y-16 translate-x-16"></div>
+              <div className="absolute bottom-0 left-0 w-24 h-24 bg-emerald-300/10 rounded-full translate-y-12 -translate-x-12"></div>
+              
+              <div className="flex items-center gap-3 relative z-10">
+                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                  <Bot className="h-6 w-6" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg">Eco-Edu</h3>
+                  <p className="text-green-100 text-sm">Sustainability Educator</p>
+                </div>
               </div>
               <button
                 onClick={() => setIsOpen(false)}
-                className="hover:bg-green-700 p-1 rounded transition-colors"
+                className="hover:bg-white/20 p-2 rounded-full transition-all duration-200 relative z-10"
               >
-                <X className="h-4 w-4" />
+                <X className="h-5 w-5" />
               </button>
             </div>
 
-            {/* Messages Container */}
-            <div className="flex-1 flex flex-col h-full">
+            {/* Enhanced Messages Container */}
+            <div className="flex-1 flex flex-col h-full bg-gradient-to-b from-green-50/50 to-emerald-50/50">
               <div
                 ref={chatContainerRef}
-                className="flex-1 overflow-y-auto p-4 space-y-4"
-                style={{ maxHeight: '350px' }}
+                className="flex-1 overflow-y-auto p-6 space-y-4"
+                style={{ maxHeight: '450px' }}
               >
                 {messages.map((message, index) => (
-                  <div
+                  <motion.div
                     key={index}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
                     className={`flex ${
                       message.role === 'user' ? 'justify-end' : 'justify-start'
                     }`}
                   >
                     <div
-                      className={`max-w-[80%] p-3 rounded-lg ${
+                      className={`max-w-[85%] p-4 rounded-2xl shadow-sm ${
                         message.role === 'user'
-                          ? 'bg-green-600 text-white'
+                          ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white'
                           : message.isError
-                          ? 'bg-red-100 text-red-800 border border-red-300'
-                          : 'bg-gray-100 text-gray-800'
+                          ? 'bg-red-50 text-red-800 border border-red-200'
+                          : 'bg-white text-gray-800 border border-green-100 shadow-md'
                       }`}
                     >
-                      {renderMessageContent(message)}
+                      <div className="whitespace-pre-wrap leading-relaxed">
+                        {renderMessageContent(message)}
+                      </div>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
 
-              {/* Input Form */}
-              <form onSubmit={handleSendMessage} className="p-4 border-t">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    placeholder="Ask me anything..."
-                    className="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600"
-                    disabled={isLoading}
-                  />
+              {/* Enhanced Input Form */}
+              <div className="p-6 border-t border-green-200 bg-white/80 backdrop-blur-sm">
+                <form onSubmit={handleSendMessage} className="flex items-center gap-3 mb-3">
+                  <div className="flex-1 relative">
+                    <input
+                      type="text"
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value)}
+                      placeholder="Ask about sustainability, carbon footprints, eco-living..."
+                      className="w-full p-4 pr-12 border-2 border-green-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white/90 backdrop-blur-sm text-gray-700 placeholder-gray-400"
+                      disabled={isLoading}
+                    />
+                    {isLoading && (
+                      <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+                        <Loader2 className="h-5 w-5 animate-spin text-green-600" />
+                      </div>
+                    )}
+                  </div>
                   <button
                     type="submit"
                     disabled={isLoading || !inputValue.trim()}
-                    className="p-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="p-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-2xl hover:from-green-700 hover:to-emerald-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105"
                   >
                     <Send className="h-5 w-5" />
                   </button>
-                </div>
-              </form>
+                </form>
+                <p className="text-xs text-gray-500 text-center leading-relaxed">
+                  🌱 Ask me about sustainability, carbon footprints, eco-living, and more!
+                </p>
+              </div>
             </div>
           </motion.div>
         ) : showOptions ? (
           <motion.div
             key="options-menu"
             className="fixed z-50 pointer-events-auto select-none"
-            initial={{ scale: 0, opacity: 0 }}
+            initial={{ scale: 0.8, opacity: 0 }}
             animate={{ 
               scale: 1, 
               opacity: 1
@@ -782,20 +1185,27 @@ export default function AIAssistant() {
               bottom: '6rem',
               right: '1.5rem'
             }}
-            exit={{ scale: 0, opacity: 0 }}
+            exit={{ scale: 0.8, opacity: 0 }}
             transition={{
               type: "spring",
-              stiffness: 400,
-              damping: 25
+              stiffness: 350,
+              damping: 30,
+              duration: 0.4
             }}
           >
             {/* Text Chat Option */}
             <motion.button
-              className="absolute bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition-colors mb-2"
-              initial={{ x: 0, y: 0, scale: 0 }}
-              animate={{ x: -80, y: -20, scale: 1 }}
-              exit={{ x: 0, y: 0, scale: 0 }}
-              transition={{ delay: 0.1, type: "spring", stiffness: 300 }}
+              className="absolute bg-gradient-to-r from-green-600 to-emerald-600 text-white p-4 rounded-full shadow-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 mb-2"
+              initial={{ x: 0, y: 0, scale: 0, opacity: 0 }}
+              animate={{ x: -80, y: -20, scale: 1, opacity: 1 }}
+              exit={{ x: 0, y: 0, scale: 0, opacity: 0 }}
+              transition={{ 
+                delay: 0.05, 
+                type: "spring", 
+                stiffness: 400, 
+                damping: 25,
+                duration: 0.3
+              }}
               onClick={handleTextChat}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
@@ -805,23 +1215,29 @@ export default function AIAssistant() {
 
             {/* Voice Input Option */}
             <motion.button
-              className={`absolute p-4 rounded-full shadow-lg transition-colors ${
+              className={`absolute p-4 rounded-full shadow-lg transition-all duration-200 ${
                 !isSupported || hasError
                   ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
-                  : isListening 
-                    ? 'bg-red-600 hover:bg-red-700 text-white animate-pulse' 
-                    : 'bg-purple-600 hover:bg-purple-700 text-white'
+                  : hookIsListening 
+                    ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white animate-pulse' 
+                    : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white'
               }`}
-              initial={{ x: 0, y: 0, scale: 0 }}
-              animate={{ x: 20, y: -80, scale: 1 }}
-              exit={{ x: 0, y: 0, scale: 0 }}
-              transition={{ delay: 0.2, type: "spring", stiffness: 300 }}
+              initial={{ x: 0, y: 0, scale: 0, opacity: 0 }}
+              animate={{ x: 20, y: -80, scale: 1, opacity: 1 }}
+              exit={{ x: 0, y: 0, scale: 0, opacity: 0 }}
+              transition={{ 
+                delay: 0.1, 
+                type: "spring", 
+                stiffness: 400, 
+                damping: 25,
+                duration: 0.3
+              }}
               onClick={handleVoiceInput}
               whileHover={{ scale: !isSupported || hasError ? 1 : 1.1 }}
               whileTap={{ scale: !isSupported || hasError ? 1 : 0.9 }}
               disabled={!isSupported || hasError}
             >
-              {isListening ? (
+              {hookIsListening ? (
                 <div className="flex items-center justify-center">
                   <Waves className="h-6 w-6" />
                 </div>
@@ -832,7 +1248,7 @@ export default function AIAssistant() {
 
             {/* Main AI Button */}
             <motion.button
-              className="bg-green-600 text-white p-4 rounded-full shadow-lg hover:bg-green-700 transition-colors"
+              className="bg-gradient-to-r from-green-600 via-emerald-600 to-green-700 text-white p-4 rounded-full shadow-lg hover:from-green-700 hover:via-emerald-700 hover:to-green-800 transition-all duration-200"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={handleMainClick}
@@ -841,9 +1257,9 @@ export default function AIAssistant() {
             </motion.button>
 
             {/* Voice Status Text */}
-            {isListening && (
+            {hookIsListening && (
               <motion.div
-                className="absolute top-full mt-2 left-1/2 transform -translate-x-1/2 bg-black text-white px-3 py-1 rounded-full text-sm whitespace-nowrap"
+                className="absolute top-full mt-2 left-1/2 transform -translate-x-1/2 bg-black text-white px-3 py-1 rounded-full text-sm whitespace-nowrap z-10"
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
@@ -852,32 +1268,14 @@ export default function AIAssistant() {
               </motion.div>
             )}
 
-            {transcript && !isListening && (
-              <motion.div
-                className="absolute top-full mt-2 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-3 py-1 rounded-full text-sm max-w-48 truncate"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-              >
-                "{transcript}"
-              </motion.div>
-            )}
+            {/* Transcript display removed - now only shows in voice overlay */}
 
-            {(!isSupported || hasError) && (
-              <motion.div
-                className="absolute top-full mt-2 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-3 py-1 rounded-lg text-xs max-w-xs text-center"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-              >
-"🤖 AI Voice not available - Use text chat"
-              </motion.div>
-            )}
+            {/* Voice recognition error modal - removed from here, will be added as centered modal */}
           </motion.div>
         ) : (
           <motion.button
             key="chat-button"
-            className="fixed bottom-6 right-6 z-50 bg-green-600 text-white p-4 rounded-full shadow-lg hover:bg-green-700 transition-colors pointer-events-auto select-none"
+            className="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-green-600 via-emerald-600 to-green-700 text-white p-4 rounded-full shadow-lg hover:from-green-700 hover:via-emerald-700 hover:to-green-800 transition-all duration-200 pointer-events-auto select-none"
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ 
               scale: 1, 
@@ -899,6 +1297,74 @@ export default function AIAssistant() {
         )}
       </AnimatePresence>
       </div>
+
+      {/* Centered Error Modal - Moved outside pointer-events-none div */}
+      <AnimatePresence>
+        {showErrorModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[9998] flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm"
+            onClick={handleCloseErrorModal}
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              className="bg-white rounded-2xl p-8 max-w-md mx-4 shadow-2xl border border-gray-200"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Close Button */}
+              <button
+                onClick={handleCloseErrorModal}
+                className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors duration-200"
+                aria-label="Close"
+              >
+                <X className="h-5 w-5" />
+              </button>
+
+              {/* Error Content */}
+              <div className="text-center">
+                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Bot className="h-8 w-8 text-red-600" />
+                </div>
+                
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  Voice Recognition Unavailable
+                </h3>
+                
+                <p className="text-gray-600 mb-6 leading-relaxed">
+                  Your browser doesn't support voice recognition or microphone access is restricted. 
+                  You can still use text chat to interact with Eco-Edu!
+                </p>
+                
+                                  <div className="flex flex-col sm:flex-row gap-3">
+                    <button
+                      onClick={() => {
+                        console.log('🔴 Got it button clicked');
+                        handleCloseErrorModal();
+                      }}
+                      className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors duration-200 font-medium"
+                    >
+                      Got it
+                    </button>
+                    <button
+                      onClick={() => {
+                        console.log('🔴 Open Text Chat button clicked');
+                        handleCloseErrorModal();
+                        handleTextChat();
+                      }}
+                      className="flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-200 font-medium"
+                    >
+                      Open Text Chat
+                    </button>
+                  </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 } 
