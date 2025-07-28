@@ -1,66 +1,79 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-// Free speech-to-text using browser's built-in Web Speech API
-// This will work on HTTPS and doesn't require any API keys
-const useBrowserSpeechRecognition = async (audioBlob: Blob): Promise<string> => {
-  try {
-    console.log('🎤 Using browser speech recognition for transcription...');
-    
-    // For now, we'll return a placeholder since we can't process audio server-side
-    // In a real implementation, you'd use a free STT service like:
-    // - Hugging Face's free models
-    // - Mozilla DeepSpeech (self-hosted)
-    // - Or implement client-side Web Speech API
-    
-    throw new Error('Speech-to-text service temporarily unavailable. Please use text input.');
-    
-  } catch (error) {
-    console.error('❌ Browser speech recognition failed:', error);
-    throw error;
-  }
-};
+import OpenAI from 'openai';
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🎤 Transcription request received');
     const formData = await request.formData();
     const audioFile = formData.get('file') as File;
 
     if (!audioFile) {
-      console.log('❌ No audio file provided');
-      return NextResponse.json({ error: 'No audio file provided' }, { status: 400 });
+      return NextResponse.json({ 
+        error: 'no_audio_file',
+        message: 'No audio file provided'
+      }, { status: 400 });
     }
 
-    console.log('📁 Audio file received:', audioFile.name, audioFile.size, 'bytes');
+    console.log('🎤 Transcription request received:', audioFile.size, 'bytes', 'type:', audioFile.type);
+
+    // Initialize OpenAI client for OpenRouter
+    const apiKey = process.env.NEXT_PUBLIC_OPENROUTER_API_KEY;
+    if (!apiKey) {
+      console.error('❌ OpenRouter API key not found');
+      return NextResponse.json({ 
+        error: 'api_key_missing',
+        message: 'API key not configured'
+      }, { status: 500 });
+    }
+
+    const openai = new OpenAI({
+      baseURL: 'https://openrouter.ai/api/v1',
+      apiKey: apiKey,
+      defaultHeaders: {
+        'HTTP-Referer': 'https://eraiiz.com',
+        'X-Title': 'Eraiiz - Voice Agent',
+      },
+    });
 
     try {
-      // Use browser speech recognition for transcription
-      const transcribedText = await useBrowserSpeechRecognition(audioFile);
+      // Convert File to ArrayBuffer for OpenAI API
+      const arrayBuffer = await audioFile.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
       
-      console.log('✅ Transcription successful:', transcribedText);
-      return NextResponse.json({ text: transcribedText });
+      // Create a File object that OpenAI can handle
+      const file = new File([buffer], 'audio.webm', { type: audioFile.type || 'audio/webm' });
       
-    } catch (sttError: any) {
-      console.log('⚠️ Speech-to-text failed:', sttError.message);
+      console.log('📁 File prepared for OpenAI:', file.size, 'bytes', file.type);
       
-      // Return user-friendly error message
-      return NextResponse.json({ 
+      // Use OpenAI Whisper for transcription
+      const transcription = await openai.audio.transcriptions.create({
+        file: file,
+        model: 'whisper-1',
+        language: 'en',
+        response_format: 'text'
+      });
+
+      console.log('📝 Transcription successful:', transcription);
+
+      return NextResponse.json({
+        text: transcription,
+        success: true
+      });
+
+    } catch (apiError: any) {
+      console.error('❌ Whisper API Error:', apiError);
+      console.error('❌ Error details:', apiError.response?.data || apiError.message);
+      return NextResponse.json({
         error: 'transcription_failed',
-        message: 'Speech recognition temporarily unavailable. Please use text input.',
-        suggestion: 'manual_input',
-        details: sttError.message
-      }, { status: 503 }); // Service Unavailable
+        message: apiError.message || 'Transcription failed',
+        details: apiError.response?.data || 'No additional details'
+      }, { status: 500 });
     }
-    
-  } catch (error) {
-    console.error('❌ Transcription error:', error);
-    return NextResponse.json(
-      { 
-        error: 'Transcription failed',
-        details: error instanceof Error ? error.message : 'Unknown error',
-        suggestion: 'manual_input'
-      }, 
-      { status: 500 }
-    );
+
+  } catch (error: any) {
+    console.error('❌ Transcription processing error:', error);
+    return NextResponse.json({
+      error: 'processing_error',
+      message: error.message || 'Failed to process audio'
+    }, { status: 500 });
   }
 } 

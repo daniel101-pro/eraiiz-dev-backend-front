@@ -3,16 +3,17 @@ import OpenAI from 'openai';
 
 export async function POST(request: NextRequest) {
   try {
-    const { message } = await request.json();
-
-    if (!message || typeof message !== 'string') {
+    // Get the audio blob from the request
+    const audioBlob = await request.blob();
+    
+    if (!audioBlob || audioBlob.size === 0) {
       return NextResponse.json({ 
-        error: 'invalid_message',
-        message: 'Invalid message provided'
+        error: 'no_audio_data',
+        message: 'No audio data received'
       }, { status: 400 });
     }
 
-    console.log('💬 Chat request received:', message.substring(0, 50) + '...');
+    console.log('🎤 Live audio processing request received:', audioBlob.size, 'bytes');
 
     // Initialize OpenAI client for OpenRouter
     const apiKey = process.env.NEXT_PUBLIC_OPENROUTER_API_KEY;
@@ -29,12 +30,41 @@ export async function POST(request: NextRequest) {
       apiKey: apiKey,
       defaultHeaders: {
         'HTTP-Referer': 'https://eraiiz.com',
-        'X-Title': 'Eraiiz - Voice Agent',
+        'X-Title': 'Eraiiz - Live Audio AI',
       },
     });
 
+    // Convert audio blob to base64 for API
+    const arrayBuffer = await audioBlob.arrayBuffer();
+    const base64Audio = Buffer.from(arrayBuffer).toString('base64');
+
+    // For now, we'll use a simplified approach
+    // In a real implementation, you'd want to:
+    // 1. Use OpenAI's Whisper API for transcription
+    // 2. Process the transcript with GPT
+    // 3. Use TTS to generate audio response
+    
     try {
-      const completion = await openai.chat.completions.create({
+      // Step 1: Transcribe audio using Whisper
+      const transcriptionResponse = await openai.audio.transcriptions.create({
+        file: new File([audioBlob], 'audio.wav', { type: 'audio/wav' }),
+        model: 'whisper-1',
+        language: 'en',
+        response_format: 'text'
+      });
+
+      const transcript = transcriptionResponse;
+      console.log('📝 Transcription:', transcript);
+
+      if (!transcript || transcript.trim().length === 0) {
+        return NextResponse.json({
+          error: 'no_speech_detected',
+          message: 'No speech detected in audio'
+        }, { status: 400 });
+      }
+
+      // Step 2: Get AI response
+      const chatResponse = await openai.chat.completions.create({
         model: 'openai/gpt-3.5-turbo',
         messages: [
           {
@@ -65,15 +95,15 @@ Your mission is to help people learn about sustainability, carbon emissions, env
           },
           {
             role: 'user',
-            content: message
+            content: transcript
           }
         ],
         temperature: 0.8,
         max_tokens: 150
       });
 
-      const aiResponse = completion.choices[0]?.message?.content;
-      console.log('🤖 AI response generated:', aiResponse?.substring(0, 50) + '...');
+      const aiResponse = chatResponse.choices[0]?.message?.content;
+      console.log('🤖 AI Response:', aiResponse);
 
       if (!aiResponse) {
         return NextResponse.json({
@@ -82,34 +112,28 @@ Your mission is to help people learn about sustainability, carbon emissions, env
         }, { status: 500 });
       }
 
-      // Clean up the response
-      let cleanedResponse = aiResponse.trim();
-      cleanedResponse = cleanedResponse.replace(/<think>[\s\S]*?<\/think>/g, '');
-      cleanedResponse = cleanedResponse.replace(/^(Okay,|Let me think|I think|Hmm,)/i, '');
-      cleanedResponse = cleanedResponse.replace(/\s+/g, ' ').trim();
-
-      if (!cleanedResponse) {
-        cleanedResponse = "🌱 I'm Eco-Edu, your sustainability educator! I'm here to help you learn about environmental impact, carbon footprints, and eco-friendly living. At Eraiiz, we make sustainable shopping easy and accessible. What sustainability topic interests you today? 💚";
-      }
-
+      // Step 3: Generate audio response (simplified - just return text for now)
+      // In a full implementation, you'd use TTS here
+      
       return NextResponse.json({
-        response: cleanedResponse,
+        transcript: transcript,
+        response: aiResponse,
         success: true
       });
 
     } catch (apiError: any) {
-      console.error('❌ OpenAI API Error:', apiError);
+      console.error('❌ API Error:', apiError);
       return NextResponse.json({
-        error: 'ai_response_failed',
-        message: apiError.message || 'AI response failed'
+        error: 'api_error',
+        message: apiError.message || 'API processing failed'
       }, { status: 500 });
     }
 
   } catch (error: any) {
-    console.error('❌ Chat processing error:', error);
+    console.error('❌ Live audio processing error:', error);
     return NextResponse.json({
       error: 'processing_error',
-      message: error.message || 'Failed to process chat request'
+      message: error.message || 'Failed to process audio'
     }, { status: 500 });
   }
 } 
