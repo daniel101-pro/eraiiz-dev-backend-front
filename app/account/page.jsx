@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ShoppingCart, Heart, Bell, Settings, LogOut, User, TrendingUp, DollarSign } from 'lucide-react';
+import { ShoppingCart, Heart, Bell, Settings, LogOut, User, TrendingUp, DollarSign, Package } from 'lucide-react';
 import { refreshAccessToken } from '../utils/auth';
 import MyEraiizAccount from '../components/account/MyEraiizAccount';
 import Orders from '../components/account/Orders';
@@ -142,59 +142,59 @@ export default function AccountPage() {
 
       <DualNavbarSell handleLogout={handleLogout} />
       <div className="flex min-h-screen bg-gray-50 overflow-hidden">
-        <aside className="fixed left-0 top-0 w-16 md:w-64 h-screen bg-white border-r p-4 md:p-6 pt-32 md:pt-40 z-40 overflow-y-auto">
-          <div className="mb-4 md:mb-8">
+        <aside className="fixed left-0 top-0 w-12 md:w-64 h-screen bg-white border-r p-2 md:p-6 pt-24 md:pt-40 z-40 overflow-y-auto">
+          <div className="mb-2 md:mb-8">
             <div
-              className={`flex items-center justify-center gap-2 px-2 py-1 rounded cursor-pointer ${activeSection === 'My Eraiiz Account' ? 'bg-green-50' : ''} md:px-4 md:py-2 md:justify-start`}
+              className={`flex items-center justify-center gap-1 md:gap-2 px-1 md:px-4 py-1 md:py-2 rounded cursor-pointer ${activeSection === 'My Eraiiz Account' ? 'bg-green-50' : ''} md:justify-start`}
               onClick={() => setActiveSection('My Eraiiz Account')}
             >
-              <User className="h-4 w-4 text-green-600" />
+              <User className="h-3 w-3 md:h-4 md:w-4 text-green-600" />
               <span className="hidden md:inline text-sm font-medium text-green-600">My Eraiiz Account</span>
             </div>
           </div>
-          <nav className="space-y-4 md:space-y-6 text-gray-700">
+          <nav className="space-y-2 md:space-y-6 text-gray-700">
             <div
-              className={`flex items-center justify-center gap-2 px-2 py-1 rounded cursor-pointer ${activeSection === 'Orders' ? 'bg-green-50' : ''} md:px-4 md:py-2 md:justify-start`}
+              className={`flex items-center justify-center gap-1 md:gap-2 px-1 md:px-4 py-1 md:py-2 rounded cursor-pointer ${activeSection === 'Orders' ? 'bg-green-50' : ''} md:justify-start`}
               onClick={() => setActiveSection('Orders')}
             >
-              <ShoppingCart className="h-4 w-4" />
+              <Package className="h-3 w-3 md:h-4 md:w-4" />
               <span className="hidden md:inline text-sm">Orders</span>
             </div>
             <div
-              className={`flex items-center justify-center gap-2 px-2 py-1 rounded cursor-pointer ${activeSection === 'Favorite Items' ? 'bg-green-50' : ''} md:px-4 md:py-2 md:justify-start`}
+              className={`flex items-center justify-center gap-1 md:gap-2 px-1 md:px-4 py-1 md:py-2 rounded cursor-pointer ${activeSection === 'Favorite Items' ? 'bg-green-50' : ''} md:justify-start`}
               onClick={() => setActiveSection('Favorite Items')}
             >
-              <Heart className="h-4 w-4" />
+              <Heart className="h-3 w-3 md:h-4 md:w-4" />
               <span className="hidden md:inline text-sm">Favorite Items</span>
             </div>
             <div
-              className={`flex items-center justify-center gap-2 px-2 py-1 rounded cursor-pointer ${activeSection === 'Notifications' ? 'bg-green-50' : ''} md:px-4 md:py-2 md:justify-start`}
+              className={`flex items-center justify-center gap-1 md:gap-2 px-1 md:px-4 py-1 md:py-2 rounded cursor-pointer ${activeSection === 'Notifications' ? 'bg-green-50' : ''} md:justify-start`}
               onClick={() => setActiveSection('Notifications')}
             >
-              <Bell className="h-4 w-4" />
+              <Bell className="h-3 w-3 md:h-4 md:w-4" />
               <span className="hidden md:inline text-sm">Notifications</span>
             </div>
             <div
-              className={`flex items-center justify-center gap-2 px-2 py-1 rounded cursor-pointer ${activeSection === 'Settings' ? 'bg-green-50' : ''} md:px-4 md:py-2 md:justify-start`}
+              className={`flex items-center justify-center gap-1 md:gap-2 px-1 md:px-4 py-1 md:py-2 rounded cursor-pointer ${activeSection === 'Settings' ? 'bg-green-50' : ''} md:justify-start`}
               onClick={() => setActiveSection('Settings')}
             >
-              <Settings className="h-4 w-4" />
+              <Settings className="h-3 w-3 md:h-4 md:w-4" />
               <span className="hidden md:inline text-sm">Settings</span>
             </div>
             {user.role === 'seller' && (
               <>
                 <div
-                  className={`flex items-center justify-center gap-2 px-2 py-1 rounded cursor-pointer ${activeSection === 'Sales' ? 'bg-green-50' : ''} md:px-4 md:py-2 md:justify-start`}
+                  className={`flex items-center justify-center gap-1 md:gap-2 px-1 md:px-4 py-1 md:py-2 rounded cursor-pointer ${activeSection === 'Sales' ? 'bg-green-50' : ''} md:justify-start`}
                   onClick={() => setActiveSection('Sales')}
                 >
-                  <TrendingUp className="h-4 w-4" />
+                  <TrendingUp className="h-3 w-3 md:h-4 md:w-4" />
                   <span className="hidden md:inline text-sm">Sales</span>
                 </div>
                 <div
-                  className={`flex items-center justify-center gap-2 px-2 py-1 rounded cursor-pointer ${activeSection === 'Uploaded Products' ? 'bg-green-50' : ''} md:px-4 md:py-2 md:justify-start`}
+                  className={`flex items-center justify-center gap-1 md:gap-2 px-1 md:px-4 py-1 md:py-2 rounded cursor-pointer ${activeSection === 'Uploaded Products' ? 'bg-green-50' : ''} md:justify-start`}
                   onClick={() => setActiveSection('Uploaded Products')}
                 >
-                  <ShoppingCart className="h-4 w-4" />
+                  <ShoppingCart className="h-3 w-3 md:h-4 md:w-4" />
                   <span className="hidden md:inline text-sm">Uploaded Products</span>
                 </div>
               </>
@@ -202,24 +202,24 @@ export default function AccountPage() {
 
             {user.role === 'seller' && (
               <div
-                className={`flex items-center justify-center gap-2 px-2 py-1 rounded cursor-pointer ${activeSection === 'Billing' ? 'bg-green-50' : ''} md:px-4 md:py-2 md:justify-start`}
+                className={`flex items-center justify-center gap-1 md:gap-2 px-1 md:px-4 py-1 md:py-2 rounded cursor-pointer ${activeSection === 'Billing' ? 'bg-green-50' : ''} md:justify-start`}
                 onClick={() => setActiveSection('Billing')}
               >
-                <DollarSign className="h-4 w-4" />
+                <DollarSign className="h-3 w-3 md:h-4 md:w-4" />
                 <span className="hidden md:inline text-sm">Billing</span>
               </div>
             )}
           </nav>
           <button
             onClick={handleLogout}
-            className="flex items-center justify-center gap-2 text-red-600 bg-red-50 px-2 py-1 rounded mt-4 w-full md:mt-40 md:w-[210px] md:px-4 md:py-2 md:justify-start"
+            className="flex items-center justify-center gap-1 md:gap-2 text-red-600 bg-red-50 px-1 md:px-4 py-1 md:py-2 rounded mt-2 md:mt-40 w-full md:w-[210px] md:justify-start"
           >
-            <LogOut className="h-4 w-4" />
+            <LogOut className="h-3 w-3 md:h-4 md:w-4" />
             <span className="hidden md:inline">Log out</span>
           </button>
         </aside>
 
-        <main className="flex-1 ml-16 md:ml-64 p-4 md:p-10 min-w-0 overflow-hidden">
+        <main className="flex-1 ml-12 md:ml-64 p-2 md:p-10 min-w-0 overflow-hidden">
           {activeSection === 'My Eraiiz Account' && <MyEraiizAccount user={user} setUser={setUser} onTokenError={handleTokenError} />}
           {activeSection === 'Orders' && <Orders onTokenError={handleTokenError} />}
           {activeSection === 'Favorite Items' && <FavoriteItems onTokenError={handleTokenError} />}

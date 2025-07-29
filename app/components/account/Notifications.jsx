@@ -307,10 +307,10 @@ export default function Notifications() {
 
   if (isLoading) {
     return (
-      <div className="bg-white shadow-sm rounded-xl border border-gray-100 p-8">
+      <div className="bg-white shadow-sm rounded-xl border border-gray-100 p-6 md:p-8">
         <div className="flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
-          <span className="ml-3 text-gray-600">Loading notifications...</span>
+          <div className="animate-spin rounded-full h-6 w-6 md:h-8 md:w-8 border-b-2 border-green-600"></div>
+          <span className="ml-3 text-sm md:text-base text-gray-600">Loading notifications...</span>
         </div>
       </div>
     );
@@ -318,14 +318,14 @@ export default function Notifications() {
 
   if (error) {
     return (
-      <div className="bg-white shadow-sm rounded-xl border border-gray-100 p-8">
+      <div className="bg-white shadow-sm rounded-xl border border-gray-100 p-6 md:p-8">
         <div className="text-center">
-          <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Error Loading Notifications</h3>
-          <p className="text-red-600 mb-6">{error}</p>
+          <AlertCircle className="w-8 h-8 md:w-12 md:h-12 text-red-400 mx-auto mb-4" />
+          <h3 className="text-base md:text-lg font-medium text-gray-900 mb-2">Error Loading Notifications</h3>
+          <p className="text-sm md:text-base text-red-600 mb-6">{error}</p>
           <button 
             onClick={() => window.location.reload()} 
-            className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
           >
             Try Again
           </button>
@@ -335,21 +335,21 @@ export default function Notifications() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="bg-white shadow-sm rounded-xl border border-gray-100 p-6">
-        <div className="flex items-center justify-between">
+      <div className="bg-white shadow-sm rounded-xl border border-gray-100 p-4 md:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-blue-100 rounded-lg">
-              <BellRing className="w-6 h-6 text-blue-600" />
+              <BellRing className="w-5 h-5 md:w-6 md:h-6 text-blue-600" />
             </div>
             <div>
               {/* Notifications heading - reduce by half */}
-              <h1 className="text-xs sm:text-sm md:text-base font-semibold text-gray-900">Notifications</h1>
-              <p className="text-sm text-gray-500 mt-1">
+              <h1 className="text-sm md:text-base font-semibold text-gray-900">Notifications</h1>
+              <p className="text-xs md:text-sm text-gray-500 mt-1">
                 Stay updated with your account activity
                 {unreadCount > 0 && (
-                  <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                  <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                     {unreadCount} unread
                   </span>
                 )}
@@ -360,13 +360,13 @@ export default function Notifications() {
           {/* Connection Status */}
           <div className="flex items-center gap-2">
             {isConnected ? (
-              <div className="flex items-center gap-2 text-green-600 text-sm">
-                <Wifi className="w-4 h-4" />
+              <div className="flex items-center gap-2 text-green-600 text-xs md:text-sm">
+                <Wifi className="w-3 h-3 md:w-4 md:h-4" />
                 <span>Live</span>
               </div>
             ) : (
-              <div className="flex items-center gap-2 text-gray-400 text-sm">
-                <WifiOff className="w-4 h-4" />
+              <div className="flex items-center gap-2 text-gray-400 text-xs md:text-sm">
+                <WifiOff className="w-3 h-3 md:w-4 md:h-4" />
                 <span>Offline</span>
               </div>
             )}
@@ -375,10 +375,10 @@ export default function Notifications() {
       </div>
 
       {/* Controls */}
-      <div className="bg-white shadow-sm rounded-xl border border-gray-100 p-6">
+      <div className="bg-white shadow-sm rounded-xl border border-gray-100 p-4 md:p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           {/* Filter Tabs */}
-          <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+          <div className="flex gap-1 bg-gray-100 rounded-lg p-1 overflow-x-auto">
             {[
               { key: 'all', label: 'All', count: notifications.length },
               { key: 'unread', label: 'Unread', count: unreadCount },
@@ -387,7 +387,7 @@ export default function Notifications() {
               <button
                 key={tab.key}
                 onClick={() => setFilter(tab.key)}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                className={`px-2 md:px-3 py-1.5 rounded-md text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${
                   filter === tab.key
                     ? 'bg-white text-gray-900 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
@@ -403,18 +403,18 @@ export default function Notifications() {
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllAsRead}
-                className="flex items-center gap-2 px-3 py-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors text-sm font-medium"
+                className="flex items-center gap-2 px-2 md:px-3 py-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors text-xs md:text-sm font-medium"
               >
-                <Check className="w-4 h-4" />
+                <Check className="w-3 h-3 md:w-4 md:h-4" />
                 Mark All Read
               </button>
             )}
             {notifications.length > 0 && (
               <button
                 onClick={handleClearAll}
-                className="flex items-center gap-2 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors text-sm font-medium"
+                className="flex items-center gap-2 px-2 md:px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors text-xs md:text-sm font-medium"
               >
-                <Trash2 className="w-4 h-4" />
+                <Trash2 className="w-3 h-3 md:w-4 md:h-4" />
                 Clear All
               </button>
             )}
@@ -425,14 +425,14 @@ export default function Notifications() {
       {/* Notifications List */}
       <div className="bg-white shadow-sm rounded-xl border border-gray-100">
         {filteredNotifications.length === 0 ? (
-          <div className="p-12 text-center">
-            <Bell className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <div className="p-6 md:p-12 text-center">
+            <Bell className="w-8 h-8 md:w-12 md:h-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-base md:text-lg font-medium text-gray-900 mb-2">
               {filter === 'unread' ? 'No unread notifications' : 
                filter === 'read' ? 'No read notifications' : 
                'No notifications yet'}
             </h3>
-            <p className="text-gray-500">
+            <p className="text-sm md:text-base text-gray-500">
               {filter === 'all' ? 
                 "You'll see notifications here when there's activity on your account." :
                 `Switch to "${filter === 'unread' ? 'All' : 'All'}" to see ${filter === 'unread' ? 'all' : 'other'} notifications.`
@@ -445,32 +445,32 @@ export default function Notifications() {
                <div
                  key={notif._id}
                  onClick={() => handleNotificationClick(notif)}
-                 className={`p-6 hover:bg-gray-50 transition-colors cursor-pointer ${
+                 className={`p-4 md:p-6 hover:bg-gray-50 transition-colors cursor-pointer ${
                    !notif.read ? 'bg-blue-50/50' : ''
                  }`}
                >
-                <div className="flex items-start gap-4">
+                <div className="flex items-start gap-3 md:gap-4">
                   {/* Icon */}
-                  <div className={`p-2 rounded-lg ${getNotificationColor(notif.type)}`}>
+                  <div className={`p-1.5 md:p-2 rounded-lg ${getNotificationColor(notif.type)}`}>
                     {getNotificationIcon(notif.type)}
                   </div>
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-4">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 md:gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <h3 className="text-sm font-medium text-gray-900 capitalize">
+                          <h3 className="text-xs md:text-sm font-medium text-gray-900 capitalize">
                             {notif.type || 'Notification'}
                           </h3>
                           {!notif.read && (
-                            <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                            <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-blue-600 rounded-full"></div>
                           )}
                         </div>
-                        <p className="text-gray-700 text-sm mb-2">
+                        <p className="text-gray-700 text-xs md:text-sm mb-2">
                           {notif.message}
                         </p>
-                        <div className="flex items-center gap-4 text-xs text-gray-500">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs text-gray-500">
                           <div className="flex items-center gap-1">
                             <Calendar className="w-3 h-3" />
                             {new Date(notif.createdAt).toLocaleDateString()}
