@@ -22,7 +22,7 @@ export default function AboutPage() {
 
             <div className="min-h-screen bg-white flex flex-col items-center mt-9">
                 <div className="max-w-4xl mx-auto p-6 flex flex-col items-center">
-                    <h1 className="text-[30px] font-medium text-gray-800 mb-6 leading-tight">
+                    <h1 className="text-xs sm:text-sm md:text-base lg:text-sm font-medium text-gray-800 mb-6 leading-tight">
                         Redefining climate change to include right shopping choices
                     </h1>
                     <p className="text-sm text-gray-600 mb-10 text-justify leading-relaxed">
@@ -50,7 +50,7 @@ export default function AboutPage() {
                     </div>
 
                     <div className="w-full">
-                        <h2 className="text-[28px] text-gray-800 mb-6">Our Values:</h2>
+                        <h2 className="text-xs sm:text-sm md:text-base lg:text-sm text-gray-800 mb-6">Our Values:</h2>
                         <ul className="list-disc list-inside text-gray-600 space-y-3">
                             <li>
                                 <span className="text-gray-800">Quality:</span>

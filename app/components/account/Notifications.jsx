@@ -253,39 +253,54 @@ export default function Notifications() {
 
     fetchNotifications();
 
-    const wsUrl = process.env.NEXT_PUBLIC_API_URL.replace('http', 'ws') + `/?userId=${userId}`;
-    console.log('Connecting to WebSocket:', wsUrl);
-    const websocket = new WebSocket(wsUrl);
-    setWs(websocket);
+    // Only attempt WebSocket connection if the API URL supports it
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (apiUrl && apiUrl.startsWith('http')) {
+      try {
+        const wsUrl = apiUrl.replace('http', 'ws') + `/?userId=${userId}`;
+        console.log('Attempting WebSocket connection:', wsUrl);
+        const websocket = new WebSocket(wsUrl);
+        setWs(websocket);
 
-    websocket.onopen = () => {
-      console.log('WebSocket connected');
-      setIsConnected(true);
-    };
+        websocket.onopen = () => {
+          console.log('WebSocket connected successfully');
+          setIsConnected(true);
+        };
 
-    websocket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      setNotifications(prev => [data, ...prev].filter(n => n.userId === userId));
-    };
+        websocket.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            setNotifications(prev => [data, ...prev].filter(n => n.userId === userId));
+          } catch (parseError) {
+            console.error('Error parsing WebSocket message:', parseError);
+          }
+        };
 
-    websocket.onerror = (error) => {
-      console.error('WebSocket error:', error);
+        websocket.onerror = (error) => {
+          console.warn('WebSocket connection failed - notifications will still work via polling');
+          setIsConnected(false);
+        };
+
+        websocket.onclose = () => {
+          console.log('WebSocket disconnected');
+          setIsConnected(false);
+          // Don't auto-reconnect to avoid spam
+        };
+      } catch (wsError) {
+        console.warn('WebSocket not supported - using polling only:', wsError);
+        setIsConnected(false);
+      }
+    } else {
+      console.log('No WebSocket support - using polling only');
       setIsConnected(false);
-    };
-
-    websocket.onclose = () => {
-      console.log('WebSocket disconnected');
-      setIsConnected(false);
-      setTimeout(() => {
-        const newWs = new WebSocket(wsUrl);
-        setWs(newWs);
-      }, 2000);
-    };
+    }
 
     const interval = setInterval(fetchNotifications, 30000);
 
     return () => {
-      websocket.close();
+      if (ws) {
+        ws.close();
+      }
       clearInterval(interval);
     };
   }, []);
@@ -329,7 +344,8 @@ export default function Notifications() {
               <BellRing className="w-6 h-6 text-blue-600" />
             </div>
             <div>
-              <h1 className="text-2xl font-semibold text-gray-900">Notifications</h1>
+              {/* Notifications heading - reduce by half */}
+              <h1 className="text-xs sm:text-sm md:text-base font-semibold text-gray-900">Notifications</h1>
               <p className="text-sm text-gray-500 mt-1">
                 Stay updated with your account activity
                 {unreadCount > 0 && (

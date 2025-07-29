@@ -404,7 +404,40 @@ export default function AIAssistant() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = () => {
+      try {
+        const accessToken = localStorage.getItem('accessToken');
+        const user = localStorage.getItem('user');
+        
+        if (accessToken && user) {
+          setIsAuthenticated(true);
+        } else {
+          setIsAuthenticated(false);
+        }
+      } catch (error) {
+        console.error('Error checking authentication:', error);
+        setIsAuthenticated(false);
+      } finally {
+        setIsCheckingAuth(false);
+      }
+    };
+
+    checkAuth();
+
+    // Listen for storage changes (login/logout)
+    const handleStorageChange = () => {
+      checkAuth();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   // Auto scroll to bottom when new messages arrive
   useEffect(() => {
@@ -646,6 +679,11 @@ Your mission is to help people learn about sustainability, carbon emissions, env
     };
     setMessages(prev => [...prev, aiMessage]);
   };
+
+  // Don't render anything if not authenticated or still checking auth
+  if (isCheckingAuth || !isAuthenticated) {
+    return null;
+  }
 
   return (
     <>

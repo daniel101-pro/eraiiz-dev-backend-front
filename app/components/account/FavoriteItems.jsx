@@ -114,7 +114,7 @@ export default function FavoriteItems() {
         </div>
 
         {/* Content */}
-        <h3 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-3">
+        <h3 className="text-xs sm:text-sm md:text-base font-semibold text-gray-900 mb-3">
           No favorites yet
         </h3>
         <p className="text-gray-600 mb-6 text-sm sm:text-base leading-relaxed">
@@ -171,7 +171,7 @@ export default function FavoriteItems() {
             <Heart className="w-6 h-6 text-red-500" />
           </div>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Your Favorites</h1>
+            <h1 className="text-xs sm:text-sm md:text-base lg:text-sm font-bold text-gray-900">Your Favorites</h1>
             <p className="text-gray-600 text-sm sm:text-base">
               {favorites.length > 0 
                 ? `${favorites.length} ${favorites.length === 1 ? 'product' : 'products'} you love`

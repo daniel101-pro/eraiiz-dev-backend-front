@@ -78,7 +78,7 @@ export default function ContactSupport() {
         <div className="absolute inset-0 bg-[url('/support-pattern.svg')] opacity-10"></div>
         <div className="container mx-auto px-4 h-full flex items-center justify-center">
           <div className="text-center text-white">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">How Can We Help?</h1>
+            <h1 className="text-sm sm:text-base md:text-lg lg:text-base font-bold mb-4">How Can We Help?</h1>
             <p className="text-lg md:text-xl opacity-90 max-w-2xl mx-auto">
               Our support team is here to assist you with any questions or concerns about our eco-friendly products
             </p>
@@ -93,7 +93,7 @@ export default function ContactSupport() {
             ref={contactFormRef}
             className="bg-white rounded-2xl shadow-lg p-8 opacity-0 translate-x-[-20px] transition-all duration-1000 ease-out delay-300"
           >
-            <h2 className="text-2xl font-semibold mb-6">Send Us a Message</h2>
+            <h2 className="text-xs sm:text-sm md:text-base font-semibold mb-6">Send Us a Message</h2>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
@@ -172,7 +172,7 @@ export default function ContactSupport() {
             className="opacity-0 translate-x-[20px] transition-all duration-1000 ease-out delay-500"
           >
             <div className="bg-gray-50 rounded-2xl p-8 mb-8">
-              <h2 className="text-2xl font-semibold mb-6">Contact Information</h2>
+              <h2 className="text-xs sm:text-sm md:text-base font-semibold mb-6">Contact Information</h2>
               <div className="space-y-6">
                 <div className="flex items-start gap-4">
                   <div className="bg-green-100 p-3 rounded-lg">
@@ -208,7 +208,7 @@ export default function ContactSupport() {
             </div>
 
             <div className="bg-gray-50 rounded-2xl p-8">
-              <h2 className="text-2xl font-semibold mb-6">Business Hours</h2>
+              <h2 className="text-xs sm:text-sm md:text-base font-semibold mb-6">Business Hours</h2>
               <div className="space-y-4">
                 <div className="flex items-center gap-4">
                   <Clock className="h-5 w-5 text-green-600" />
@@ -241,7 +241,7 @@ export default function ContactSupport() {
           ref={faqRef}
           className="mt-16 opacity-0 translate-y-4 transition-all duration-1000 ease-out delay-700"
         >
-          <h2 className="text-2xl font-semibold mb-8 text-center">Frequently Asked Questions</h2>
+          <h2 className="text-xs sm:text-sm md:text-base font-semibold mb-8 text-center">Frequently Asked Questions</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="bg-white rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
               <h3 className="font-medium mb-2">How do I track my order?</h3>

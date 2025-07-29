@@ -152,7 +152,7 @@ export default function WelcomePage() {
               delay={100}
               animateBy="words"
               direction="top"
-              className="text-3xl md:text-5xl font-bold text-green-900"
+              className="text-xs sm:text-sm md:text-base lg:text-sm xl:text-base font-bold text-green-900"
             />
           </div>
 
@@ -183,7 +183,7 @@ export default function WelcomePage() {
           style={{ y: featuresY, opacity: featuresOpacity }}
         >
           <motion.h2
-            className="text-4xl md:text-5xl font-bold text-green-900 text-center mb-16"
+            className="text-sm sm:text-base md:text-lg lg:text-base font-bold text-green-900 text-center mb-16"
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
@@ -252,7 +252,7 @@ export default function WelcomePage() {
           style={{ y: ctaY, opacity: ctaOpacity }}
         >
           <motion.h2
-            className="text-4xl md:text-6xl font-bold text-green-900 mb-8"
+            className="text-sm sm:text-base md:text-lg lg:text-base xl:text-sm font-bold text-green-900 mb-8"
             initial={{ opacity: 0, scale: 0.8 }}
             whileInView={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8 }}

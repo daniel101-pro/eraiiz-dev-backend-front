@@ -67,7 +67,7 @@ export default function Search() {
       <DualNavSell />
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-xl sm:text-2xl font-semibold text-gray-800">
+          <h1 className="text-xs sm:text-sm md:text-base font-semibold text-gray-800">
             {query ? `Search Results for "${query}"` : 'Search Products'}
           </h1>
         </div>

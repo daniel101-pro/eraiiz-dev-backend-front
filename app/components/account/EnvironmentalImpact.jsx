@@ -139,7 +139,7 @@ export default function EnvironmentalImpact() {
         )}
       </div>
       <div className="space-y-1">
-        <p className="text-lg sm:text-2xl font-bold text-gray-900">
+        <p className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-gray-900">
           {value}
           <span className="text-xs sm:text-sm font-normal text-gray-500 ml-1">{unit}</span>
         </p>
@@ -262,7 +262,7 @@ export default function EnvironmentalImpact() {
   const AchievementCard = ({ achievement }) => (
     <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-3 sm:p-4">
       <div className="flex items-center gap-3">
-        <div className="text-xl sm:text-2xl">{achievement.icon}</div>
+        <div className="text-xs sm:text-sm md:text-base">{achievement.icon}</div>
         <div className="flex-1 min-w-0">
           <h4 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{achievement.title}</h4>
           <p className="text-xs sm:text-sm text-gray-600 line-clamp-2">{achievement.description}</p>
@@ -303,7 +303,7 @@ export default function EnvironmentalImpact() {
               <Globe className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
             </div>
             <div className="flex-1">
-              <h1 className="text-xl sm:text-2xl font-semibold text-gray-900">Environmental Impact</h1>
+              <h1 className="text-xs sm:text-sm md:text-base font-semibold text-gray-900">Environmental Impact</h1>
               <p className="text-xs sm:text-sm text-gray-500 mt-1">Track your contribution to a sustainable planet</p>
             </div>
           </div>
@@ -447,22 +447,22 @@ export default function EnvironmentalImpact() {
                 </h3>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                   <div className="text-center">
-                    <div className="text-xl sm:text-2xl mb-2">🌳</div>
+                    <div className="text-xs sm:text-sm md:text-base mb-2">🌳</div>
                     <div className="text-sm sm:text-lg font-semibold text-green-600">{impactData?.impactMetrics?.treesPlanted}</div>
                     <div className="text-xs sm:text-sm text-gray-600">Trees planted equivalent</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-xl sm:text-2xl mb-2">🚗</div>
+                    <div className="text-xs sm:text-sm md:text-base mb-2">🚗</div>
                     <div className="text-sm sm:text-lg font-semibold text-blue-600">{impactData?.impactMetrics?.carRidesSaved} km</div>
                     <div className="text-xs sm:text-sm text-gray-600">Car rides avoided</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-xl sm:text-2xl mb-2">♻️</div>
+                    <div className="text-xs sm:text-sm md:text-base mb-2">♻️</div>
                     <div className="text-sm sm:text-lg font-semibold text-purple-600">{impactData?.impactMetrics?.plasticReduced} kg</div>
                     <div className="text-xs sm:text-sm text-gray-600">Plastic reduced</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-xl sm:text-2xl mb-2">🗑️</div>
+                    <div className="text-xs sm:text-sm md:text-base mb-2">🗑️</div>
                     <div className="text-sm sm:text-lg font-semibold text-orange-600">{impactData?.impactMetrics?.wasteAverted} kg</div>
                     <div className="text-xs sm:text-sm text-gray-600">Waste averted</div>
                   </div>

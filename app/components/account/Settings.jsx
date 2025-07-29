@@ -181,7 +181,7 @@ export default function Settings() {
             <User className="w-6 h-6 text-green-600" />
           </div>
           <div>
-            <h1 className="text-2xl font-semibold text-gray-900">Account Settings</h1>
+            <h1 className="text-xs sm:text-sm md:text-base font-semibold text-gray-900">Account Settings</h1>
             <p className="text-sm text-gray-500 mt-1">Manage your account preferences and security</p>
           </div>
         </div>

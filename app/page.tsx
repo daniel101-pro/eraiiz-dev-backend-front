@@ -177,7 +177,7 @@ const Page = () => {
         <div className="h-full w-full flex flex-col justify-center text-center -mt-36 sm:-mt-[250px] px-4 sm:px-6">
           <h1
             ref={textRef}
-            className="text-black text-4xl sm:text-4xl md:text-5xl lg:text-6xl font-medium mt-10 sm:mt-4 md:mt-6 leading-snug md:leading-relaxed text-center"
+            className="text-black text-sm sm:text-base md:text-lg lg:text-xl font-medium mt-10 sm:mt-4 md:mt-6 leading-snug md:leading-relaxed text-center"
           ></h1>
           <div className="mt-4 flex justify-center w-full px-4 sm:px-6">
             <div className="max-w-2xl w-full flex justify-center">
@@ -227,7 +227,7 @@ const Page = () => {
           </div>
         </div>
         <div className="w-full flex flex-col items-center mt-20 mb-20">
-          <h1 className="text-3xl font-medium text-center mb-6 text-black">
+          <h1 className="text-xs sm:text-sm md:text-base font-medium text-center mb-6 text-black">
             Why Eraiiz?
           </h1>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-[950px] p-5">
@@ -302,7 +302,7 @@ const Page = () => {
           <div className="w-full max-w-[1400px] mx-auto px-8 sm:px-12 lg:px-16 mb-20">
             <div className="flex flex-col gap-8">
               <div className="flex flex-col gap-2">
-                <h2 className="text-4xl font-medium">Blog Posts</h2>
+                <h2 className="text-sm sm:text-base md:text-lg font-medium">Blog Posts</h2>
                 <p className="text-gray-600">
                   Inspire Change: Explore Insights on Recycling, Sustainability, and Carbon Reduction.
                 </p>

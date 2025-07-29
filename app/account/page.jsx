@@ -2,15 +2,17 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ShoppingCart, Heart, Bell, Settings, LogOut, User } from 'lucide-react';
+import { ShoppingCart, Heart, Bell, Settings, LogOut, User, TrendingUp, DollarSign } from 'lucide-react';
 import { refreshAccessToken } from '../utils/auth';
 import MyEraiizAccount from '../components/account/MyEraiizAccount';
 import Orders from '../components/account/Orders';
 import FavoriteItems from '../components/account/FavoriteItems';
 import Notifications from '../components/account/Notifications';
 import SettingsSection from '../components/account/Settings';
-import UploadedProducts from '../components/account/UploadedProducts'; // New component
+import UploadedProducts from '../components/account/UploadedProducts';
+import Sales from '../components/account/Sales';
 import DualNavbarSell from '../components/DualNavbarSell';
+import Billing from '../components/account/Billing';
 import { useCart } from '../context/CartContext';
 
 export default function AccountPage() {
@@ -139,7 +141,7 @@ export default function AccountPage() {
       )}
 
       <DualNavbarSell handleLogout={handleLogout} />
-      <div className="flex min-h-screen bg-gray-50">
+      <div className="flex min-h-screen bg-gray-50 overflow-hidden">
         <aside className="fixed left-0 top-0 w-16 md:w-64 h-screen bg-white border-r p-4 md:p-6 pt-32 md:pt-40 z-40 overflow-y-auto">
           <div className="mb-4 md:mb-8">
             <div
@@ -180,12 +182,31 @@ export default function AccountPage() {
               <span className="hidden md:inline text-sm">Settings</span>
             </div>
             {user.role === 'seller' && (
+              <>
+                <div
+                  className={`flex items-center justify-center gap-2 px-2 py-1 rounded cursor-pointer ${activeSection === 'Sales' ? 'bg-green-50' : ''} md:px-4 md:py-2 md:justify-start`}
+                  onClick={() => setActiveSection('Sales')}
+                >
+                  <TrendingUp className="h-4 w-4" />
+                  <span className="hidden md:inline text-sm">Sales</span>
+                </div>
+                <div
+                  className={`flex items-center justify-center gap-2 px-2 py-1 rounded cursor-pointer ${activeSection === 'Uploaded Products' ? 'bg-green-50' : ''} md:px-4 md:py-2 md:justify-start`}
+                  onClick={() => setActiveSection('Uploaded Products')}
+                >
+                  <ShoppingCart className="h-4 w-4" />
+                  <span className="hidden md:inline text-sm">Uploaded Products</span>
+                </div>
+              </>
+            )}
+
+            {user.role === 'seller' && (
               <div
-                className={`flex items-center justify-center gap-2 px-2 py-1 rounded cursor-pointer ${activeSection === 'Uploaded Products' ? 'bg-green-50' : ''} md:px-4 md:py-2 md:justify-start`}
-                onClick={() => setActiveSection('Uploaded Products')}
+                className={`flex items-center justify-center gap-2 px-2 py-1 rounded cursor-pointer ${activeSection === 'Billing' ? 'bg-green-50' : ''} md:px-4 md:py-2 md:justify-start`}
+                onClick={() => setActiveSection('Billing')}
               >
-                <ShoppingCart className="h-4 w-4" />
-                <span className="hidden md:inline text-sm">Uploaded Products</span>
+                <DollarSign className="h-4 w-4" />
+                <span className="hidden md:inline text-sm">Billing</span>
               </div>
             )}
           </nav>
@@ -198,13 +219,15 @@ export default function AccountPage() {
           </button>
         </aside>
 
-        <main className="flex-1 ml-16 md:ml-64 p-4 md:p-10">
+        <main className="flex-1 ml-16 md:ml-64 p-4 md:p-10 min-w-0 overflow-hidden">
           {activeSection === 'My Eraiiz Account' && <MyEraiizAccount user={user} setUser={setUser} onTokenError={handleTokenError} />}
           {activeSection === 'Orders' && <Orders onTokenError={handleTokenError} />}
           {activeSection === 'Favorite Items' && <FavoriteItems onTokenError={handleTokenError} />}
           {activeSection === 'Notifications' && <Notifications onTokenError={handleTokenError} />}
           {activeSection === 'Settings' && <SettingsSection onTokenError={handleTokenError} />}
-          {activeSection === 'Uploaded Products' && user.role === 'seller' && <UploadedProducts onTokenError={handleTokenError} />}
+          {activeSection === 'Sales' && user.role === 'seller' && <Sales onTokenError={handleTokenError} />}
+          {activeSection === 'Billing' && user.role === 'seller' && <Billing />}  
+          {activeSection === 'Uploaded Products' && user.role === 'seller' && <UploadedProducts onTokenError={handleTokenError} />}   
         </main>
       </div>
 

@@ -64,6 +64,16 @@ export function FavoritesProvider({ children }) {
       }
     } catch (err) {
       console.error('Error fetching favorites:', err);
+      
+      // Check if it's an authentication error
+      if (err.message?.includes('401') || err.message?.includes('403')) {
+        // Clear tokens and redirect to login
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+        return;
+      }
     } finally {
       setIsLoading(false);
     }
@@ -114,6 +124,17 @@ export function FavoritesProvider({ children }) {
       return false;
     } catch (err) {
       console.error('Error adding to favorites:', err);
+      
+      // Check if it's an authentication error
+      if (err.message?.includes('401') || err.message?.includes('403')) {
+        // Clear tokens and redirect to login
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+        return false;
+      }
+      
       return false;
     }
   };
@@ -169,6 +190,17 @@ export function FavoritesProvider({ children }) {
       return false;
     } catch (err) {
       console.error('Error removing from favorites:', err);
+      
+      // Check if it's an authentication error
+      if (err.message?.includes('401') || err.message?.includes('403')) {
+        // Clear tokens and redirect to login
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+        return false;
+      }
+      
       return false;
     }
   };

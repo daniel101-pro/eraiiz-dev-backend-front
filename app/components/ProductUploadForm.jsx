@@ -503,7 +503,7 @@ const ProductUploadForm = () => {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900">Access Denied</h2>
+          <h2 className="text-xs sm:text-sm md:text-base font-bold text-gray-900">Access Denied</h2>
           <p className="text-gray-600 mt-2">Please log in to access this page.</p>
         </div>
       </div>
@@ -520,7 +520,7 @@ const ProductUploadForm = () => {
           <div className="hidden md:inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full mb-6 shadow-lg">
             <Upload className="h-10 w-10 text-white" />
           </div>
-          <h1 className="text-xl md:text-4xl font-bold text-gray-900 mb-2 md:mb-4">Upload New Product</h1>
+          <h1 className="text-xs sm:text-sm md:text-base lg:text-sm xl:text-base font-bold text-gray-900 mb-2 md:mb-4">Upload New Product</h1>
           <p className="text-sm md:text-xl text-gray-600 max-w-3xl mx-auto">
             Create your product listing with all the essential details to attract customers and boost sales
           </p>
@@ -556,7 +556,7 @@ const ProductUploadForm = () => {
                   <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
                     <Info className="h-5 w-5 text-green-600" />
                   </div>
-                  <h2 className="text-2xl font-bold text-gray-900">Basic Information</h2>
+                  <h2 className="text-xs sm:text-sm md:text-base font-bold text-gray-900">Basic Information</h2>
                 </div>
 
                 {/* Product Name */}
@@ -752,7 +752,7 @@ const ProductUploadForm = () => {
                   <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                     <Camera className="h-5 w-5 text-blue-600" />
                   </div>
-                  <h2 className="text-2xl font-bold text-gray-900">Product Images</h2>
+                  <h2 className="text-xs sm:text-sm md:text-base font-bold text-gray-900">Product Images</h2>
                 </div>
 
                 <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-green-400 transition-colors duration-200">
@@ -800,7 +800,7 @@ const ProductUploadForm = () => {
                   <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
                     <Package className="h-5 w-5 text-purple-600" />
                   </div>
-                  <h2 className="text-2xl font-bold text-gray-900">Available Sizes</h2>
+                  <h2 className="text-xs sm:text-sm md:text-base font-bold text-gray-900">Available Sizes</h2>
                   <span className="text-gray-500 text-sm font-medium">(Optional)</span>
                 </div>
 
@@ -854,7 +854,7 @@ const ProductUploadForm = () => {
                   <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
                     <Star className="h-5 w-5 text-yellow-600" />
                   </div>
-                  <h2 className="text-2xl font-bold text-gray-900">Bonus Offers</h2>
+                  <h2 className="text-xs sm:text-sm md:text-base font-bold text-gray-900">Bonus Offers</h2>
                 </div>
 
                 <div className="space-y-4">
@@ -917,7 +917,7 @@ const ProductUploadForm = () => {
                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-full mb-4">
                      <Leaf className="h-8 w-8 text-white" />
                    </div>
-                   <h2 className="text-3xl font-bold text-gray-900 mb-2">Sustainability Information</h2>
+                   <h2 className="text-xs sm:text-sm md:text-base lg:text-sm font-bold text-gray-900 mb-2">Sustainability Information</h2>
                    <p className="text-gray-600">Help customers understand the environmental impact of your product</p>
                  </div>
 
@@ -1211,25 +1211,25 @@ const ProductUploadForm = () => {
                          <h4 className="text-lg font-semibold text-green-800 mb-4">🌱 Carbon Footprint Results</h4>
                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                            <div className="text-center bg-gray-50 rounded-lg p-4 border border-gray-200">
-                             <div className="text-2xl font-bold text-green-600">
+                             <div className="text-xs sm:text-sm md:text-base font-bold text-green-600">
                                {carbonFootprint?.total || '0'}
                              </div>
                              <div className="text-sm text-gray-600">kg CO₂e Total</div>
                            </div>
                            <div className="text-center bg-gray-50 rounded-lg p-4 border border-gray-200">
-                             <div className="text-2xl font-bold text-blue-600">
+                             <div className="text-xs sm:text-sm md:text-base font-bold text-blue-600">
                                {carbonFootprint?.impactScore || 'Medium'}
                              </div>
                              <div className="text-sm text-gray-600">Impact Score</div>
                            </div>
                            <div className="text-center bg-gray-50 rounded-lg p-4 border border-gray-200">
-                             <div className="text-2xl font-bold text-purple-600">
+                             <div className="text-xs sm:text-sm md:text-base font-bold text-purple-600">
                                {carbonFootprint?.treesToOffset || '0 trees'}
                              </div>
                              <div className="text-sm text-gray-600">Trees to Offset</div>
                            </div>
                            <div className="text-center bg-gray-50 rounded-lg p-4 border border-gray-200">
-                             <div className="text-2xl font-bold text-orange-600">
+                             <div className="text-xs sm:text-sm md:text-base font-bold text-orange-600">
                                {carbonFootprint?.equivalentCarRide || '0 km'}
                              </div>
                              <div className="text-sm text-gray-600">Car Ride Equivalent</div>

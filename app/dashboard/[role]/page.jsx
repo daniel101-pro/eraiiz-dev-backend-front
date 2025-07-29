@@ -164,7 +164,18 @@ export default function UnifiedDashboard() {
           status: err.response?.status,
           statusText: err.response?.statusText,
         });
-        showError('Failed to load favorites. Some features may not work as expected.');
+        
+        // Check if it's an authentication error
+        if (err.response?.status === 401 || err.response?.status === 403) {
+          // Clear tokens and redirect to login
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('user');
+          router.push('/login');
+          return;
+        }
+        
+        // For other errors, just silently fail without showing error message
         setFavoritedProducts(new Map());
       }
     };

@@ -149,9 +149,9 @@ export default function RoleSelection() {
             transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
             className="w-20 h-20 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg"
           >
-            <span className="text-white text-2xl font-bold">E</span>
+            <span className="text-white text-xs sm:text-sm md:text-base font-bold">E</span>
           </motion.div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-3">
+          <h1 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 mb-3">
             Welcome to Eraiiz! 👋
           </h1>
           <p className="text-gray-600 text-xl">
@@ -206,11 +206,11 @@ export default function RoleSelection() {
                       : 'from-emerald-400 to-emerald-600'
                   }`}
                 >
-                  <role.icon className="text-3xl text-white" />
+                  <role.icon className="text-xs sm:text-sm md:text-base text-white" />
                 </motion.div>
 
                 {/* Title */}
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                <h3 className="text-xs sm:text-sm md:text-base font-bold text-gray-900 mb-4">
                   {role.title}
                 </h3>
 

@@ -156,7 +156,7 @@ export default function MyEraiizAccount({ user, setUser }) {
             <User className="w-8 h-8 text-green-600" />
           </div>
           <div className="flex-1">
-            <h1 className="text-2xl font-semibold text-gray-900">Account Overview</h1>
+            <h1 className="text-xs sm:text-sm md:text-base font-semibold text-gray-900">Account Overview</h1>
             <p className="text-sm text-gray-500 mt-1">Manage your personal information and preferences</p>
           </div>
           <div className="flex items-center gap-3">
@@ -193,7 +193,7 @@ export default function MyEraiizAccount({ user, setUser }) {
                 <User className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-gray-900">Personal Information</h2>
+                <h2 className="text-xs sm:text-sm md:text-base font-semibold text-gray-900">Personal Information</h2>
                 <p className="text-sm text-gray-500">Your basic account details</p>
               </div>
             </div>
@@ -218,7 +218,7 @@ export default function MyEraiizAccount({ user, setUser }) {
           {isEditingAccount ? (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                <label className="block text-xs font-medium text-gray-700 mb-2">Full Name</label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <input
@@ -233,7 +233,7 @@ export default function MyEraiizAccount({ user, setUser }) {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                <label className="block text-xs font-medium text-gray-700 mb-2">Email Address</label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <input
@@ -248,7 +248,7 @@ export default function MyEraiizAccount({ user, setUser }) {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
+                <label className="block text-xs font-medium text-gray-700 mb-2">Date of Birth</label>
                 <div className="relative">
                   <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <input
@@ -262,7 +262,7 @@ export default function MyEraiizAccount({ user, setUser }) {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                <label className="block text-xs font-medium text-gray-700 mb-2">Phone Number</label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <input
@@ -278,7 +278,7 @@ export default function MyEraiizAccount({ user, setUser }) {
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-2">Country</label>
                   <div className="relative">
                     <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                     <input
@@ -293,7 +293,7 @@ export default function MyEraiizAccount({ user, setUser }) {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">State</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-2">State</label>
                   <div className="relative">
                     <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                     <input
@@ -331,7 +331,7 @@ export default function MyEraiizAccount({ user, setUser }) {
                 <User className="w-4 h-4 text-gray-500" />
                 <div>
                   <p className="text-xs text-gray-500">Full Name</p>
-                  <p className="text-sm font-medium text-gray-900">{user?.name || 'Not provided'}</p>
+                  <p className="text-xs font-medium text-gray-900">{user?.name || 'Not provided'}</p>
                 </div>
               </div>
               
@@ -339,7 +339,7 @@ export default function MyEraiizAccount({ user, setUser }) {
                 <Mail className="w-4 h-4 text-gray-500" />
                 <div>
                   <p className="text-xs text-gray-500">Email Address</p>
-                  <p className="text-sm font-medium text-gray-900">{user?.email || 'Not provided'}</p>
+                  <p className="text-xs font-medium text-gray-900">{user?.email || 'Not provided'}</p>
                 </div>
               </div>
               
@@ -347,7 +347,7 @@ export default function MyEraiizAccount({ user, setUser }) {
                 <Calendar className="w-4 h-4 text-gray-500" />
                 <div>
                   <p className="text-xs text-gray-500">Date of Birth</p>
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="text-xs font-medium text-gray-900">
                     {user?.dateOfBirth ? new Date(user.dateOfBirth).toLocaleDateString() : 'Not provided'}
                   </p>
                 </div>
@@ -357,7 +357,7 @@ export default function MyEraiizAccount({ user, setUser }) {
                 <Phone className="w-4 h-4 text-gray-500" />
                 <div>
                   <p className="text-xs text-gray-500">Phone Number</p>
-                  <p className="text-sm font-medium text-gray-900">{user?.phone || 'Not provided'}</p>
+                  <p className="text-xs font-medium text-gray-900">{user?.phone || 'Not provided'}</p>
                 </div>
               </div>
               
@@ -366,7 +366,7 @@ export default function MyEraiizAccount({ user, setUser }) {
                   <Globe className="w-4 h-4 text-gray-500" />
                   <div>
                     <p className="text-xs text-gray-500">Country</p>
-                    <p className="text-sm font-medium text-gray-900">{user?.country || 'Not provided'}</p>
+                    <p className="text-xs font-medium text-gray-900">{user?.country || 'Not provided'}</p>
                   </div>
                 </div>
                 
@@ -374,7 +374,7 @@ export default function MyEraiizAccount({ user, setUser }) {
                   <MapPin className="w-4 h-4 text-gray-500" />
                   <div>
                     <p className="text-xs text-gray-500">State</p>
-                    <p className="text-sm font-medium text-gray-900">{user?.state || 'Not provided'}</p>
+                    <p className="text-xs font-medium text-gray-900">{user?.state || 'Not provided'}</p>
                   </div>
                 </div>
               </div>
@@ -390,7 +390,7 @@ export default function MyEraiizAccount({ user, setUser }) {
                 <CreditCard className="w-5 h-5 text-purple-600" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-gray-900">Billing Address</h2>
+                <h2 className="text-xs sm:text-sm md:text-base font-semibold text-gray-900">Billing Address</h2>
                 <p className="text-sm text-gray-500">Your address for billing and shipping</p>
               </div>
             </div>
@@ -415,7 +415,7 @@ export default function MyEraiizAccount({ user, setUser }) {
           {isEditingBilling ? (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">House Address</label>
+                <label className="block text-xs font-medium text-gray-700 mb-2">House Address</label>
                 <div className="relative">
                   <Building className="absolute left-3 top-3 text-gray-400 w-4 h-4" />
                   <textarea
@@ -430,7 +430,7 @@ export default function MyEraiizAccount({ user, setUser }) {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
+                <label className="block text-xs font-medium text-gray-700 mb-2">City</label>
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <input
@@ -445,7 +445,7 @@ export default function MyEraiizAccount({ user, setUser }) {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Postal Code</label>
+                <label className="block text-xs font-medium text-gray-700 mb-2">Postal Code</label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <input
@@ -483,7 +483,7 @@ export default function MyEraiizAccount({ user, setUser }) {
                 <Building className="w-4 h-4 text-gray-500 mt-0.5" />
                 <div>
                   <p className="text-xs text-gray-500">House Address</p>
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="text-xs font-medium text-gray-900">
                     {user?.billingAddress?.houseAddress || 'Not provided'}
                   </p>
                 </div>
@@ -493,7 +493,7 @@ export default function MyEraiizAccount({ user, setUser }) {
                 <MapPin className="w-4 h-4 text-gray-500" />
                 <div>
                   <p className="text-xs text-gray-500">City</p>
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="text-xs font-medium text-gray-900">
                     {user?.billingAddress?.city || 'Not provided'}
                   </p>
                 </div>
@@ -503,7 +503,7 @@ export default function MyEraiizAccount({ user, setUser }) {
                 <Mail className="w-4 h-4 text-gray-500" />
                 <div>
                   <p className="text-xs text-gray-500">Postal Code</p>
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="text-xs font-medium text-gray-900">
                     {user?.billingAddress?.postalAddress || 'Not provided'}
                   </p>
                 </div>
@@ -520,7 +520,7 @@ export default function MyEraiizAccount({ user, setUser }) {
             <BarChart3 className="w-5 h-5 text-orange-600" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Account Statistics</h2>
+            <h2 className="text-xs sm:text-sm md:text-base font-semibold text-gray-900">Account Statistics</h2>
             <p className="text-sm text-gray-500">Your activity summary on Eraiiz</p>
           </div>
         </div>
@@ -529,8 +529,8 @@ export default function MyEraiizAccount({ user, setUser }) {
           <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-6 rounded-lg border border-blue-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-blue-900">Total Purchases</p>
-                <p className="text-2xl font-bold text-blue-900 mt-1">
+                <p className="text-xs font-medium text-blue-900">Total Purchases</p>
+                <p className="text-xs sm:text-sm md:text-base font-bold text-blue-900 mt-1">
                   {user?.eraizStats?.numberOfPurchases || 0}
                 </p>
               </div>
@@ -543,8 +543,8 @@ export default function MyEraiizAccount({ user, setUser }) {
           <div className="bg-gradient-to-r from-green-50 to-green-100 p-6 rounded-lg border border-green-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-green-900">Total Spent</p>
-                <p className="text-2xl font-bold text-green-900 mt-1">
+                <p className="text-xs font-medium text-green-900">Total Spent</p>
+                <p className="text-xs sm:text-sm md:text-base font-bold text-green-900 mt-1">
                   ₦{(user?.eraizStats?.totalAmountSpent || 0).toLocaleString()}
                 </p>
               </div>

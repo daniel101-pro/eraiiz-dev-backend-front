@@ -147,7 +147,7 @@ export default function CartClient() {
                                 className="object-contain"
                             />
                         </div>
-                        <h1 className="text-2xl font-bold text-gray-800 mb-4">Your cart is empty</h1>
+                        <h1 className="text-xs sm:text-sm md:text-base font-bold text-gray-800 mb-4">Your cart is empty</h1>
                         <p className="text-sm text-gray-600 mb-6">
                             Browse through our collections and find something you love.
                         </p>
@@ -172,7 +172,7 @@ export default function CartClient() {
             {/* Mobile Layout */}
             <div className="md:hidden px-4 py-6">
                 <BackButton />
-                <h2 className="text-2xl text-gray-900 mb-6">Cart items</h2>
+                <h2 className="text-xs sm:text-sm md:text-base text-gray-900 mb-6">Cart items</h2>
 
                 <div className="space-y-6">
                     {displayCartItems.map((item: CartItem) => (
@@ -280,7 +280,7 @@ export default function CartClient() {
                             <div className="bg-white rounded-2xl p-6 shadow-sm">
                                 {/* Cart Header */}
                                 <div className="flex justify-between items-center mb-8">
-                                    <h2 className="text-2xl text-gray-800 font-medium">Cart items</h2>
+                                    <h2 className="text-xs sm:text-sm md:text-base text-gray-800 font-medium">Cart items</h2>
                                     <button 
                                         onClick={handleClearCart}
                                         className="text-red-500 hover:text-red-600 bg-red-50 px-4 py-2 rounded-full text-sm transition-colors duration-200"
@@ -388,7 +388,7 @@ export default function CartClient() {
                                         <h3 className="text-lg font-semibold text-gray-900">Environmental Impact Summary</h3>
                                     </div>
                                     <div className="text-center mb-4">
-                                        <div className="text-2xl font-bold text-gray-900 mb-1">
+                                        <div className="text-xs sm:text-sm md:text-base font-bold text-gray-900 mb-1">
                                             {totalCarbonFootprint.toFixed(2)} kg CO₂e
                                         </div>
                                         <div className="text-sm text-gray-600">Total Environmental Impact</div>
