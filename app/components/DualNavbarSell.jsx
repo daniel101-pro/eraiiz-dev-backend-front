@@ -11,7 +11,7 @@ import axios from 'axios';
 import { debounce } from 'lodash';
 
 // Icons from lucide-react
-import { ShoppingCart, User, ChevronDown, Search, Filter, Menu, X, LogOut, Clock, ArrowRight, Globe } from 'lucide-react';
+import { ShoppingCart, User, ChevronDown, Search, Filter, Menu, X, LogOut, Clock, ArrowRight, Globe, Bell } from 'lucide-react';
 
 export default function DualNavbarSell({ handleLogout }) {
   const router = useRouter();
@@ -797,6 +797,15 @@ export default function DualNavbarSell({ handleLogout }) {
                         {cartItems.length}
                       </span>
                     )}
+                  </div>
+                </Link>
+                <Link href="/account/notifications" className="text-gray-600 hover:text-green-600 relative group transform transition-transform hover:-translate-y-1" aria-label="Notifications">
+                  <div className="relative">
+                    <Bell className="h-6 w-6 group-hover:animate-float" />
+                    {/* Notification badge - you can add logic to show unread count */}
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                      0
+                    </span>
                   </div>
                 </Link>
                 <Link href="/account" className="text-gray-600 hover:text-green-600 relative group transform transition-transform hover:-translate-y-1" aria-label="Account">

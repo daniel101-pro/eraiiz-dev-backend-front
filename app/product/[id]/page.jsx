@@ -11,6 +11,7 @@ import { useCurrency } from '../../context/CurrencyContext';
 import { showCartToast, showError } from '../../utils/toast';
 import DualNavbarSell from '../../components/DualNavbarSell';
 import ImageGallery from '../../components/ImageGallery';
+import ReportModal from '../../components/ReportModal';
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -31,6 +32,7 @@ export default function ProductDetail() {
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [isBuyingNow, setIsBuyingNow] = useState(false);
   const [isInCartState, setIsInCartState] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   // Check if item is in cart
   const checkIsInCart = () => {
@@ -587,63 +589,76 @@ export default function ProductDetail() {
             </div>
 
             {/* Action Buttons */}
-            <div className="mt-8 grid grid-cols-2 gap-4">
-              <button
-                onClick={handleBuyNow}
-                disabled={isBuyingNow}
-                className={`w-full bg-green-600 text-white py-4 px-6 rounded-2xl text-lg font-medium hover:bg-green-700 transition-colors flex items-center justify-center ${
-                  isBuyingNow ? 'opacity-75 cursor-not-allowed' : ''
-                }`}
-              >
-                {isBuyingNow ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <span className="mr-2">Buy now</span>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </>
-                )}
-              </button>
+            <div className="mt-8 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  onClick={handleBuyNow}
+                  disabled={isBuyingNow}
+                  className={`w-full bg-green-600 text-white py-4 px-6 rounded-2xl text-lg font-medium hover:bg-green-700 transition-colors flex items-center justify-center ${
+                    isBuyingNow ? 'opacity-75 cursor-not-allowed' : ''
+                  }`}
+                >
+                  {isBuyingNow ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <span className="mr-2">Buy now</span>
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </>
+                  )}
+                </button>
 
+                <button
+                  onClick={isInCartState ? handleViewCart : handleAddToCart}
+                  disabled={isAddingToCart}
+                  className={`w-full ${
+                    isInCartState 
+                      ? 'bg-green-100 text-green-700 hover:bg-green-200' 
+                      : 'bg-white text-gray-900 hover:bg-gray-50'
+                  } border border-green-600 rounded-lg px-6 py-3 flex items-center justify-center gap-2 transition-all duration-200 ${
+                    isAddingToCart ? 'opacity-75 cursor-not-allowed' : ''
+                  }`}
+                >
+                  {isAddingToCart ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="w-5 h-5 border-2 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+                      <span className="text-green-600 font-medium">Adding to cart...</span>
+                    </div>
+                  ) : isInCartState ? (
+                    <>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
+                      </svg>
+                      View Cart
+                    </>
+                  ) : (
+                    <>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
+                      </svg>
+                      Add to Cart
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Report Button */}
               <button
-                onClick={isInCartState ? handleViewCart : handleAddToCart}
-                disabled={isAddingToCart}
-                className={`w-full ${
-                  isInCartState 
-                    ? 'bg-green-100 text-green-700 hover:bg-green-200' 
-                    : 'bg-white text-gray-900 hover:bg-gray-50'
-                } border border-green-600 rounded-lg px-6 py-3 flex items-center justify-center gap-2 transition-all duration-200 ${
-                  isAddingToCart ? 'opacity-75 cursor-not-allowed' : ''
-                }`}
+                onClick={() => setIsReportModalOpen(true)}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-red-600 border border-gray-200 rounded-lg hover:border-red-200 hover:bg-red-50 transition-colors"
               >
-                {isAddingToCart ? (
-                  <div className="flex items-center justify-center gap-2">
-                    <div className="w-5 h-5 border-2 border-green-600 border-t-transparent rounded-full animate-spin"></div>
-                    <span className="text-green-600 font-medium">Adding to cart...</span>
-                  </div>
-                ) : isInCartState ? (
-                  <>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
-                    </svg>
-                    View Cart
-                  </>
-                ) : (
-                  <>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
-                    </svg>
-                    Add to Cart
-                  </>
-                )}
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 9V13M12 17H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Report Product
               </button>
             </div>
           </div>
@@ -927,6 +942,14 @@ export default function ProductDetail() {
           </div>
         </div>
       </div>
+
+      {/* Report Modal */}
+      <ReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        productId={product?._id}
+        productName={product?.name}
+      />
     </>
   );
 }
