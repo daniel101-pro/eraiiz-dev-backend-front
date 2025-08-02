@@ -17,6 +17,7 @@ const ProductUploadForm = () => {
     price: '',
     currency: 'NGN',
     category: '',
+    subcategory: '',
     material: '',
     details: [''],
     images: [],
@@ -73,14 +74,62 @@ const ProductUploadForm = () => {
     { code: 'INR', symbol: '₹', name: 'Indian Rupee', flag: '🇮🇳' },
   ];
 
-  // Categories
+  // Categories with subcategories
   const categories = [
-    'Plastic Made Products',
-    'Rubber Made Products',
-    'Glass Made Products',
-    'Wood Made Products',
-    'Palm Frond Made Products',
-    'General Recycled Items',
+    {
+      name: 'Plastic Made Products',
+      subcategories: [
+        'Fashion',
+        'Kitchen Wares',
+        'Furniture',
+        'Lifestyle'
+      ]
+    },
+    {
+      name: 'Rubber Made Products',
+      subcategories: [
+        'Automotive',
+        'Industrial',
+        'Lifestyle',
+        'Construction'
+      ]
+    },
+    {
+      name: 'Glass Made Products',
+      subcategories: [
+        'Kitchen Wares',
+        'Home Decor',
+        'Furniture',
+        'Lifestyle'
+      ]
+    },
+    {
+      name: 'Wood Made Products',
+      subcategories: [
+        'Furniture',
+        'Home Decor',
+        'Kitchen Wares',
+        'Lifestyle'
+      ]
+    },
+    {
+      name: 'Palm Frond Made Products',
+      subcategories: [
+        'Basketry',
+        'Home Decor',
+        'Furniture',
+        'Lifestyle'
+      ]
+    },
+    {
+      name: 'General Recycled Items',
+      subcategories: [
+        'Fashion',
+        'Home & Garden',
+        'Office & Stationery',
+        'Lifestyle'
+      ]
+    },
   ];
 
   // Sustainability options
@@ -682,16 +731,39 @@ const ProductUploadForm = () => {
                   <select
                     name="category"
                     value={product.category}
-                    onChange={handleInputChange}
+                    onChange={(e) => {
+                      handleInputChange(e);
+                      // Reset subcategory when category changes
+                      setProduct(prev => ({ ...prev, subcategory: '' }));
+                    }}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
                     required
                   >
                     <option value="">Select a category...</option>
                     {categories.map((cat) => (
-                      <option key={cat} value={cat}>{cat}</option>
+                      <option key={cat.name} value={cat.name}>{cat.name}</option>
                     ))}
                   </select>
                 </div>
+
+                {/* Subcategory */}
+                {product.category && (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Subcategory</label>
+                    <select
+                      name="subcategory"
+                      value={product.subcategory}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                      required
+                    >
+                      <option value="">Select a subcategory...</option>
+                      {categories.find(cat => cat.name === product.category)?.subcategories.map((subcat) => (
+                        <option key={subcat} value={subcat}>{subcat}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
                 {/* Material */}
                 <div>

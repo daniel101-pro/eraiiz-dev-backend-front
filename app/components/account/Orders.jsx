@@ -6,7 +6,7 @@ export default function Orders() {
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [newOrder, setNewOrder] = useState({ product: '', price: '', status: 'Pending' });
+  const [newOrder, setNewOrder] = useState({ product: '', price: '' });
   const [showAddForm, setShowAddForm] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('all');
 
@@ -80,29 +80,6 @@ export default function Orders() {
     fetchOrders();
   }, []);
 
-  const handleStatusChange = async (orderId, newStatus) => {
-    try {
-      const token = localStorage.getItem('accessToken');
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/orders/${orderId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        credentials: 'include',
-        body: JSON.stringify({ status: newStatus }),
-      });
-
-      if (!res.ok) {
-        throw new Error('Failed to update order status');
-      }
-
-      setOrders(orders.map(order => order._id === orderId ? { ...order, status: newStatus } : order));
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-
   const handleAddOrder = async (e) => {
     e.preventDefault();
     try {
@@ -123,7 +100,7 @@ export default function Orders() {
 
       const data = await res.json();
       setOrders([...orders, data]);
-      setNewOrder({ product: '', price: '', status: 'Pending' });
+      setNewOrder({ product: '', price: '' });
       setShowAddForm(false);
     } catch (err) {
       setError(err.message);
@@ -148,13 +125,13 @@ export default function Orders() {
   const getStatusIcon = (status) => {
     switch (status) {
       case 'Pending':
-        return <Clock className="w-4 h-4" />;
+        return <Clock className="w-3 h-3 md:w-4 md:h-4" />;
       case 'Shipped':
-        return <Truck className="w-4 h-4" />;
+        return <Truck className="w-3 h-3 md:w-4 md:h-4" />;
       case 'Delivered':
-        return <CheckCircle className="w-4 h-4" />;
+        return <CheckCircle className="w-3 h-3 md:w-4 md:h-4" />;
       case 'Cancelled':
-        return <XCircle className="w-4 h-4" />;
+        return <XCircle className="w-3 h-3 md:w-4 md:h-4" />;
       default:
         return null;
     }
@@ -230,7 +207,7 @@ export default function Orders() {
         <div className="bg-white shadow-sm rounded-xl border border-gray-100 p-4 md:p-6">
           <h2 className="text-base md:text-lg font-semibold text-gray-900 mb-4">Add New Order</h2>
           <form onSubmit={handleAddOrder} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Product Name</label>
                 <input
@@ -252,19 +229,6 @@ export default function Orders() {
                   placeholder="0.00"
                   required
                 />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                <select
-                  value={newOrder.status}
-                  onChange={(e) => setNewOrder({ ...newOrder, status: e.target.value })}
-                  className="w-full p-2 md:p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
-                >
-                  <option value="Pending">Pending</option>
-                  <option value="Shipped">Shipped</option>
-                  <option value="Delivered">Delivered</option>
-                  <option value="Cancelled">Cancelled</option>
-                </select>
               </div>
             </div>
             <div className="flex justify-end">
@@ -364,18 +328,10 @@ export default function Orders() {
                   </span>
                 </div>
                 
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:space-x-3">
-                  <label className="text-xs md:text-sm font-medium text-gray-700">Update Status:</label>
-                  <select
-                    value={order.status}
-                    onChange={(e) => handleStatusChange(order._id, e.target.value)}
-                    className="px-2 md:px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-xs md:text-sm"
-                  >
-                    <option value="Pending">Pending</option>
-                    <option value="Shipped">Shipped</option>
-                    <option value="Delivered">Delivered</option>
-                    <option value="Cancelled">Cancelled</option>
-                  </select>
+                <div className="flex items-center space-x-3">
+                  <span className="text-xs md:text-sm text-gray-500">
+                    Status: <span className="font-medium text-gray-700">{order.status}</span>
+                  </span>
                 </div>
               </div>
             </div>

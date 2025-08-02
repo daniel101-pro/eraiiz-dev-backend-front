@@ -177,7 +177,7 @@ const Page = () => {
         <div className="h-full w-full flex flex-col justify-center text-center -mt-36 sm:-mt-[250px] px-4 sm:px-6">
           <h1
             ref={textRef}
-            className="text-black text-sm sm:text-base md:text-lg lg:text-xl font-medium mt-10 sm:mt-4 md:mt-6 leading-snug md:leading-relaxed text-center"
+            className="text-black text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-medium mt-10 sm:mt-4 md:mt-6 leading-tight md:leading-tight text-center"
           ></h1>
           <div className="mt-4 flex justify-center w-full px-4 sm:px-6">
             <div className="max-w-2xl w-full flex justify-center">

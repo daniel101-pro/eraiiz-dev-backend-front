@@ -10,6 +10,7 @@ import axios from 'axios';
 export default function CategoriesPage() {
   const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedSubcategory, setSelectedSubcategory] = useState(null);
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -20,24 +21,122 @@ export default function CategoriesPage() {
 
   const categories = [
     { id: 'all', name: 'All Products', image: '/recycling-grid.png', color: 'bg-gradient-to-r from-green-400 to-green-600' },
-    { id: 'plastic', name: 'Plastic', image: '/plastic-products.png', color: 'bg-gradient-to-r from-blue-400 to-blue-600' },
-    { id: 'glass', name: 'Glass', image: '/glass-products.png', color: 'bg-gradient-to-r from-cyan-400 to-cyan-600' },
-    { id: 'rubber', name: 'Rubber', image: '/image3.png', color: 'bg-gradient-to-r from-gray-400 to-gray-600' },
-    { id: 'wood', name: 'Wood', image: '/image4.png', color: 'bg-gradient-to-r from-amber-400 to-amber-600' },
-    { id: 'palm', name: 'Palm', image: '/image5.png', color: 'bg-gradient-to-r from-orange-400 to-orange-600' },
-    { id: 'recycled', name: 'Recycled', image: '/recycled-products.png', color: 'bg-gradient-to-r from-green-500 to-green-700' },
-    { id: 'fruits', name: 'Fruits', image: '/image6.png', color: 'bg-gradient-to-r from-red-400 to-red-600' },
-    { id: 'others', name: 'Others', image: '/image11.png', color: 'bg-gradient-to-r from-purple-400 to-purple-600' },
+    { 
+      id: 'plastic', 
+      name: 'Plastic', 
+      image: '/plastic-products.png', 
+      color: 'bg-gradient-to-r from-blue-400 to-blue-600',
+      subcategories: [
+        { id: 'plastic-fashion', name: 'Fashion', description: 'Shoes (Men & Women), Clothing, Accessories' },
+        { id: 'plastic-kitchen', name: 'Kitchen Wares', description: 'Utensils, Containers, Appliances' },
+        { id: 'plastic-furniture', name: 'Furniture', description: 'Chairs, Tables, Storage Solutions' },
+        { id: 'plastic-lifestyle', name: 'Lifestyle', description: 'Home Decor, Personal Care, Sports' }
+      ]
+    },
+    { 
+      id: 'glass', 
+      name: 'Glass', 
+      image: '/glass-products.png', 
+      color: 'bg-gradient-to-r from-cyan-400 to-cyan-600',
+      subcategories: [
+        { id: 'glass-kitchen', name: 'Kitchen Wares', description: 'Drinking Glasses, Bowls, Storage' },
+        { id: 'glass-decor', name: 'Home Decor', description: 'Vases, Lamps, Decorative Items' },
+        { id: 'glass-furniture', name: 'Furniture', description: 'Tables, Shelves, Display Cases' },
+        { id: 'glass-lifestyle', name: 'Lifestyle', description: 'Jewelry, Art, Collectibles' }
+      ]
+    },
+    { 
+      id: 'rubber', 
+      name: 'Rubber', 
+      image: '/image3.png', 
+      color: 'bg-gradient-to-r from-gray-400 to-gray-600',
+      subcategories: [
+        { id: 'rubber-automotive', name: 'Automotive', description: 'Tires, Mats, Gaskets' },
+        { id: 'rubber-industrial', name: 'Industrial', description: 'Seals, Belts, Hoses' },
+        { id: 'rubber-lifestyle', name: 'Lifestyle', description: 'Shoes, Sports Equipment, Toys' },
+        { id: 'rubber-construction', name: 'Construction', description: 'Flooring, Insulation, Safety Gear' }
+      ]
+    },
+    { 
+      id: 'wood', 
+      name: 'Wood', 
+      image: '/image4.png', 
+      color: 'bg-gradient-to-r from-amber-400 to-amber-600',
+      subcategories: [
+        { id: 'wood-furniture', name: 'Furniture', description: 'Tables, Chairs, Cabinets' },
+        { id: 'wood-decor', name: 'Home Decor', description: 'Wall Art, Sculptures, Frames' },
+        { id: 'wood-kitchen', name: 'Kitchen Wares', description: 'Cutting Boards, Utensils, Bowls' },
+        { id: 'wood-lifestyle', name: 'Lifestyle', description: 'Jewelry, Accessories, Gifts' }
+      ]
+    },
+    { 
+      id: 'palm', 
+      name: 'Palm', 
+      image: '/image5.png', 
+      color: 'bg-gradient-to-r from-orange-400 to-orange-600',
+      subcategories: [
+        { id: 'palm-basketry', name: 'Basketry', description: 'Baskets, Mats, Storage' },
+        { id: 'palm-decor', name: 'Home Decor', description: 'Wall Hangings, Rugs, Ornaments' },
+        { id: 'palm-furniture', name: 'Furniture', description: 'Chairs, Tables, Shelves' },
+        { id: 'palm-lifestyle', name: 'Lifestyle', description: 'Hats, Bags, Accessories' }
+      ]
+    },
+    { 
+      id: 'recycled', 
+      name: 'Recycled', 
+      image: '/recycled-products.png', 
+      color: 'bg-gradient-to-r from-green-500 to-green-700',
+      subcategories: [
+        { id: 'recycled-fashion', name: 'Fashion', description: 'Clothing, Bags, Accessories' },
+        { id: 'recycled-home', name: 'Home & Garden', description: 'Furniture, Decor, Garden Items' },
+        { id: 'recycled-office', name: 'Office & Stationery', description: 'Paper Products, Desk Items' },
+        { id: 'recycled-lifestyle', name: 'Lifestyle', description: 'Personal Care, Sports, Toys' }
+      ]
+    },
+    { 
+      id: 'fruits', 
+      name: 'Fruits', 
+      image: '/image6.png', 
+      color: 'bg-gradient-to-r from-red-400 to-red-600',
+      subcategories: [
+        { id: 'fruits-fresh', name: 'Fresh Fruits', description: 'Organic, Seasonal, Local' },
+        { id: 'fruits-processed', name: 'Processed Products', description: 'Dried Fruits, Jams, Juices' },
+        { id: 'fruits-skincare', name: 'Skincare', description: 'Natural Face Masks, Scrubs, Oils' },
+        { id: 'fruits-beverages', name: 'Beverages', description: 'Juices, Smoothies, Teas' }
+      ]
+    },
+    { 
+      id: 'others', 
+      name: 'Others', 
+      image: '/image11.png', 
+      color: 'bg-gradient-to-r from-purple-400 to-purple-600',
+      subcategories: [
+        { id: 'others-textiles', name: 'Textiles', description: 'Fabrics, Clothing, Home Textiles' },
+        { id: 'others-electronics', name: 'Electronics', description: 'Gadgets, Accessories, Components' },
+        { id: 'others-crafts', name: 'Crafts', description: 'Handmade Items, Art Supplies' },
+        { id: 'others-misc', name: 'Miscellaneous', description: 'Unique Items, Collectibles, Gifts' }
+      ]
+    },
   ];
 
-  const fetchProducts = async (category = 'all') => {
+  const fetchProducts = async (category = 'all', subcategory = null) => {
     setIsLoading(true);
     setError(null);
     
     try {
       let url = `${process.env.NEXT_PUBLIC_API_URL}/api/products`;
+      const params = new URLSearchParams();
+      
       if (category !== 'all') {
-        url += `?category=${encodeURIComponent(category)}`;
+        params.append('category', category);
+      }
+      
+      if (subcategory) {
+        params.append('subcategory', subcategory);
+      }
+      
+      if (params.toString()) {
+        url += `?${params.toString()}`;
       }
       
       const response = await axios.get(url, {
@@ -73,16 +172,31 @@ export default function CategoriesPage() {
   };
 
   useEffect(() => {
-    fetchProducts(selectedCategory);
-  }, [selectedCategory]);
+    fetchProducts(selectedCategory, selectedSubcategory);
+  }, [selectedCategory, selectedSubcategory]);
 
   const handleCategoryClick = (categoryId) => {
     setSelectedCategory(categoryId);
+    setSelectedSubcategory(null); // Reset subcategory when main category changes
+  };
+
+  const handleSubcategoryClick = (subcategoryId) => {
+    setSelectedSubcategory(subcategoryId);
   };
 
   const getCategoryDisplayName = (categoryId) => {
     const category = categories.find(cat => cat.id === categoryId);
     return category ? category.name : 'All Products';
+  };
+
+  const getCurrentCategory = () => {
+    return categories.find(cat => cat.id === selectedCategory);
+  };
+
+  const getCurrentSubcategory = () => {
+    const category = getCurrentCategory();
+    if (!category || !category.subcategories) return null;
+    return category.subcategories.find(sub => sub.id === selectedSubcategory);
   };
 
   return (
@@ -114,10 +228,51 @@ export default function CategoriesPage() {
                   }`}
                 >
                   <div className={`w-2 h-2 rounded-full mr-2 flex-shrink-0 ${category.color.replace('bg-gradient-to-r', 'bg')}`}></div>
-                  <span className="text-center leading-none">{category.name}</span>
+                  <span className="text-center leading-none whitespace-nowrap">{category.name}</span>
                 </button>
               ))}
             </div>
+
+            {/* Subcategories Section */}
+            {getCurrentCategory() && getCurrentCategory().subcategories && (
+              <div className="mt-6">
+                <div className="text-center mb-4">
+                  <h2 className="text-xs sm:text-sm font-semibold text-gray-700 mb-2">
+                    {getCurrentCategory().name} Subcategories
+                  </h2>
+                  <p className="text-xs text-gray-500">
+                    Explore specific {getCurrentCategory().name.toLowerCase()} product types
+                  </p>
+                </div>
+                
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                  {getCurrentCategory().subcategories.map((subcategory) => (
+                    <button
+                      key={subcategory.id}
+                      onClick={() => handleSubcategoryClick(subcategory.id)}
+                      className={`p-4 rounded-xl border-2 transition-all duration-200 text-left ${
+                        selectedSubcategory === subcategory.id
+                          ? 'border-[#3F8E3F] bg-[#3F8E3F] text-white shadow-md'
+                          : 'border-gray-200 bg-white hover:border-[#3F8E3F] hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="space-y-2">
+                        <h3 className={`text-xs font-semibold leading-tight ${
+                          selectedSubcategory === subcategory.id ? 'text-white' : 'text-gray-900'
+                        }`}>
+                          {subcategory.name}
+                        </h3>
+                        <p className={`text-xs leading-tight ${
+                          selectedSubcategory === subcategory.id ? 'text-gray-100' : 'text-gray-500'
+                        }`}>
+                          {subcategory.description}
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -127,21 +282,41 @@ export default function CategoriesPage() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-xs sm:text-sm md:text-base font-semibold text-gray-900">
-                {getCategoryDisplayName(selectedCategory)}
+                {selectedSubcategory ? getCurrentSubcategory()?.name : getCategoryDisplayName(selectedCategory)}
+                {selectedSubcategory && (
+                  <span className="text-xs text-gray-500 ml-2">
+                    ({getCategoryDisplayName(selectedCategory)})
+                  </span>
+                )}
               </h2>
               <p className="text-xs text-gray-500 mt-1">
                 {Array.isArray(products) ? products.length : 0} {Array.isArray(products) && products.length === 1 ? 'product' : 'products'} found
+                {selectedSubcategory && getCurrentSubcategory() && (
+                  <span className="ml-1">
+                    in {getCurrentSubcategory().name}
+                  </span>
+                )}
               </p>
             </div>
             
-            {selectedCategory !== 'all' && (
-              <button
-                onClick={() => handleCategoryClick('all')}
-                className="text-xs text-[#3F8E3F] hover:text-[#357C35] font-medium"
-              >
-                View All Products
-              </button>
-            )}
+            <div className="flex items-center gap-2">
+              {selectedSubcategory && (
+                <button
+                  onClick={() => setSelectedSubcategory(null)}
+                  className="text-xs text-[#3F8E3F] hover:text-[#357C35] font-medium"
+                >
+                  View All {getCategoryDisplayName(selectedCategory)}
+                </button>
+              )}
+              {selectedCategory !== 'all' && (
+                <button
+                  onClick={() => handleCategoryClick('all')}
+                  className="text-xs text-[#3F8E3F] hover:text-[#357C35] font-medium"
+                >
+                  View All Products
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Loading State */}
@@ -183,7 +358,7 @@ export default function CategoriesPage() {
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                   {products.map((product) => (
                     <ProductCard key={product._id} product={product} />
                   ))}

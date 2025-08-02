@@ -3,7 +3,7 @@ import { NextConfig } from 'next';
 const config: NextConfig = {
   env: {
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000',
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://eraiiz-backend.onrender.com',
   },
   experimental: {
     serverActions: {

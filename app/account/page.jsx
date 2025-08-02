@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ShoppingCart, Heart, Bell, Settings, LogOut, User, TrendingUp, DollarSign, Package } from 'lucide-react';
+import { ShoppingCart, Heart, Bell, Settings, LogOut, User, TrendingUp, DollarSign, Package, Truck } from 'lucide-react';
 import { refreshAccessToken } from '../utils/auth';
 import MyEraiizAccount from '../components/account/MyEraiizAccount';
 import Orders from '../components/account/Orders';
@@ -13,7 +13,9 @@ import UploadedProducts from '../components/account/UploadedProducts';
 import Sales from '../components/account/Sales';
 import DualNavbarSell from '../components/DualNavbarSell';
 import Billing from '../components/account/Billing';
+import ShippingDashboard from '../components/seller/ShippingDashboard';
 import { useCart } from '../context/CartContext';
+import { ShippingProvider } from '../context/ShippingContext';
 
 export default function AccountPage() {
   const [user, setUser] = useState(null);
@@ -197,6 +199,13 @@ export default function AccountPage() {
                   <ShoppingCart className="h-3 w-3 md:h-4 md:w-4" />
                   <span className="hidden md:inline text-sm">Uploaded Products</span>
                 </div>
+                <div
+                  className={`flex items-center justify-center gap-1 md:gap-2 px-1 md:px-4 py-1 md:py-2 rounded cursor-pointer ${activeSection === 'Shipping' ? 'bg-green-50' : ''} md:justify-start`}
+                  onClick={() => setActiveSection('Shipping')}
+                >
+                  <Truck className="h-3 w-3 md:h-4 md:w-4" />
+                  <span className="hidden md:inline text-sm">Shipping</span>
+                </div>
               </>
             )}
 
@@ -227,7 +236,12 @@ export default function AccountPage() {
           {activeSection === 'Settings' && <SettingsSection onTokenError={handleTokenError} />}
           {activeSection === 'Sales' && user.role === 'seller' && <Sales onTokenError={handleTokenError} />}
           {activeSection === 'Billing' && user.role === 'seller' && <Billing />}  
-          {activeSection === 'Uploaded Products' && user.role === 'seller' && <UploadedProducts onTokenError={handleTokenError} />}   
+          {activeSection === 'Uploaded Products' && user.role === 'seller' && <UploadedProducts onTokenError={handleTokenError} />}
+          {activeSection === 'Shipping' && user.role === 'seller' && (
+            <ShippingProvider>
+              <ShippingDashboard sellerId={user._id} />
+            </ShippingProvider>
+          )}
         </main>
       </div>
 
