@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { 
   TrendingUp, 
   DollarSign, 
@@ -370,7 +371,13 @@ export default function Sales({ onTokenError }) {
             <option value="quarter">This Quarter</option>
             <option value="year">This Year</option>
           </select>
-          <button className="px-2 sm:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-1 sm:gap-2 text-xs sm:text-sm whitespace-nowrap">
+          <button 
+            onClick={() => {
+              // For now, show an alert. In a real app, this would export sales data
+              alert('Export feature coming soon! This will download your sales data as CSV/PDF.');
+            }}
+            className="px-2 sm:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-1 sm:gap-2 text-xs sm:text-sm whitespace-nowrap"
+          >
             <Download className="h-3 w-3 sm:h-4 sm:w-4" />
             <span className="hidden sm:inline">Export</span>
           </button>
@@ -653,15 +660,26 @@ export default function Sales({ onTokenError }) {
             <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-200">
               <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
               <div className="space-y-3">
-                <button className="w-full flex items-center justify-center p-2 sm:p-3 border-2 border-green-200 rounded-lg hover:bg-green-50 transition-colors">
-                  <Package className="h-3 w-3 sm:h-4 sm:w-4 text-green-600 mr-2" />
-                  <span className="text-xs sm:text-sm font-medium text-green-600">Upload Product</span>
-                </button>
-                <button className="w-full flex items-center justify-center p-2 sm:p-3 border-2 border-blue-200 rounded-lg hover:bg-blue-50 transition-colors">
+                <Link href="/dashboard/seller/upload">
+                  <button className="w-full flex items-center justify-center p-2 sm:p-3 border-2 border-green-200 rounded-lg hover:bg-green-50 transition-colors">
+                    <Package className="h-3 w-3 sm:h-4 sm:w-4 text-green-600 mr-2" />
+                    <span className="text-xs sm:text-sm font-medium text-green-600">Upload Product</span>
+                  </button>
+                </Link>
+                <button 
+                  onClick={() => setActiveTab('analytics')}
+                  className="w-full flex items-center justify-center p-2 sm:p-3 border-2 border-blue-200 rounded-lg hover:bg-blue-50 transition-colors"
+                >
                   <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600 mr-2" />
                   <span className="text-xs sm:text-sm font-medium text-blue-600">View Analytics</span>
                 </button>
-                <button className="w-full flex items-center justify-center p-2 sm:p-3 border-2 border-purple-200 rounded-lg hover:bg-purple-50 transition-colors">
+                <button 
+                  onClick={() => {
+                    // For now, show an alert. In a real app, this would navigate to inquiries/notifications
+                    alert('Inquiries feature coming soon! This will navigate to your message center.');
+                  }}
+                  className="w-full flex items-center justify-center p-2 sm:p-3 border-2 border-purple-200 rounded-lg hover:bg-purple-50 transition-colors"
+                >
                   <MessageSquare className="h-3 w-3 sm:h-4 sm:w-4 text-purple-600 mr-2" />
                   <span className="text-xs sm:text-sm font-medium text-purple-600">Respond to Inquiries</span>
                 </button>

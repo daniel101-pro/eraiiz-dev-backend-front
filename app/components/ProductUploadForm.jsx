@@ -10,12 +10,12 @@ import { useCurrency } from '../context/CurrencyContext';
 import { ChevronDown, Globe, DollarSign, Info, Upload, X, Plus, Minus, Package, Camera, Star, ShoppingBag, Leaf, Award } from 'lucide-react';
 
 const ProductUploadForm = () => {
-  const { getCurrencyInfo } = useCurrency();
+  const { getCurrencyInfo, selectedCurrency } = useCurrency();
   const [product, setProduct] = useState({
     name: '',
     description: '',
     price: '',
-    currency: 'NGN',
+    currency: selectedCurrency,
     category: '',
     subcategory: '',
     material: '',
@@ -28,6 +28,9 @@ const ProductUploadForm = () => {
       XXL: { available: false, stock: 0 },
       XXXL: { available: false, stock: 0 }
     },
+    colors: [
+      { name: '', available: false, stock: 0 }
+    ],
     bonus: {
       enabled: false,
       type: 'percentage',
@@ -59,6 +62,11 @@ const ProductUploadForm = () => {
   const [isCalculating, setIsCalculating] = useState(false);
   const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
   const router = useRouter();
+
+  // Update currency when selected currency changes
+  useEffect(() => {
+    setProduct(prev => ({ ...prev, currency: selectedCurrency }));
+  }, [selectedCurrency]);
 
   // Currency options
   const currencies = [
@@ -300,6 +308,29 @@ const ProductUploadForm = () => {
     }));
   };
 
+  // Color handlers
+  const handleColorChange = (index, field, value) => {
+    const newColors = [...product.colors];
+    newColors[index] = { ...newColors[index], [field]: value };
+    setProduct((prev) => ({ ...prev, colors: newColors }));
+  };
+
+  const addColor = () => {
+    setProduct((prev) => ({
+      ...prev,
+      colors: [...prev.colors, { name: '', available: false, stock: 0 }]
+    }));
+  };
+
+  const removeColor = (index) => {
+    if (product.colors.length > 1) {
+      setProduct((prev) => ({
+        ...prev,
+        colors: prev.colors.filter((_, i) => i !== index)
+      }));
+    }
+  };
+
   // Sustainability handlers
   const addMaterial = () => {
     setProduct((prev) => ({
@@ -451,9 +482,9 @@ const ProductUploadForm = () => {
       return 'Please provide shipping origin (country and city)';
     }
     
-    // Check if shipping distance is provided
-    if (!sustainability.shipping.distance || sustainability.shipping.distance <= 0) {
-      return 'Please provide shipping distance';
+    // Check if shipping distance is provided (allow 0 for local products)
+    if (sustainability.shipping.distance === undefined || sustainability.shipping.distance < 0) {
+      return 'Please provide shipping distance (0 km is allowed for local products)';
     }
     
     return null;
@@ -781,7 +812,12 @@ const ProductUploadForm = () => {
 
                 {/* Product Details */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Product Details</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Product Details <span className="text-gray-500 font-normal">(Optional)</span>
+                  </label>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Add specific details about your product (e.g., dimensions, special features, care instructions)
+                  </p>
                   <div className="space-y-2">
                     {product.details.map((detail, index) => (
                       <div key={index} className="flex gap-2">
@@ -790,7 +826,7 @@ const ProductUploadForm = () => {
                           value={detail}
                           onChange={(e) => handleDetailChange(index, e.target.value)}
                           className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
-                          placeholder="Enter product detail..."
+                          placeholder="e.g., Dimensions: 10cm x 15cm, Hand-wash only, Made from 100% recycled materials..."
                         />
                         {index > 0 && (
                           <button
@@ -914,6 +950,93 @@ const ProductUploadForm = () => {
                         <li>Sizes are optional - you can skip this section if your product doesn't have sizes</li>
                         <li>Only select sizes that are available for your product</li>
                         <li>Stock quantities help customers know availability</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Color Variants */}
+              <div>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-8 h-8 bg-pink-100 rounded-lg flex items-center justify-center">
+                    <Package className="h-5 w-5 text-pink-600" />
+                  </div>
+                  <h2 className="text-xs sm:text-sm md:text-base font-bold text-gray-900">Color Variants</h2>
+                  <span className="text-gray-500 text-sm font-medium">(Optional)</span>
+                </div>
+
+                <div className="space-y-4">
+                  {product.colors.map((color, index) => (
+                    <div key={index} className="border border-gray-200 rounded-xl p-4">
+                      <div className="flex items-center gap-4">
+                        <div className="flex-1">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Color Name</label>
+                          <input
+                            type="text"
+                            value={color.name}
+                            onChange={(e) => handleColorChange(index, 'name', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                            placeholder="e.g., Red, Blue, Green, Natural..."
+                          />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <label className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={color.available}
+                              onChange={(e) => handleColorChange(index, 'available', e.target.checked)}
+                              className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                            />
+                            <span className="text-sm font-medium text-gray-700">Available</span>
+                          </label>
+                          {product.colors.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => removeColor(index)}
+                              className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      {color.available && (
+                        <div className="mt-3">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Stock Quantity</label>
+                          <input
+                            type="number"
+                            value={color.stock}
+                            onChange={(e) => handleColorChange(index, 'stock', parseInt(e.target.value) || 0)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                            placeholder="Stock quantity"
+                            min="0"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  
+                  <button
+                    type="button"
+                    onClick={addColor}
+                    className="flex items-center gap-2 text-green-600 hover:text-green-700 p-2 hover:bg-green-50 rounded-xl transition-colors duration-200"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add Color Variant
+                  </button>
+                </div>
+                
+                {/* Optional note */}
+                <div className="mt-4 p-3 bg-gray-50 rounded-xl border border-gray-200">
+                  <div className="flex items-start gap-2">
+                    <Info className="h-4 w-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                    <div className="text-xs text-gray-600">
+                      <p className="font-medium mb-1">💡 Color Variants:</p>
+                      <ul className="list-disc list-inside space-y-1">
+                        <li>Add different colors or finishes available for your product</li>
+                        <li>You can skip this section if your product only comes in one color</li>
+                        <li>Each color can have its own stock quantity</li>
                       </ul>
                     </div>
                   </div>
@@ -1223,13 +1346,14 @@ const ProductUploadForm = () => {
                          <label className="block text-sm font-medium text-gray-700 mb-2">Distance (km)</label>
                          <input
                            type="number"
-                           placeholder="0"
+                           placeholder="0 (for local products)"
                            value={product.sustainability.shipping.distance}
                            onChange={(e) => updateShipping('distance', Number(e.target.value))}
                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent"
                            min="0"
                            required
                          />
+                         <p className="text-xs text-gray-500 mt-1">Enter 0 if your product is made locally and doesn't require shipping</p>
                        </div>
                        <div>
                          <label className="block text-sm font-medium text-gray-700 mb-2">Packaging Type</label>

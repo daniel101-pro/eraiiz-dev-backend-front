@@ -3,9 +3,12 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Image from 'next/image';
-import { Edit2, Trash2, Eye, DollarSign, Package, Calendar, MoreVertical, Search } from 'lucide-react';
+import Link from 'next/link';
+import { Edit2, Trash2, Eye, DollarSign, Package, Calendar, MoreVertical, Search, Plus } from 'lucide-react';
+import { useCurrency } from '../../context/CurrencyContext';
 
 export default function UploadedProducts({ onTokenError }) {
+  const { formatPrice, convertPrice, getCurrencyInfo } = useCurrency();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -173,10 +176,12 @@ export default function UploadedProducts({ onTokenError }) {
           <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No Products Found</h3>
           <p className="text-gray-500 mb-6">{error}</p>
-          <button className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-            <Package className="w-4 h-4 mr-2" />
-            Upload Your First Product
-          </button>
+          <Link href="/dashboard/seller/upload">
+            <button className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+              <Package className="w-4 h-4 mr-2" />
+              Upload Your First Product
+            </button>
+          </Link>
         </div>
       </div>
     );
@@ -194,7 +199,17 @@ export default function UploadedProducts({ onTokenError }) {
             </p>
           </div>
           
-          {/* Search and Filters */}
+          {/* Upload New Product Button */}
+          <Link href="/dashboard/seller/upload">
+            <button className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
+              <Plus className="w-4 h-4" />
+              Upload New Product
+            </button>
+          </Link>
+        </div>
+        
+        {/* Search and Filters */}
+        <div className="mt-4">
           <div className="flex flex-col sm:flex-row gap-3">
             {/* Search */}
             <div className="relative">
@@ -265,7 +280,7 @@ export default function UploadedProducts({ onTokenError }) {
                     <div className="flex items-center text-green-600">
                       <DollarSign className="w-4 h-4" />
                       <span className="font-bold text-lg">
-                        {product.price.toLocaleString()}
+                        {formatPrice(convertPrice(product.price, product.currency || 'NGN'))}
                       </span>
                     </div>
                     <div className="text-gray-500 text-xs">
@@ -359,7 +374,9 @@ export default function UploadedProducts({ onTokenError }) {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Price (₦)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Price ({getCurrencyInfo(editingProduct.currency || 'NGN').symbol})
+                </label>
                 <input
                   type="number"
                   name="price"
@@ -368,6 +385,9 @@ export default function UploadedProducts({ onTokenError }) {
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   required
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Currently in {editingProduct.currency || 'NGN'} - buyers will see this in their preferred currency
+                </p>
               </div>
               
               <div>

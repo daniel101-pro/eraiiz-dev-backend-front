@@ -39,6 +39,7 @@ export default function DualNavbarSell({ handleLogout }) {
   });
   const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
   const [userRole, setUserRole] = useState(null); // Initially null to avoid SSR mismatch
+  const [notificationCount, setNotificationCount] = useState(0);
 
   // Currency options
   const currencies = [
@@ -271,6 +272,38 @@ export default function DualNavbarSell({ handleLogout }) {
     };
   }, [handleScroll]);
 
+  // Fetch notification count
+  useEffect(() => {
+    const fetchNotificationCount = async () => {
+      try {
+        const token = localStorage.getItem('accessToken');
+        if (!token) return;
+
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          const notifications = await response.json();
+          const unreadCount = notifications.filter(n => !n.read).length;
+          setNotificationCount(unreadCount);
+        }
+      } catch (error) {
+        console.error('Error fetching notification count:', error);
+      }
+    };
+
+    fetchNotificationCount();
+
+    // Poll for updates every 30 seconds
+    const interval = setInterval(fetchNotificationCount, 30000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <>
       <div 
@@ -298,6 +331,16 @@ export default function DualNavbarSell({ handleLogout }) {
               </div>
             </div>
             <div className="flex items-center gap-4">
+              <Link href="/account/notifications" className="text-gray-600 hover:text-green-600 relative">
+                <div className="relative">
+                  <Bell className="h-5 w-5" />
+                  {notificationCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full min-w-[14px] h-3.5 flex items-center justify-center px-0.5 font-medium">
+                      {notificationCount > 99 ? '99+' : notificationCount}
+                    </span>
+                  )}
+                </div>
+              </Link>
               <div className="relative">
                 <button 
                   onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)} 
@@ -473,6 +516,18 @@ export default function DualNavbarSell({ handleLogout }) {
             <div className="flex-1 overflow-y-auto bg-white">
               <div className="p-4 flex flex-col gap-4">
                 <nav className="flex flex-col gap-3 text-sm text-gray-600">
+                  <Link href="/account/notifications" className="nav-link hover:text-green-600 relative group flex items-center gap-2" onClick={toggleSidebar}>
+                    <div className="relative">
+                      <Bell className="h-4 w-4 group-hover:animate-float" />
+                      {notificationCount > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full min-w-[12px] h-3 flex items-center justify-center px-0.5 font-medium">
+                          {notificationCount > 99 ? '99+' : notificationCount}
+                        </span>
+                      )}
+                    </div>
+                    <span className="group-hover:animate-float">Notifications</span>
+                    <span className="nav-link-effect"></span>
+                  </Link>
                   <Link href="/seller-about" className="nav-link hover:text-green-600 relative group" onClick={toggleSidebar}>
                     <span className="group-hover:animate-float">About Eraiiz</span>
                     <span className="nav-link-effect"></span>
@@ -802,10 +857,11 @@ export default function DualNavbarSell({ handleLogout }) {
                 <Link href="/account/notifications" className="text-gray-600 hover:text-green-600 relative group transform transition-transform hover:-translate-y-1" aria-label="Notifications">
                   <div className="relative">
                     <Bell className="h-6 w-6 group-hover:animate-float" />
-                    {/* Notification badge - you can add logic to show unread count */}
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                      0
-                    </span>
+                    {notificationCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full min-w-[16px] h-4 flex items-center justify-center px-1 font-medium animate-pulse">
+                        {notificationCount > 99 ? '99+' : notificationCount}
+                      </span>
+                    )}
                   </div>
                 </Link>
                 <Link href="/account" className="text-gray-600 hover:text-green-600 relative group transform transition-transform hover:-translate-y-1" aria-label="Account">
