@@ -11,7 +11,7 @@ import axios from 'axios';
 import { debounce } from 'lodash';
 
 // Icons from lucide-react
-import { ShoppingCart, User, ChevronDown, Search, Filter, Menu, X, LogOut, Clock, ArrowRight, Globe, Bell } from 'lucide-react';
+import { ShoppingCart, User, ChevronDown, Search, Filter, Menu, X, LogOut, Clock, ArrowRight, Globe, Bell, Check, Eye, AlertCircle, Package, Calendar } from 'lucide-react';
 
 export default function DualNavbarSell({ handleLogout }) {
   const router = useRouter();
@@ -40,6 +40,10 @@ export default function DualNavbarSell({ handleLogout }) {
   const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
   const [userRole, setUserRole] = useState(null); // Initially null to avoid SSR mismatch
   const [notificationCount, setNotificationCount] = useState(0);
+  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const [selectedNotification, setSelectedNotification] = useState(null);
 
   // Currency options
   const currencies = [
@@ -304,6 +308,102 @@ export default function DualNavbarSell({ handleLogout }) {
     return () => clearInterval(interval);
   }, []);
 
+  // Fetch notifications when modal opens
+  const fetchNotifications = async () => {
+    try {
+      setNotificationsLoading(true);
+      const token = localStorage.getItem('accessToken');
+      if (!token) return;
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setNotifications(data);
+        const unreadCount = data.filter(n => !n.read).length;
+        setNotificationCount(unreadCount);
+      }
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    } finally {
+      setNotificationsLoading(false);
+    }
+  };
+
+  // Handle opening notification modal
+  const handleOpenNotificationModal = () => {
+    setIsNotificationModalOpen(true);
+    fetchNotifications();
+  };
+
+  // Handle marking notification as read
+  const handleMarkAsRead = async (notificationId) => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications/${notificationId}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ read: true }),
+      });
+
+      if (response.ok) {
+        setNotifications(notifications.map(notif => 
+          notif._id === notificationId ? { ...notif, read: true } : notif
+        ));
+        setNotificationCount(Math.max(0, notificationCount - 1));
+        if (selectedNotification && selectedNotification._id === notificationId) {
+          setSelectedNotification({ ...selectedNotification, read: true });
+        }
+      }
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  };
+
+  // Handle notification click
+  const handleNotificationClick = async (notification) => {
+    setSelectedNotification(notification);
+    if (!notification.read) {
+      await handleMarkAsRead(notification._id);
+    }
+  };
+
+  // Get notification icon
+  const getNotificationIcon = (type) => {
+    switch (type?.toLowerCase()) {
+      case 'order':
+        return <ShoppingCart className="w-5 h-5" />;
+      case 'product':
+        return <Package className="w-5 h-5" />;
+      case 'account':
+        return <User className="w-5 h-5" />;
+      default:
+        return <Bell className="w-5 h-5" />;
+    }
+  };
+
+  // Get notification color
+  const getNotificationColor = (type) => {
+    switch (type?.toLowerCase()) {
+      case 'order':
+        return 'bg-blue-100 text-blue-600';
+      case 'product':
+        return 'bg-green-100 text-green-600';
+      case 'account':
+        return 'bg-purple-100 text-purple-600';
+      default:
+        return 'bg-gray-100 text-gray-600';
+    }
+  };
+
   return (
     <>
       <div 
@@ -331,7 +431,11 @@ export default function DualNavbarSell({ handleLogout }) {
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <Link href="/account/notifications" className="text-gray-600 hover:text-green-600 relative">
+              <button 
+                onClick={handleOpenNotificationModal}
+                className="text-gray-600 hover:text-green-600 relative"
+                aria-label="Notifications"
+              >
                 <div className="relative">
                   <Bell className="h-5 w-5" />
                   {notificationCount > 0 && (
@@ -340,7 +444,7 @@ export default function DualNavbarSell({ handleLogout }) {
                     </span>
                   )}
                 </div>
-              </Link>
+              </button>
               <div className="relative">
                 <button 
                   onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)} 
@@ -854,7 +958,11 @@ export default function DualNavbarSell({ handleLogout }) {
                     )}
                   </div>
                 </Link>
-                <Link href="/account/notifications" className="text-gray-600 hover:text-green-600 relative group transform transition-transform hover:-translate-y-1" aria-label="Notifications">
+                <button 
+                  onClick={handleOpenNotificationModal}
+                  className="text-gray-600 hover:text-green-600 relative group transform transition-transform hover:-translate-y-1" 
+                  aria-label="Notifications"
+                >
                   <div className="relative">
                     <Bell className="h-6 w-6 group-hover:animate-float" />
                     {notificationCount > 0 && (
@@ -863,7 +971,7 @@ export default function DualNavbarSell({ handleLogout }) {
                       </span>
                     )}
                   </div>
-                </Link>
+                </button>
                 <Link href="/account" className="text-gray-600 hover:text-green-600 relative group transform transition-transform hover:-translate-y-1" aria-label="Account">
                   <User className="h-6 w-6 group-hover:animate-float" />
                 </Link>
@@ -1185,6 +1293,134 @@ export default function DualNavbarSell({ handleLogout }) {
           transform: scale(1.1);
         }
       `}</style>
+
+      {/* Notification Modal */}
+      {isNotificationModalOpen && (
+        <>
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 backdrop-blur-sm bg-white/10 z-50"
+            onClick={() => {
+              setIsNotificationModalOpen(false);
+              setSelectedNotification(null);
+            }}
+          />
+          
+          {/* Modal */}
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+            <div 
+              className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden pointer-events-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between z-10">
+                <h2 className="text-2xl font-bold text-gray-900">Notifications</h2>
+                <button
+                  onClick={() => {
+                    setIsNotificationModalOpen(false);
+                    setSelectedNotification(null);
+                  }}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+
+              {/* Modal Content */}
+              <div className="overflow-y-auto max-h-[calc(90vh-80px)]">
+                {notificationsLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+                  </div>
+                ) : notifications.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Bell className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-500">No notifications</p>
+                  </div>
+                ) : selectedNotification ? (
+                  // Notification Detail View
+                  <div className="p-6 space-y-6">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-3 rounded-lg ${getNotificationColor(selectedNotification.type)}`}>
+                        {getNotificationIcon(selectedNotification.type)}
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          {selectedNotification.title || 'Notification'}
+                        </h3>
+                        <p className="text-sm text-gray-500">
+                          {new Date(selectedNotification.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-50 rounded-lg p-6">
+                      <p className="text-gray-900 leading-relaxed">
+                        {selectedNotification.message}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+                      <button
+                        onClick={() => setSelectedNotification(null)}
+                        className="px-4 py-2 text-gray-600 hover:text-gray-800 text-sm font-medium"
+                      >
+                        ← Back to List
+                      </button>
+                      {!selectedNotification.read && (
+                        <button
+                          onClick={() => handleMarkAsRead(selectedNotification._id)}
+                          className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+                        >
+                          <Check className="w-4 h-4" />
+                          Mark as Read
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  // Notification List View
+                  <div className="divide-y divide-gray-200">
+                    {notifications.map((notif) => (
+                      <div
+                        key={notif._id}
+                        onClick={() => handleNotificationClick(notif)}
+                        className={`p-4 hover:bg-gray-50 transition-colors cursor-pointer ${
+                          !notif.read ? 'bg-blue-50/50' : ''
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className={`p-2 rounded-lg flex-shrink-0 ${getNotificationColor(notif.type)}`}>
+                            {getNotificationIcon(notif.type)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex-1">
+                                <h3 className="font-medium text-gray-900">
+                                  {notif.title || 'Notification'}
+                                </h3>
+                                <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                                  {notif.message}
+                                </p>
+                                <p className="text-xs text-gray-500 mt-2">
+                                  {new Date(notif.createdAt).toLocaleDateString()}
+                                </p>
+                              </div>
+                              {!notif.read && (
+                                <span className="flex-shrink-0 w-2 h-2 bg-blue-600 rounded-full mt-1"></span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </>
   );
 }

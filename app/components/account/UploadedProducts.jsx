@@ -8,7 +8,7 @@ import { Edit2, Trash2, Eye, DollarSign, Package, Calendar, MoreVertical, Search
 import { useCurrency } from '../../context/CurrencyContext';
 
 export default function UploadedProducts({ onTokenError }) {
-  const { formatPrice, convertPrice, getCurrencyInfo } = useCurrency();
+  const { formatPrice, convertPrice, convertPriceExplicit, getCurrencyInfo, selectedCurrency } = useCurrency();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -17,6 +17,20 @@ export default function UploadedProducts({ onTokenError }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
+
+  // Currency options
+  const currencies = [
+    { code: 'NGN', symbol: '₦', name: 'Nigerian Naira', flag: '🇳🇬' },
+    { code: 'USD', symbol: '$', name: 'US Dollar', flag: '🇺🇸' },
+    { code: 'EUR', symbol: '€', name: 'Euro', flag: '🇪🇺' },
+    { code: 'GBP', symbol: '£', name: 'British Pound', flag: '🇬🇧' },
+    { code: 'JPY', symbol: '¥', name: 'Japanese Yen', flag: '🇯🇵' },
+    { code: 'CHF', symbol: 'CHF', name: 'Swiss Franc', flag: '🇨🇭' },
+    { code: 'CAD', symbol: 'C$', name: 'Canadian Dollar', flag: '🇨🇦' },
+    { code: 'AUD', symbol: 'A$', name: 'Australian Dollar', flag: '🇦🇺' },
+    { code: 'CNY', symbol: '¥', name: 'Chinese Yuan', flag: '🇨🇳' },
+    { code: 'INR', symbol: '₹', name: 'Indian Rupee', flag: '🇮🇳' },
+  ];
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -63,17 +77,32 @@ export default function UploadedProducts({ onTokenError }) {
   };
 
   const handleEdit = (product) => {
-    setEditingProduct({ ...product });
+    // Convert the price to the user's current currency for editing
+    const convertedPrice = convertPrice(product.price, product.currency || 'NGN');
+    setEditingProduct({ 
+      ...product, 
+      currency: selectedCurrency, // Use user's current currency setting
+      price: convertedPrice // Convert price to current currency
+    });
   };
 
   const handleSaveEdit = async (e) => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('accessToken');
+      
+      // Find the original product to get its original currency
+      const originalProduct = products.find(p => p._id === editingProduct._id);
+      const originalCurrency = originalProduct?.currency || 'NGN';
+      
+      // Convert price back to original currency for storage
+      const priceInOriginalCurrency = convertPriceExplicit(editingProduct.price, editingProduct.currency, originalCurrency);
+      
       const res = await axios.patch(`${process.env.NEXT_PUBLIC_API_URL}/api/products/${editingProduct._id}`, {
         name: editingProduct.name,
         description: editingProduct.description,
-        price: editingProduct.price,
+        price: priceInOriginalCurrency,
+        currency: originalCurrency, // Keep original currency for storage
         category: editingProduct.category,
         status: editingProduct.status,
       }, {
@@ -88,6 +117,20 @@ export default function UploadedProducts({ onTokenError }) {
 
   const handleChange = (e) => {
     setEditingProduct({ ...editingProduct, [e.target.name]: e.target.value });
+  };
+
+  const handleCurrencyChange = (e) => {
+    const newCurrency = e.target.value;
+    const oldCurrency = editingProduct.currency;
+    
+    // Convert price when currency changes
+    const convertedPrice = convertPriceExplicit(editingProduct.price, oldCurrency, newCurrency);
+    
+    setEditingProduct({ 
+      ...editingProduct, 
+      currency: newCurrency,
+      price: convertedPrice
+    });
   };
 
   // Filter and sort products
@@ -375,18 +418,35 @@ export default function UploadedProducts({ onTokenError }) {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Price ({getCurrencyInfo(editingProduct.currency || 'NGN').symbol})
+                  Price & Currency
                 </label>
-                <input
-                  type="number"
-                  name="price"
-                  value={editingProduct.price || ''}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  required
-                />
+                <div className="flex gap-2">
+                  <select
+                    name="currency"
+                    value={editingProduct.currency || selectedCurrency}
+                    onChange={handleCurrencyChange}
+                    className="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  >
+                    {currencies.map((currency) => (
+                      <option key={currency.code} value={currency.code}>
+                        {currency.flag} {currency.code}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="number"
+                    name="price"
+                    value={editingProduct.price || ''}
+                    onChange={handleChange}
+                    className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    placeholder="0.00"
+                    step="0.01"
+                    min="0"
+                    required
+                  />
+                </div>
                 <p className="text-xs text-gray-500 mt-1">
-                  Currently in {editingProduct.currency || 'NGN'} - buyers will see this in their preferred currency
+                  Price will be converted automatically when you change currency. Buyers see prices in their preferred currency.
                 </p>
               </div>
               
