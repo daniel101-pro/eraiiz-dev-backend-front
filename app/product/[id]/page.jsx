@@ -418,7 +418,7 @@ export default function ProductDetail() {
   if (error || !product) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <Link href="/products" className="text-green-600 mb-4 inline-block">← Back to products section</Link>
+        <Link href="/for-you" className="text-green-600 mb-4 inline-block">← Back to products section</Link>
         <div className="text-red-600 text-center">{error || 'Product not found'}</div>
       </div>
     );
@@ -431,7 +431,7 @@ export default function ProductDetail() {
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
-          <Link href="/products" className="inline-flex items-center text-gray-600 hover:text-gray-900">
+          <Link href="/for-you" className="inline-flex items-center text-gray-600 hover:text-gray-900">
             <span className="mr-2">←</span>
             Back to products section
           </Link>

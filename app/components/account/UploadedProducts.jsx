@@ -14,6 +14,8 @@ export default function UploadedProducts({ onTokenError }) {
   const [error, setError] = useState(null);
   const [editingProduct, setEditingProduct] = useState(null);
   const [deleteProduct, setDeleteProduct] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [editError, setEditError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
@@ -77,10 +79,11 @@ export default function UploadedProducts({ onTokenError }) {
   };
 
   const handleEdit = (product) => {
+    setEditError(null);
     // Convert the price to the user's current currency for editing
     const convertedPrice = convertPrice(product.price, product.currency || 'NGN');
-    setEditingProduct({ 
-      ...product, 
+    setEditingProduct({
+      ...product,
       currency: selectedCurrency, // Use user's current currency setting
       price: convertedPrice // Convert price to current currency
     });
@@ -88,16 +91,18 @@ export default function UploadedProducts({ onTokenError }) {
 
   const handleSaveEdit = async (e) => {
     e.preventDefault();
+    setSaving(true);
+    setEditError(null);
     try {
       const token = localStorage.getItem('accessToken');
-      
+
       // Find the original product to get its original currency
       const originalProduct = products.find(p => p._id === editingProduct._id);
       const originalCurrency = originalProduct?.currency || 'NGN';
-      
+
       // Convert price back to original currency for storage
-      const priceInOriginalCurrency = convertPriceExplicit(editingProduct.price, editingProduct.currency, originalCurrency);
-      
+      const priceInOriginalCurrency = Number(convertPriceExplicit(editingProduct.price, editingProduct.currency, originalCurrency));
+
       const res = await axios.patch(`${process.env.NEXT_PUBLIC_API_URL}/api/products/${editingProduct._id}`, {
         name: editingProduct.name,
         description: editingProduct.description,
@@ -107,11 +112,15 @@ export default function UploadedProducts({ onTokenError }) {
         status: editingProduct.status,
       }, {
         headers: { 'Authorization': `Bearer ${token}` },
+        timeout: 30000,
       });
-      setProducts(products.map((p) => p._id === editingProduct._id ? res.data : p));
+      const updatedProduct = res.data.product || res.data;
+      setProducts(products.map((p) => p._id === editingProduct._id ? updatedProduct : p));
       setEditingProduct(null);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to update product');
+      setEditError(err.response?.data?.message || 'Failed to update product');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -393,6 +402,7 @@ export default function UploadedProducts({ onTokenError }) {
             </div>
             
             <form onSubmit={handleSaveEdit} className="p-6 space-y-5">
+              {editError && <p className="text-red-600 text-sm mb-2">{editError}</p>}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Product Name</label>
                 <input
@@ -483,13 +493,14 @@ export default function UploadedProducts({ onTokenError }) {
               <div className="flex gap-3 pt-4">
                 <button
                   type="submit"
-                  className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors font-medium"
+                  disabled={saving}
+                  className={`flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors font-medium ${saving ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  Save Changes
+                  {saving ? 'Saving...' : 'Save Changes'}
                 </button>
                 <button
                   type="button"
-                  onClick={() => setEditingProduct(null)}
+                  onClick={() => { setEditingProduct(null); setEditError(null); }}
                   className="flex-1 bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors font-medium"
                 >
                   Cancel

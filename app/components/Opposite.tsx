@@ -1,15 +1,40 @@
 "use client";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/all";
+import axios from "axios";
+import Link from "next/link";
 
 // Register GSAP plugin
 gsap.registerPlugin(ScrollTrigger);
+
+interface Product {
+  _id: string;
+  name: string;
+  images: string[];
+  price: number;
+  category: string;
+}
 
 const Opposite = () => {
   const sectionRef = useRef(null);
   const largeImageRef = useRef(null);
   const smallImageRefs = useRef<(HTMLImageElement | null)[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/products/random`);
+        if (Array.isArray(res.data) && res.data.length > 0) {
+          setProducts(res.data.slice(0, 3));
+        }
+      } catch (err) {
+        console.error("Failed to fetch products for showcase:", err);
+      }
+    };
+    fetchProducts();
+  }, []);
 
   useEffect(() => {
     const context = gsap.context(() => {
@@ -56,39 +81,45 @@ const Opposite = () => {
     }, sectionRef);
 
     return () => context.revert();
-  }, []);
+  }, [products]);
+
+  const largeImage = products[0]?.images?.[0] || "/largeimage.png";
+  const smallImages = [
+    products[1]?.images?.[0] || "/side1.png",
+    products[2]?.images?.[0] || "/slide2.png",
+  ];
 
   return (
     <div ref={sectionRef} className="w-full max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-16 my-10 sm:my-20">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Left side - Large Image */}
-        <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-gray-100 group">
+        <Link href={products[0] ? `/product/${products[0]._id}` : "#"} className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-gray-100 group">
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           <img
             ref={largeImageRef}
-            src="/largeimage.png"
-            alt="Featured Product"
+            src={largeImage}
+            alt={products[0]?.name || "Featured Product"}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
           <div className="absolute bottom-0 left-0 right-0 p-6 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
             <p className="text-white text-sm font-medium">Discover our sustainable collection</p>
           </div>
-        </div>
+        </Link>
 
         {/* Right side - Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mt-4 lg:mt-0">
           {/* First Image */}
-          <div className="group relative aspect-[4/3] rounded-2xl overflow-hidden bg-gray-800 order-1 lg:order-1">
+          <Link href={products[1] ? `/product/${products[1]._id}` : "#"} className="group relative aspect-[4/3] rounded-2xl overflow-hidden bg-gray-800 order-1 lg:order-1">
             <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             <img
               ref={(el) => {
                 smallImageRefs.current[0] = el;
               }}
-              src="/side1.png"
-              alt="Product View"
+              src={smallImages[0]}
+              alt={products[1]?.name || "Product View"}
               className="w-full h-full object-cover grayscale transition-all duration-500 group-hover:grayscale-0 group-hover:scale-105"
             />
-          </div>
+          </Link>
 
           {/* First Text Card (Black) */}
           <div className="group bg-black rounded-2xl p-6 sm:p-8 flex flex-col justify-between overflow-hidden relative order-2 lg:order-2">
@@ -105,17 +136,17 @@ const Opposite = () => {
           </div>
 
           {/* Second Image */}
-          <div className="group relative aspect-[4/3] rounded-2xl overflow-hidden order-3 lg:order-4">
+          <Link href={products[2] ? `/product/${products[2]._id}` : "#"} className="group relative aspect-[4/3] rounded-2xl overflow-hidden order-3 lg:order-4">
             <div className="absolute inset-0 bg-gradient-to-br from-blue-200 to-purple-200 opacity-75 group-hover:opacity-90 transition-opacity duration-300" />
             <img
               ref={(el) => {
                 smallImageRefs.current[1] = el;
               }}
-              src="/slide2.png"
-              alt="Product Showcase"
+              src={smallImages[1]}
+              alt={products[2]?.name || "Product Showcase"}
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
-          </div>
+          </Link>
 
           {/* Second Text Card (White) */}
           <div className="group bg-white rounded-2xl p-6 sm:p-8 flex flex-col justify-between border border-gray-100 hover:border-[#00B300] transition-all duration-300 hover:shadow-xl order-4 lg:order-3">

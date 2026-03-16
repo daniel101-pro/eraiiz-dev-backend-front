@@ -174,7 +174,7 @@ const Page = () => {
             draggable={false}
           />
         </div>
-        <div className="h-full w-full flex flex-col justify-center text-center -mt-36 sm:-mt-[250px] px-4 sm:px-6">
+        <div className="h-full w-full flex flex-col justify-center text-center -mt-36 sm:-mt-[180px] px-4 sm:px-6">
           <h1
             ref={textRef}
             className="text-black text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-medium mt-10 sm:mt-4 md:mt-6 leading-tight md:leading-tight text-center"

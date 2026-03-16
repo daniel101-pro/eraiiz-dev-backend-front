@@ -61,7 +61,7 @@ export default function ForYouPage() {
                       className="w-full h-40 object-cover rounded"
                     />
                     <h3 className="mt-2 text-sm font-semibold text-gray-800">{product.name}</h3>
-                    <p className="text-green-600 font-bold">₦{product.price.toLocaleString()}</p>
+                    <p className="text-green-600 font-bold">${product.price.toLocaleString()}</p>
                     <p className="text-xs text-gray-500">Category: {product.category}</p>
                   </div>
                 </Link>
